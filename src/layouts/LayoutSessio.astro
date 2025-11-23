@@ -1,0 +1,67 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "FreshExpress - Accedeix al teu compte" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/logotip-cut.png" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <meta name="keywords" content="entrega ràpida, micro-logística, productes frescos, 30 minuts, Catalunya, Barcelona" />
+    <meta name="author" content="FreshExpress" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <title>{title}</title>
+  </head>
+  <body class="bg-white min-h-screen">
+   
+    <div class="absolute top-6 left-6 z-10">
+      <a 
+        href="/" 
+        class="inline-flex items-center space-x-2 px-4 py-2 text-[#0047AB] hover:text-[#3BB143] transition-colors duration-200 group"
+      >
+        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span class="font-medium">Tornar</span>
+      </a>
+    </div>
+
+    <main class="min-h-screen flex items-center justify-center px-4 py-12">
+      <slot />
+    </main>
+
+  </body>
+</html>
+
+<style is:global>
+  html {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    background: #ffffff;
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    color: #1a1a1a;
+    line-height: 1.6;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+</style>
