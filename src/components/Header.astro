@@ -1,20 +1,132 @@
 ---
-console.log("javascript");
+
 ---
 
-<header class="py-8 px-4 mx-auto max-w-xl lg:py-16 lg:px-6">
-  <div class="mx-auto text-center mb-8 lg:mb-16">
-    <h2 class="mb-4 text-5xl tracking-tight font-extrabold text-white">
-      FreshExpress
-    </h2>
-    <p class="font-light text-gray-500 sm:text-xl dark:text-gray-400">
-      Micro-logística ultraràpida
-    </p>
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <a href="/" class="flex items-center">
+          <img
+            src="/logotip-cut.png"
+            alt="FreshExpress Logo"
+            class="h-12 w-auto"
+          />
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-8">
+        <a
+          href="#avantatges"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Avantatges
+        </a>
+        <a
+          href="#com-funciona"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Com Funciona
+        </a>
+        <a
+          href="#contacte"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Contacte
+        </a>
+      </nav>
+
+      <div class="flex items-center space-x-3">
+          <a
+            href="/registre"
+            class="px-6 py-2.5 bg-[#0047AB] text-white font-semibold rounded-lg hover:bg-[#003a8c] transition-all duration-200 shadow-md hover:shadow-lg"
+          >
+            Crear Compte
+          </a>
+        <a
+          href="/login"
+          class="hidden sm:inline-block px-6 py-2.5 bg-[#3BB143] text-white font-semibold rounded-lg hover:bg-[#32a039] transition-all duration-200 shadow-md hover:shadow-lg"
+        >
+          Inicia Sessió
+        </a>
+
+        <!-- Menú hamburguesa per mòbil -->
+        <button
+          id="mobile-menu-btn"
+          class="md:hidden p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
+          aria-label="Obrir menú"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="mobile-menu"
+      class="hidden md:hidden mt-4 pb-4 border-t border-gray-200 pt-4"
+    >
+      <nav class="flex flex-col space-y-3">
+        <a
+          href="#avantatges"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
+        >
+          Avantatges
+        </a>
+        <a
+          href="#com-funciona"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
+        >
+          Com Funciona
+        </a>
+        <a
+          href="#contacte"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
+        >
+          Contacte
+        </a>
+        <a
+          href="/login"
+          class="sm:hidden inline-block text-center px-6 py-2.5 bg-[#3BB143] text-white font-semibold rounded-lg hover:bg-[#32a039] transition-all duration-200"
+        >
+          Inicia Sessió
+        </a>
+      </nav>
+    </div>
   </div>
-  <nav
-    class="flex flex-col item-center justify-between w-full text-center md:flex-row"
-  >
-    <a class="text-white" href="/">Sobre Nosaltres</a>
-    <a class="text-white" href="/">Sobre Nosaltres2</a>
-  </nav>
 </header>
+
+<script>
+  // JavaScript per al menú mòbil
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+
+  mobileMenuBtn?.addEventListener("click", () => {
+    mobileMenu?.classList.toggle("hidden");
+  });
+
+  // Tancar menú en fer clic a un enllaç
+  const mobileLinks = mobileMenu?.querySelectorAll("a");
+  mobileLinks?.forEach((link) => {
+    link.addEventListener("click", () => {
+      mobileMenu?.classList.add("hidden");
+    });
+  });
+</script>
+
+<style>
+  /* Smooth scroll per als enllaços d'ancoratge */
+  html {
+    scroll-behavior: smooth;
+  }
+</style>
