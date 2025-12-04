@@ -295,8 +295,10 @@
 
       <!-- Secció de Consentiments -->
       <div class="space-y-4 border-t border-gray-200 pt-6">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">Gestió del consentiment</h3>
-        
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">
+          Gestió del consentiment
+        </h3>
+
         <!-- Termes obligatoris -->
         <div class="flex items-start">
           <div class="flex items-center h-5">
@@ -339,7 +341,8 @@
           <label for="consent-marketing" class="ml-3 text-sm text-gray-700">
             <span class="font-medium">Comunicacions comercials</span>
             <p class="text-xs text-gray-500 mt-1">
-              Vull rebre ofertes personalitzades, novetats i promocions exclusives per email.
+              Vull rebre ofertes personalitzades, novetats i promocions
+              exclusives per email.
             </p>
           </label>
         </div>
@@ -357,13 +360,16 @@
           <label for="consent-analytics" class="ml-3 text-sm text-gray-700">
             <span class="font-medium">Anàlisi de comportament</span>
             <p class="text-xs text-gray-500 mt-1">
-              Permetre l'anàlisi del meu comportament de navegació per millorar l'experiència del servei.
+              Permetre l'anàlisi del meu comportament de navegació per millorar
+              l'experiència del servei.
             </p>
           </label>
         </div>
 
         <!-- Consentiment Data Broker -->
-        <div class="flex items-start bg-green-50 p-3 rounded-lg border border-green-100">
+        <div
+          class="flex items-start bg-green-50 p-3 rounded-lg border border-green-100"
+        >
           <div class="flex items-center h-5">
             <input
               type="checkbox"
@@ -373,23 +379,36 @@
             />
           </div>
           <label for="consent-databroker" class="ml-3 text-sm text-gray-700">
-            <span class="font-medium text-[#3BB143]">🌱 Programa Data for Good</span>
+            <span class="font-medium text-[#3BB143]"
+              >🌱 Programa Data for Good</span
+            >
             <p class="text-xs text-gray-500 mt-1">
-              Participar en el nostre programa ètic de dades. Les teves dades <strong>anonimitzades</strong> ajuden a investigació 
-              sobre sostenibilitat i consum responsable. Rebràs <strong>descomptes exclusius</strong> i el 10% dels ingressos 
+              Participar en el nostre programa ètic de dades. Les teves dades <strong
+                >anonimitzades</strong
+              > ajuden a investigació sobre sostenibilitat i consum responsable.
+              Rebràs <strong>descomptes exclusius</strong> i el 10% dels ingressos
               generats es destinen a projectes ecològics.
-              <a href="/politica-dades" class="text-[#3BB143] hover:underline ml-1">Més informació →</a>
+              <a
+                href="/politica-dades"
+                class="text-[#3BB143] hover:underline ml-1">Més informació →</a
+              >
             </p>
           </label>
         </div>
       </div>
 
       <!-- Missatge d'error -->
-      <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      <div
+        id="error-message"
+        class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+      >
       </div>
 
       <!-- Missatge d'èxit -->
-      <div id="success-message" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+      <div
+        id="success-message"
+        class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"
+      >
       </div>
 
       <button
@@ -483,28 +502,36 @@
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     // Ocultar missatges previs
     errorMessage!.classList.add("hidden");
     successMessage!.classList.add("hidden");
 
-    const password = (document.getElementById("contrasenya") as HTMLInputElement).value;
-    const confirmPassword = (document.getElementById("confirmar-contrasenya") as HTMLInputElement).value;
+    const password = (
+      document.getElementById("contrasenya") as HTMLInputElement
+    ).value;
+    const confirmPassword = (
+      document.getElementById("confirmar-contrasenya") as HTMLInputElement
+    ).value;
 
     if (password !== confirmPassword) {
-      errorMessage!.textContent = "Les contrasenyes no coincideixen. Si us plau, verifica-les.";
+      errorMessage!.textContent =
+        "Les contrasenyes no coincideixen. Si us plau, verifica-les.";
       errorMessage!.classList.remove("hidden");
       return;
     }
 
     if (password.length < 8) {
-      errorMessage!.textContent = "La contrasenya ha de tenir mínim 8 caràcters.";
+      errorMessage!.textContent =
+        "La contrasenya ha de tenir mínim 8 caràcters.";
       errorMessage!.classList.remove("hidden");
       return;
     }
 
     // Preparar dades
-    const nomCognoms = (document.getElementById("nom-cognoms") as HTMLInputElement).value;
+    const nomCognoms = (
+      document.getElementById("nom-cognoms") as HTMLInputElement
+    ).value;
     const [nombre, ...apellidosArr] = nomCognoms.trim().split(" ");
     const apellidos = apellidosArr.join(" ");
 
@@ -512,17 +539,26 @@
       nombre,
       apellidos,
       email: (document.getElementById("email") as HTMLInputElement).value,
-      telefono: (document.getElementById("mobil") as HTMLInputElement).value || null,
+      telefono:
+        (document.getElementById("mobil") as HTMLInputElement).value || null,
       password,
       consentimientos: {
-        marketing: (document.getElementById("consent-marketing") as HTMLInputElement).checked,
-        analytics: (document.getElementById("consent-analytics") as HTMLInputElement).checked,
-        databroker: (document.getElementById("consent-databroker") as HTMLInputElement).checked
-      }
+        marketing: (
+          document.getElementById("consent-marketing") as HTMLInputElement
+        ).checked,
+        analytics: (
+          document.getElementById("consent-analytics") as HTMLInputElement
+        ).checked,
+        databroker: (
+          document.getElementById("consent-databroker") as HTMLInputElement
+        ).checked,
+      },
     };
 
     // Desactivar botó
-    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const submitBtn = form.querySelector(
+      'button[type="submit"]'
+    ) as HTMLButtonElement;
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
@@ -534,37 +570,44 @@
     `;
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        successMessage!.textContent = "Compte creat correctament! Redirigint...";
+        successMessage!.textContent =
+          "Compte creat correctament! Redirigint...";
         successMessage!.classList.remove("hidden");
-        
+
         // Activar tracking si ha donat consentiment
-        if (formData.consentimientos.analytics || formData.consentimientos.databroker) {
-          localStorage.setItem('freshexpress_tracking_consent', 'true');
+        if (
+          formData.consentimientos.analytics ||
+          formData.consentimientos.databroker
+        ) {
+          localStorage.setItem("freshexpress_tracking_consent", "true");
         }
-        
+
         // Redirigir al dashboard
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          window.location.href = "/dashboard";
         }, 1500);
       } else {
-        errorMessage!.textContent = result.error || "Error creant el compte. Si us plau, torna-ho a provar.";
+        errorMessage!.textContent =
+          result.error ||
+          "Error creant el compte. Si us plau, torna-ho a provar.";
         errorMessage!.classList.remove("hidden");
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
       }
     } catch (error) {
-      errorMessage!.textContent = "Error de connexió. Si us plau, torna-ho a provar.";
+      errorMessage!.textContent =
+        "Error de connexió. Si us plau, torna-ho a provar.";
       errorMessage!.classList.remove("hidden");
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalText;

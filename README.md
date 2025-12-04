@@ -61,6 +61,7 @@ cp .env.example .env
 ```
 
 Edita `.env`:
+
 ```env
 DB_HOST=localhost
 DB_PORT=3306
@@ -74,6 +75,7 @@ JWT_SECRET=un_secret_molt_llarg_i_segur
 ### 3. Crear les bases de dades MySQL
 
 Executa els scripts SQL proporcionats per crear les dues bases de dades:
+
 - `freshexpress_operacional` - Dades operacionals (usuaris, comandes, productes)
 - `freshexpress_databroker` - Dades anonimitzades per al data broker
 
@@ -102,12 +104,14 @@ FreshExpress implementa un model de Data Broker ètic:
 4. **Transparència** - Pàgina dedicada explicant exactament què es recull i qui hi accedeix
 
 ### Dades recollides (amb consentiment):
+
 - Patrons de compra anonimitzats
 - Comportament de navegació
 - Preferències ecològiques
 - Informació demogràfica general
 
 ### Dades MAI recollides:
+
 - Noms reals
 - Adreces exactes
 - Dades financeres
@@ -115,12 +119,12 @@ FreshExpress implementa un model de Data Broker ètic:
 
 ## 🧞 Comandes
 
-| Comanda               | Acció                                   |
-| :-------------------- | :-------------------------------------- |
-| `npm install`         | Instal·la dependències                  |
-| `npm run dev`         | Servidor de desenvolupament             |
-| `npm run build`       | Compila per producció                   |
-| `npm run preview`     | Preview del build                       |
+| Comanda           | Acció                       |
+| :---------------- | :-------------------------- |
+| `npm install`     | Instal·la dependències      |
+| `npm run dev`     | Servidor de desenvolupament |
+| `npm run build`   | Compila per producció       |
+| `npm run preview` | Preview del build           |
 
 ## 📄 Llicència
 

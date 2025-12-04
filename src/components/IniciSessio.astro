@@ -136,11 +136,17 @@
       </div>
 
       <!-- Missatge d'error -->
-      <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      <div
+        id="error-message"
+        class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+      >
       </div>
 
       <!-- Missatge d'èxit -->
-      <div id="success-message" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+      <div
+        id="success-message"
+        class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"
+      >
       </div>
 
       <button
@@ -208,16 +214,20 @@
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     // Ocultar missatges previs
     errorMessage!.classList.add("hidden");
     successMessage!.classList.add("hidden");
 
     const email = (document.getElementById("usuari") as HTMLInputElement).value;
-    const password = (document.getElementById("contrasenya") as HTMLInputElement).value;
+    const password = (
+      document.getElementById("contrasenya") as HTMLInputElement
+    ).value;
 
     // Desactivar botó
-    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const submitBtn = form.querySelector(
+      'button[type="submit"]'
+    ) as HTMLButtonElement;
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
@@ -229,37 +239,43 @@
     `;
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        successMessage!.textContent = "Sessió iniciada correctament! Redirigint...";
+        successMessage!.textContent =
+          "Sessió iniciada correctament! Redirigint...";
         successMessage!.classList.remove("hidden");
-        
+
         // Activar tracking si té consentiment
-        if (result.user?.consentimiento_analytics || result.user?.consentimiento_databroker) {
-          localStorage.setItem('freshexpress_tracking_consent', 'true');
+        if (
+          result.user?.consentimiento_analytics ||
+          result.user?.consentimiento_databroker
+        ) {
+          localStorage.setItem("freshexpress_tracking_consent", "true");
         }
-        
+
         // Redirigir al dashboard
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          window.location.href = "/dashboard";
         }, 1000);
       } else {
-        errorMessage!.textContent = result.error || "Email o contrasenya incorrectes.";
+        errorMessage!.textContent =
+          result.error || "Email o contrasenya incorrectes.";
         errorMessage!.classList.remove("hidden");
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
       }
     } catch (error) {
-      errorMessage!.textContent = "Error de connexió. Si us plau, torna-ho a provar.";
+      errorMessage!.textContent =
+        "Error de connexió. Si us plau, torna-ho a provar.";
       errorMessage!.classList.remove("hidden");
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalText;
