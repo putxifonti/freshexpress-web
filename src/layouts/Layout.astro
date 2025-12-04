@@ -51,6 +51,9 @@ import Footer from "../components/Footer.astro";
       <slot />
     </main>
     <Footer />
+    
+    <!-- Script de tracking (només si l'usuari ha donat consentiment) -->
+    <script src="/js/tracking.js" defer></script>
   </body>
 </html>
 

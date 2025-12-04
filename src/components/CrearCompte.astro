@@ -293,32 +293,103 @@
         </div>
       </div>
 
-      <div class="flex items-start">
-        <div class="flex items-center h-5">
-          <input
-            type="checkbox"
-            id="termes"
-            name="termes"
-            required
-            class="w-4 h-4 text-[#3BB143] border-gray-300 rounded focus:ring-[#3BB143] focus:ring-2"
-          />
+      <!-- Secció de Consentiments -->
+      <div class="space-y-4 border-t border-gray-200 pt-6">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Gestió del consentiment</h3>
+        
+        <!-- Termes obligatoris -->
+        <div class="flex items-start">
+          <div class="flex items-center h-5">
+            <input
+              type="checkbox"
+              id="termes"
+              name="termes"
+              required
+              class="w-4 h-4 text-[#3BB143] border-gray-300 rounded focus:ring-[#3BB143] focus:ring-2"
+            />
+          </div>
+          <label for="termes" class="ml-3 text-sm text-gray-700">
+            <span class="text-red-500">*</span> Accepto els
+            <a
+              href="/termes-condicions"
+              class="text-[#3BB143] hover:text-[#32a039] font-semibold transition-colors"
+            >
+              Termes i Condicions
+            </a>
+            i la
+            <a
+              href="/politica-privacitat"
+              class="text-[#3BB143] hover:text-[#32a039] font-semibold transition-colors"
+            >
+              Política de Privacitat
+            </a>
+          </label>
         </div>
-        <label for="termes" class="ml-3 text-sm text-gray-700">
-          Accepto els
-          <a
-            href="/termes-condicions"
-            class="text-[#3BB143] hover:text-[#32a039] font-semibold transition-colors"
-          >
-            Termes i Condicions
-          </a>
-          i la
-          <a
-            href="/politica-privacitat"
-            class="text-[#3BB143] hover:text-[#32a039] font-semibold transition-colors"
-          >
-            Política de Privacitat
-          </a>
-        </label>
+
+        <!-- Consentiment Marketing -->
+        <div class="flex items-start bg-gray-50 p-3 rounded-lg">
+          <div class="flex items-center h-5">
+            <input
+              type="checkbox"
+              id="consent-marketing"
+              name="consent-marketing"
+              class="w-4 h-4 text-[#3BB143] border-gray-300 rounded focus:ring-[#3BB143] focus:ring-2"
+            />
+          </div>
+          <label for="consent-marketing" class="ml-3 text-sm text-gray-700">
+            <span class="font-medium">Comunicacions comercials</span>
+            <p class="text-xs text-gray-500 mt-1">
+              Vull rebre ofertes personalitzades, novetats i promocions exclusives per email.
+            </p>
+          </label>
+        </div>
+
+        <!-- Consentiment Analytics -->
+        <div class="flex items-start bg-gray-50 p-3 rounded-lg">
+          <div class="flex items-center h-5">
+            <input
+              type="checkbox"
+              id="consent-analytics"
+              name="consent-analytics"
+              class="w-4 h-4 text-[#3BB143] border-gray-300 rounded focus:ring-[#3BB143] focus:ring-2"
+            />
+          </div>
+          <label for="consent-analytics" class="ml-3 text-sm text-gray-700">
+            <span class="font-medium">Anàlisi de comportament</span>
+            <p class="text-xs text-gray-500 mt-1">
+              Permetre l'anàlisi del meu comportament de navegació per millorar l'experiència del servei.
+            </p>
+          </label>
+        </div>
+
+        <!-- Consentiment Data Broker -->
+        <div class="flex items-start bg-green-50 p-3 rounded-lg border border-green-100">
+          <div class="flex items-center h-5">
+            <input
+              type="checkbox"
+              id="consent-databroker"
+              name="consent-databroker"
+              class="w-4 h-4 text-[#3BB143] border-gray-300 rounded focus:ring-[#3BB143] focus:ring-2"
+            />
+          </div>
+          <label for="consent-databroker" class="ml-3 text-sm text-gray-700">
+            <span class="font-medium text-[#3BB143]">🌱 Programa Data for Good</span>
+            <p class="text-xs text-gray-500 mt-1">
+              Participar en el nostre programa ètic de dades. Les teves dades <strong>anonimitzades</strong> ajuden a investigació 
+              sobre sostenibilitat i consum responsable. Rebràs <strong>descomptes exclusius</strong> i el 10% dels ingressos 
+              generats es destinen a projectes ecològics.
+              <a href="/politica-dades" class="text-[#3BB143] hover:underline ml-1">Més informació →</a>
+            </p>
+          </label>
+        </div>
+      </div>
+
+      <!-- Missatge d'error -->
+      <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      </div>
+
+      <!-- Missatge d'èxit -->
+      <div id="success-message" class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
       </div>
 
       <button
@@ -407,17 +478,96 @@
   });
 
   const form = document.querySelector("form");
-  form?.addEventListener("submit", (e) => {
-    const password = (
-      document.getElementById("contrasenya") as HTMLInputElement
-    ).value;
-    const confirmPassword = (
-      document.getElementById("confirmar-contrasenya") as HTMLInputElement
-    ).value;
+  const errorMessage = document.getElementById("error-message");
+  const successMessage = document.getElementById("success-message");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    // Ocultar missatges previs
+    errorMessage!.classList.add("hidden");
+    successMessage!.classList.add("hidden");
+
+    const password = (document.getElementById("contrasenya") as HTMLInputElement).value;
+    const confirmPassword = (document.getElementById("confirmar-contrasenya") as HTMLInputElement).value;
 
     if (password !== confirmPassword) {
-      e.preventDefault();
-      alert("Les contrasenyes no coincideixen. Si us plau, verifica-les.");
+      errorMessage!.textContent = "Les contrasenyes no coincideixen. Si us plau, verifica-les.";
+      errorMessage!.classList.remove("hidden");
+      return;
+    }
+
+    if (password.length < 8) {
+      errorMessage!.textContent = "La contrasenya ha de tenir mínim 8 caràcters.";
+      errorMessage!.classList.remove("hidden");
+      return;
+    }
+
+    // Preparar dades
+    const nomCognoms = (document.getElementById("nom-cognoms") as HTMLInputElement).value;
+    const [nombre, ...apellidosArr] = nomCognoms.trim().split(" ");
+    const apellidos = apellidosArr.join(" ");
+
+    const formData = {
+      nombre,
+      apellidos,
+      email: (document.getElementById("email") as HTMLInputElement).value,
+      telefono: (document.getElementById("mobil") as HTMLInputElement).value || null,
+      password,
+      consentimientos: {
+        marketing: (document.getElementById("consent-marketing") as HTMLInputElement).checked,
+        analytics: (document.getElementById("consent-analytics") as HTMLInputElement).checked,
+        databroker: (document.getElementById("consent-databroker") as HTMLInputElement).checked
+      }
+    };
+
+    // Desactivar botó
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+      <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Creant compte...
+    `;
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        successMessage!.textContent = "Compte creat correctament! Redirigint...";
+        successMessage!.classList.remove("hidden");
+        
+        // Activar tracking si ha donat consentiment
+        if (formData.consentimientos.analytics || formData.consentimientos.databroker) {
+          localStorage.setItem('freshexpress_tracking_consent', 'true');
+        }
+        
+        // Redirigir al dashboard
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
+      } else {
+        errorMessage!.textContent = result.error || "Error creant el compte. Si us plau, torna-ho a provar.";
+        errorMessage!.classList.remove("hidden");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    } catch (error) {
+      errorMessage!.textContent = "Error de connexió. Si us plau, torna-ho a provar.";
+      errorMessage!.classList.remove("hidden");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalText;
     }
   });
 </script>
