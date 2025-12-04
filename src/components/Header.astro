@@ -1,10 +1,11 @@
 ---
-
+// Header.astro - Component de capçalera per FreshExpress
 ---
 
 <header class="bg-white shadow-md sticky top-0 z-50">
   <div class="container mx-auto px-4 py-4">
     <div class="flex items-center justify-between">
+      <!-- Logotip (Esquerra) -->
       <div class="flex items-center">
         <a href="/" class="flex items-center">
           <img
@@ -15,7 +16,14 @@
         </a>
       </div>
 
+      <!-- Navegació (Centre) - Ocult en mòbil -->
       <nav class="hidden md:flex items-center space-x-8">
+        <a
+          href="#rastreig"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Rastreig
+        </a>
         <a
           href="#avantatges"
           class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
@@ -36,20 +44,22 @@
         </a>
       </nav>
 
+      <!-- Botons d'Acció (Dreta) -->
       <div class="flex items-center space-x-3">
-        <a
-          href="/registre"
-          class="px-6 py-2.5 bg-[#0047AB] text-white font-semibold rounded-lg hover:bg-[#003a8c] transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          Crear Compte
-        </a>
         <a
           href="/login"
           class="hidden sm:inline-block px-6 py-2.5 bg-[#3BB143] text-white font-semibold rounded-lg hover:bg-[#32a039] transition-all duration-200 shadow-md hover:shadow-lg"
         >
           Inicia Sessió
         </a>
+        <a
+          href="/registre"
+          class="px-6 py-2.5 bg-[#0047AB] text-white font-semibold rounded-lg hover:bg-[#003a8c] transition-all duration-200 shadow-md hover:shadow-lg"
+        >
+          Crear Compte
+        </a>
 
+        <!-- Menú hamburguesa per mòbil -->
         <button
           id="mobile-menu-btn"
           class="md:hidden p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
@@ -71,11 +81,18 @@
       </div>
     </div>
 
+    <!-- Menú mòbil (desplegable) -->
     <div
       id="mobile-menu"
       class="hidden md:hidden mt-4 pb-4 border-t border-gray-200 pt-4"
     >
       <nav class="flex flex-col space-y-3">
+        <a
+          href="#rastreig"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
+        >
+          Rastreig
+        </a>
         <a
           href="#avantatges"
           class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
