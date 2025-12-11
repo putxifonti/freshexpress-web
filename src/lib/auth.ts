@@ -131,22 +131,17 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     // Insertar usuari
     const result = await queryOperacional<any>(
       `INSERT INTO usuarios (
-        email, password_hash, nombre, apellidos, telefono,
-        direccion, ciudad, provincia, codigo_postal, fecha_nacimiento,
-        estado, preferencias
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'activo', ?)`,
+        email, password, nombre, telefono,
+        direccion, ciudad, codigo_postal, estado
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'activo')`,
       [
         data.email,
         passwordHash,
         data.nombre,
-        data.apellidos || null,
         data.telefono || null,
         data.direccion || data.direccion_envio || null,
         data.ciudad || null,
-        data.provincia || null,
-        data.codigo_postal || null,
-        data.fecha_nacimiento || null,
-        preferencias
+        data.codigo_postal || null
       ]
     );
 
@@ -166,41 +161,53 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     // Generar hash d'anonimització si té consentiment
     let hashAnonimizacion = null;
     if (data.consentimiento_databroker) {
-      hashAnonimizacion = generateAnonymousHash(userId);
-      
-      // Actualitzar usuari amb el hash
-      await queryOperacional(
-        'UPDATE usuarios SET hash_anonimizacion = ? WHERE id = ?',
-        [hashAnonimizacion, userId]
-      );
+      try {
+        hashAnonimizacion = generateAnonymousHash(userId);
+        
+        // Actualitzar usuari amb el hash
+        await queryOperacional(
+          'UPDATE usuarios SET hash_anonimizacion = ? WHERE id = ?',
+          [hashAnonimizacion, userId]
+        );
 
-      // Crear registre a la BD del data broker
-      await queryBroker(
-        `INSERT INTO datos_anonimos (
-          hash_usuario, zona_ciudad, nivel_compromiso_eco, fecha_anonimizacion
-        ) VALUES (?, ?, 'medio', NOW())`,
-        [hashAnonimizacion, data.ciudad ? `${data.ciudad}-${(data.codigo_postal || 'XX').substring(0, 2)}` : 'Desconocida-XX']
-      );
+        // Crear registre a la BD del data broker (opcional, pot fallar)
+        try {
+          await queryBroker(
+            `INSERT INTO datos_anonimos (
+              hash_usuario, codigo_postal_prefijo, nivel_compromiso_eco
+            ) VALUES (?, ?, 'medio')`,
+            [hashAnonimizacion, data.codigo_postal ? data.codigo_postal.substring(0, 3) : null]
+          );
+        } catch (brokerError) {
+          console.log('Data broker insert opcional fallit (taula pot no existir):', brokerError);
+        }
+      } catch (hashError) {
+        console.log('Error generant hash anonimització:', hashError);
+      }
     }
 
     // Registrar consentiments
-    await queryOperacional(
-      `INSERT INTO consentimientos (
-        usuario_id, consentimiento_data_broker, consentimiento_newsletter,
-        consentimiento_marketing, consentimiento_analitica
-      ) VALUES (?, ?, ?, ?, ?)`,
-      [
-        userId,
-        data.consentimiento_databroker || false,
-        data.consentimiento_newsletter || false,
-        data.consentimiento_marketing || false,
-        data.consentimiento_analytics || true
-      ]
-    );
+    try {
+      await queryOperacional(
+        `INSERT INTO consentimientos (
+          usuario_id, acepta_terminos, acepta_privacidad, acepta_cookies,
+          acepta_comunicaciones, compartir_datos, recibir_ofertas, analytics
+        ) VALUES (?, 1, 1, 1, ?, ?, ?, ?)`,
+        [
+          userId,
+          data.consentimiento_newsletter || false ? 1 : 0,
+          data.consentimiento_databroker || false ? 1 : 0,
+          data.consentimiento_newsletter || false ? 1 : 0,
+          data.consentimiento_analytics !== false ? 1 : 0
+        ]
+      );
+    } catch (consentError) {
+      console.log('Error inserint consentiments (pot continuar):', consentError);
+    }
 
     // Obtenir usuari complet
     const users = await queryOperacional<User[]>(
-      'SELECT id, email, nombre, apellidos, telefono, ciudad, estado, fecha_registro FROM usuarios WHERE id = ?',
+      'SELECT id, email, nombre, telefono, ciudad, estado, fecha_registro, rol FROM usuarios WHERE id = ?',
       [userId]
     );
 
@@ -227,7 +234,7 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     }
 
     const user = users[0];
-    const isValidPassword = await verifyPassword(password, user.password_hash);
+    const isValidPassword = await verifyPassword(password, user.password);
 
     if (!isValidPassword) {
       return { success: false, error: 'Credencials incorrectes' };
@@ -242,8 +249,8 @@ export async function loginUser(email: string, password: string): Promise<{ succ
     // Generar token
     const token = generateToken(user);
 
-    // Retornar usuari sense password_hash
-    const { password_hash, ...safeUser } = user;
+    // Retornar usuari sense password
+    const { password: _, ...safeUser } = user;
     
     return { success: true, user: safeUser, token };
   } catch (error: any) {
@@ -256,19 +263,20 @@ export async function loginUser(email: string, password: string): Promise<{ succ
 export async function getUserById(userId: number): Promise<User | null> {
   try {
     const users = await queryOperacional<any[]>(
-      `SELECT u.id, u.email, u.nombre, u.apellidos, u.telefono, u.direccion, u.ciudad, 
-              u.provincia, u.codigo_postal, u.fecha_nacimiento, u.estado, u.rol,
-              u.hash_anonimizacion, u.preferencias, u.fecha_registro, u.ultimo_login,
-              c.consentimiento_data_broker as consentimiento_databroker,
-              c.consentimiento_analitica as consentimiento_analytics,
-              c.consentimiento_marketing
+      `SELECT u.id, u.email, u.nombre, u.telefono, u.direccion, u.ciudad, 
+              u.codigo_postal, u.estado, u.rol, u.activo,
+              u.hash_anonimizacion, u.fecha_registro, u.ultimo_login,
+              c.compartir_datos as consentimiento_databroker,
+              c.analytics as consentimiento_analytics,
+              c.acepta_comunicaciones as consentimiento_marketing
        FROM usuarios u
        LEFT JOIN consentimientos c ON u.id = c.usuario_id
        WHERE u.id = ?`,
       [userId]
     );
     return users.length > 0 ? users[0] : null;
-  } catch {
+  } catch (err) {
+    console.error('Error getUserById:', err);
     return null;
   }
 }

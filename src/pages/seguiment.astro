@@ -1,0 +1,274 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { verifyToken, getUserById } from "../lib/auth";
+
+// Verificar autenticació
+const token = Astro.cookies.get("auth_token")?.value;
+let user = null;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    user = await getUserById(payload.userId);
+  }
+}
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<Layout title="Seguiment de Comandes - FreshExpress">
+  <div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Navegació -->
+      <div class="mb-6">
+        <a
+          href="/dashboard"
+          class="text-[#3BB143] hover:text-[#32a039] text-sm font-medium flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Tornar al Dashboard
+        </a>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <svg
+            class="w-7 h-7 mr-3 text-[#3BB143]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            ></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          Seguiment de Comandes
+        </h1>
+
+        <!-- Cercador de comandes -->
+        <div class="mb-8">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Introdueix el codi de seguiment
+          </label>
+          <div class="flex gap-3">
+            <input
+              type="text"
+              id="tracking-code"
+              placeholder="Ex: FE-2024-XXXXX"
+              class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent"
+            />
+            <button
+              id="search-btn"
+              class="px-6 py-3 bg-[#3BB143] text-white font-medium rounded-lg hover:bg-[#32a039] transition-colors"
+            >
+              Cercar
+            </button>
+          </div>
+        </div>
+
+        <!-- Resultat de seguiment (exemple) -->
+        <div id="tracking-result" class="hidden">
+          <div class="border border-gray-200 rounded-lg p-6">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <p class="text-sm text-gray-500">Comanda</p>
+                <p class="text-lg font-bold text-gray-900" id="result-code">
+                  FE-2024-12345
+                </p>
+              </div>
+              <span
+                id="result-status"
+                class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+              >
+                En trànsit
+              </span>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative">
+              <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
+
+              <div class="space-y-6">
+                <div class="relative flex items-start">
+                  <div
+                    class="absolute left-0 w-8 h-8 bg-[#3BB143] rounded-full flex items-center justify-center"
+                  >
+                    <svg
+                      class="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <div class="ml-12">
+                    <p class="font-medium text-gray-900">Comanda recollida</p>
+                    <p class="text-sm text-gray-500">Avui, 10:30</p>
+                  </div>
+                </div>
+
+                <div class="relative flex items-start">
+                  <div
+                    class="absolute left-0 w-8 h-8 bg-[#3BB143] rounded-full flex items-center justify-center"
+                  >
+                    <svg
+                      class="w-4 h-4 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"></path>
+                    </svg>
+                  </div>
+                  <div class="ml-12">
+                    <p class="font-medium text-gray-900">
+                      En camí al teu domicili
+                    </p>
+                    <p class="text-sm text-gray-500">Avui, 11:15</p>
+                    <p class="text-sm text-[#3BB143] mt-1">Repartidor: Marc</p>
+                  </div>
+                </div>
+
+                <div class="relative flex items-start">
+                  <div
+                    class="absolute left-0 w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center"
+                  >
+                    <span class="text-gray-600 text-xs">3</span>
+                  </div>
+                  <div class="ml-12">
+                    <p class="font-medium text-gray-400">Lliurat</p>
+                    <p class="text-sm text-gray-400">Pendent</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mapa placeholder -->
+            <div
+              class="mt-8 bg-gray-100 rounded-lg h-48 flex items-center justify-center"
+            >
+              <div class="text-center text-gray-500">
+                <svg
+                  class="w-12 h-12 mx-auto mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                  ></path>
+                </svg>
+                <p>Mapa en temps real pròximament</p>
+              </div>
+            </div>
+
+            <!-- Info ecològica -->
+            <div
+              class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <div class="flex items-center">
+                <svg
+                  class="w-6 h-6 mr-3 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  ></path></svg
+                >
+                <div>
+                  <p class="font-medium text-green-800">
+                    Lliurament 100% ecològic
+                  </p>
+                  <p class="text-sm text-green-600">
+                    Aquesta comanda s'està lliurant amb bicicleta elèctrica
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estat buit -->
+        <div id="no-orders" class="text-center py-12">
+          <svg
+            class="w-16 h-16 mx-auto text-gray-300 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            ></path>
+          </svg>
+          <p class="text-gray-500">
+            Introdueix un codi de seguiment per veure l'estat de la teva comanda
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const searchBtn = document.getElementById("search-btn");
+  const trackingCode = document.getElementById(
+    "tracking-code"
+  ) as HTMLInputElement;
+  const trackingResult = document.getElementById("tracking-result");
+  const noOrders = document.getElementById("no-orders");
+  const resultCode = document.getElementById("result-code");
+
+  searchBtn?.addEventListener("click", () => {
+    const code = trackingCode.value.trim();
+    if (code) {
+      // Simulació - en producció cridaríem a l'API
+      if (resultCode) resultCode.textContent = code;
+      trackingResult?.classList.remove("hidden");
+      noOrders?.classList.add("hidden");
+    }
+  });
+
+  trackingCode?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") searchBtn?.click();
+  });
+</script>

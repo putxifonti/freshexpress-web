@@ -1,0 +1,315 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { verifyToken, getUserById } from "../../lib/auth";
+import { queryOperacional } from "../../lib/db";
+
+// Verificar autenticació i rol
+const token = Astro.cookies.get("auth_token")?.value;
+let user = null;
+let repartidor = null;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    user = await getUserById(payload.userId);
+  }
+}
+
+if (!user || user.rol !== "repartidor") {
+  return Astro.redirect("/dashboard");
+}
+
+// Obtenir dades del repartidor
+try {
+  const repartidorData = await queryOperacional<any[]>(
+    "SELECT * FROM repartidores WHERE usuario_id = ?",
+    [user.id]
+  );
+  repartidor = repartidorData[0] || null;
+} catch (error) {
+  console.error("Error obtenint dades repartidor:", error);
+}
+
+const vehiculosTipus = [
+  { value: "bicicleta", label: "Bicicleta", icon: "🚲" },
+  { value: "moto", label: "Moto", icon: "🏍️" },
+  { value: "coche", label: "Cotxe", icon: "🚗" },
+  { value: "furgoneta", label: "Furgoneta", icon: "🚐" },
+  { value: "a_pie", label: "A peu", icon: "🚶" },
+];
+---
+
+<Layout title="Configuració - Repartidor - FreshExpress">
+  <div class="min-h-screen bg-gray-100 py-6">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Navegació -->
+      <div class="mb-6">
+        <a
+          href="/repartidor"
+          class="text-[#3BB143] hover:text-[#32a039] text-sm font-medium flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Tornar al panell
+        </a>
+      </div>
+
+      <h1 class="text-2xl font-bold text-gray-900 mb-6">
+        Configuració del repartidor
+      </h1>
+
+      <form id="config-form" class="space-y-6">
+        <!-- Tipus de vehicle -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="font-semibold text-gray-900 mb-4">Vehicle</h2>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {
+              vehiculosTipus.map((v) => (
+                <label
+                  class={`relative flex flex-col items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    repartidor?.vehiculo_tipo === v.value
+                      ? "border-[#3BB143] bg-green-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="vehiculo_tipo"
+                    value={v.value}
+                    checked={repartidor?.vehiculo_tipo === v.value}
+                    class="sr-only"
+                  />
+                  <span class="text-2xl mb-1">{v.icon}</span>
+                  <span class="text-sm text-gray-700">{v.label}</span>
+                </label>
+              ))
+            }
+          </div>
+
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Matrícula (opcional)</label
+            >
+            <input
+              type="text"
+              name="matricula"
+              value={repartidor?.matricula || ""}
+              placeholder="0000 XXX"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Zona i radi -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="font-semibold text-gray-900 mb-4">Zona de treball</h2>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Zona preferida</label
+              >
+              <select
+                name="zona_preferida"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent outline-none"
+              >
+                <option value="">Sense preferència</option>
+                <option
+                  value="Ciutat Vella"
+                  selected={repartidor?.zona_preferida === "Ciutat Vella"}
+                  >Ciutat Vella</option
+                >
+                <option
+                  value="Eixample"
+                  selected={repartidor?.zona_preferida === "Eixample"}
+                  >Eixample</option
+                >
+                <option
+                  value="Gràcia"
+                  selected={repartidor?.zona_preferida === "Gràcia"}
+                  >Gràcia</option
+                >
+                <option
+                  value="Sant Martí"
+                  selected={repartidor?.zona_preferida === "Sant Martí"}
+                  >Sant Martí</option
+                >
+                <option
+                  value="Sants-Montjuïc"
+                  selected={repartidor?.zona_preferida === "Sants-Montjuïc"}
+                  >Sants-Montjuïc</option
+                >
+                <option
+                  value="Sarrià-Sant Gervasi"
+                  selected={repartidor?.zona_preferida ===
+                    "Sarrià-Sant Gervasi"}>Sarrià-Sant Gervasi</option
+                >
+                <option
+                  value="Les Corts"
+                  selected={repartidor?.zona_preferida === "Les Corts"}
+                  >Les Corts</option
+                >
+                <option
+                  value="Horta-Guinardó"
+                  selected={repartidor?.zona_preferida === "Horta-Guinardó"}
+                  >Horta-Guinardó</option
+                >
+                <option
+                  value="Nou Barris"
+                  selected={repartidor?.zona_preferida === "Nou Barris"}
+                  >Nou Barris</option
+                >
+                <option
+                  value="Sant Andreu"
+                  selected={repartidor?.zona_preferida === "Sant Andreu"}
+                  >Sant Andreu</option
+                >
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Radi màxim (km)</label
+              >
+              <div class="flex items-center gap-4">
+                <input
+                  type="range"
+                  name="radio_km"
+                  min="1"
+                  max="15"
+                  step="0.5"
+                  value={repartidor?.radio_km || 5}
+                  class="flex-1"
+                  id="radio-slider"
+                />
+                <span
+                  id="radio-value"
+                  class="text-sm font-medium text-gray-900 w-12 text-right"
+                  >{repartidor?.radio_km || 5} km</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documentació -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="font-semibold text-gray-900 mb-4">Documentació</h2>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Llicència de conduir (opcional)</label
+            >
+            <input
+              type="text"
+              name="licencia_conducir"
+              value={repartidor?.licencia_conducir || ""}
+              placeholder="Número de llicència"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Missatges -->
+        <div
+          id="error-message"
+          class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
+        >
+        </div>
+        <div
+          id="success-message"
+          class="hidden bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm"
+        >
+        </div>
+
+        <button
+          type="submit"
+          class="w-full py-3 bg-[#3BB143] text-white font-semibold rounded-lg hover:bg-[#32a039] transition-colors"
+        >
+          Desar canvis
+        </button>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Actualitzar valor del slider
+  const radioSlider = document.getElementById(
+    "radio-slider"
+  ) as HTMLInputElement;
+  const radioValue = document.getElementById("radio-value");
+
+  radioSlider?.addEventListener("input", () => {
+    if (radioValue) {
+      radioValue.textContent = `${radioSlider.value} km`;
+    }
+  });
+
+  // Seleccionar vehicle
+  const vehicleLabels = document.querySelectorAll(
+    'label:has(input[name="vehiculo_tipo"])'
+  );
+  vehicleLabels.forEach((label) => {
+    label.addEventListener("click", () => {
+      vehicleLabels.forEach((l) => {
+        l.classList.remove("border-[#3BB143]", "bg-green-50");
+        l.classList.add("border-gray-200");
+      });
+      label.classList.remove("border-gray-200");
+      label.classList.add("border-[#3BB143]", "bg-green-50");
+    });
+  });
+
+  // Enviar formulari
+  const form = document.getElementById("config-form") as HTMLFormElement;
+  const errorMsg = document.getElementById("error-message");
+  const successMsg = document.getElementById("success-message");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const data = {
+      vehiculo_tipo: formData.get("vehiculo_tipo"),
+      matricula: formData.get("matricula"),
+      zona_preferida: formData.get("zona_preferida"),
+      radio_km: parseFloat(formData.get("radio_km") as string),
+      licencia_conducir: formData.get("licencia_conducir"),
+    };
+
+    try {
+      const res = await fetch("/api/repartidor/configuracio", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        successMsg!.textContent = "Configuració desada correctament!";
+        successMsg!.classList.remove("hidden");
+        errorMsg!.classList.add("hidden");
+        setTimeout(() => successMsg!.classList.add("hidden"), 3000);
+      } else {
+        errorMsg!.textContent = result.error || "Error desant la configuració";
+        errorMsg!.classList.remove("hidden");
+        successMsg!.classList.add("hidden");
+      }
+    } catch (e) {
+      errorMsg!.textContent = "Error de connexió";
+      errorMsg!.classList.remove("hidden");
+    }
+  });
+</script>

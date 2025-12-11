@@ -1,148 +1,36 @@
 ---
-// Header.astro - Component de capçalera per FreshExpress
+// Header.astro - Component de capçalera dinàmic per FreshExpress
+// Selecciona automàticament el header segons el rol de l'usuari
+import { verifyToken, getUserById } from "../lib/auth";
+import HeaderPublic from "./headers/HeaderPublic.astro";
+import HeaderClient from "./headers/HeaderClient.astro";
+import HeaderRepartidor from "./headers/HeaderRepartidor.astro";
+import HeaderAdmin from "./headers/HeaderAdmin.astro";
+
+// Verificar si l'usuari està autenticat
+const token = Astro.cookies.get("auth_token")?.value;
+let user = null;
+let userRole = "public"; // public, cliente, repartidor, admin
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    user = await getUserById(payload.userId);
+    if (user) {
+      userRole = user.rol || "cliente";
+    }
+  }
+}
 ---
 
-<header class="bg-white shadow-md sticky top-0 z-50">
-  <div class="container mx-auto px-4 py-4">
-    <div class="flex items-center justify-between">
-      <!-- Logotip (Esquerra) -->
-      <div class="flex items-center">
-        <a href="/" class="flex items-center">
-          <img
-            src="/logotip-cut.png"
-            alt="FreshExpress Logo"
-            class="h-12 w-auto"
-          />
-        </a>
-      </div>
-
-      <!-- Navegació (Centre) - Ocult en mòbil -->
-      <nav class="hidden md:flex items-center space-x-8">
-        <a
-          href="#rastreig"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
-        >
-          Rastreig
-        </a>
-        <a
-          href="#avantatges"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
-        >
-          Avantatges
-        </a>
-        <a
-          href="#com-funciona"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
-        >
-          Com Funciona
-        </a>
-        <a
-          href="#contacte"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
-        >
-          Contacte
-        </a>
-      </nav>
-
-      <!-- Botons d'Acció (Dreta) -->
-      <div class="flex items-center space-x-3">
-        <a
-          href="/login"
-          class="hidden sm:inline-block px-6 py-2.5 bg-[#3BB143] text-white font-semibold rounded-lg hover:bg-[#32a039] transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          Inicia Sessió
-        </a>
-        <a
-          href="/registre"
-          class="px-6 py-2.5 bg-[#0047AB] text-white font-semibold rounded-lg hover:bg-[#003a8c] transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          Crear Compte
-        </a>
-
-        <!-- Menú hamburguesa per mòbil -->
-        <button
-          id="mobile-menu-btn"
-          class="md:hidden p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
-          aria-label="Obrir menú"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Menú mòbil (desplegable) -->
-    <div
-      id="mobile-menu"
-      class="hidden md:hidden mt-4 pb-4 border-t border-gray-200 pt-4"
-    >
-      <nav class="flex flex-col space-y-3">
-        <a
-          href="#rastreig"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
-        >
-          Rastreig
-        </a>
-        <a
-          href="#avantatges"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
-        >
-          Avantatges
-        </a>
-        <a
-          href="#com-funciona"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
-        >
-          Com Funciona
-        </a>
-        <a
-          href="#contacte"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium py-2"
-        >
-          Contacte
-        </a>
-        <a
-          href="/login"
-          class="sm:hidden inline-block text-center px-6 py-2.5 bg-[#3BB143] text-white font-semibold rounded-lg hover:bg-[#32a039] transition-all duration-200"
-        >
-          Inicia Sessió
-        </a>
-      </nav>
-    </div>
-  </div>
-</header>
-
-<script>
-  // JavaScript per al menú mòbil
-  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-  const mobileMenu = document.getElementById("mobile-menu");
-
-  mobileMenuBtn?.addEventListener("click", () => {
-    mobileMenu?.classList.toggle("hidden");
-  });
-
-  // Tancar menú en fer clic a un enllaç
-  const mobileLinks = mobileMenu?.querySelectorAll("a");
-  mobileLinks?.forEach((link) => {
-    link.addEventListener("click", () => {
-      mobileMenu?.classList.add("hidden");
-    });
-  });
-</script>
-
-<style>
-  /* Smooth scroll per als enllaços d'ancoratge */
-  html {
-    scroll-behavior: smooth;
-  }
-</style>
+{
+  userRole === "admin" && user ? (
+    <HeaderAdmin user={user} />
+  ) : userRole === "repartidor" && user ? (
+    <HeaderRepartidor user={user} />
+  ) : user ? (
+    <HeaderClient user={user} />
+  ) : (
+    <HeaderPublic />
+  )
+}

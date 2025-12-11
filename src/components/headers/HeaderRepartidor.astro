@@ -1,0 +1,177 @@
+---
+// HeaderRepartidor.astro - Header per repartidors
+interface Props {
+  user: {
+    id: number;
+    nombre: string;
+    email: string;
+  };
+}
+
+const { user } = Astro.props;
+---
+
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <!-- Logotip -->
+      <div class="flex items-center">
+        <a href="/" class="flex items-center">
+          <img
+            src="/logotip-cut.png"
+            alt="FreshExpress Logo"
+            class="h-12 w-auto"
+          />
+        </a>
+        <span
+          class="ml-3 px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded"
+        >
+          Repartidor
+        </span>
+      </div>
+
+      <!-- Navegació desktop -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <a
+          href="/repartidor"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Les meves entregues
+        </a>
+        <a
+          href="/repartidor/ruta"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Ruta actual
+        </a>
+        <a
+          href="/repartidor/historial"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Historial
+        </a>
+      </nav>
+
+      <!-- Botons d'Acció -->
+      <div class="flex items-center space-x-3">
+        <!-- Estat actiu/inactiu -->
+        <div class="hidden sm:flex items-center mr-2">
+          <span class="text-sm text-gray-600 mr-2">Estat:</span>
+          <button
+            id="toggle-status"
+            class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300 transition-colors"
+            data-active="false"
+          >
+            <span
+              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"
+            ></span>
+          </button>
+        </div>
+
+        <!-- Perfil usuari -->
+        <a
+          href="/dashboard"
+          class="hidden sm:flex items-center px-4 py-2 text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          <div
+            class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-2"
+          >
+            {user.nombre.charAt(0).toUpperCase()}
+          </div>
+          {user.nombre}
+        </a>
+
+        <!-- Menú hamburguesa mòbil -->
+        <button
+          id="mobile-menu-btn"
+          class="md:hidden p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
+          aria-label="Obrir menú"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú mòbil -->
+    <div
+      id="mobile-menu"
+      class="hidden md:hidden mt-4 pb-4 border-t border-gray-200 pt-4"
+    >
+      <nav class="flex flex-col space-y-3">
+        <a
+          href="/repartidor"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Les meves entregues</a
+        >
+        <a
+          href="/repartidor/ruta"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Ruta actual</a
+        >
+        <a
+          href="/repartidor/historial"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Historial</a
+        >
+        <a href="/dashboard" class="text-[#3BB143] font-medium py-2"
+          >El meu compte</a
+        >
+        <div class="flex items-center py-2">
+          <span class="text-sm text-gray-600 mr-2">Estat actiu:</span>
+          <input type="checkbox" id="mobile-toggle-status" class="h-4 w-4" />
+        </div>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+
+  mobileMenuBtn?.addEventListener("click", () => {
+    mobileMenu?.classList.toggle("hidden");
+  });
+
+  mobileMenu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      mobileMenu?.classList.add("hidden");
+    });
+  });
+
+  // Toggle estat actiu
+  const toggleBtn = document.getElementById("toggle-status");
+  toggleBtn?.addEventListener("click", () => {
+    const isActive = toggleBtn.dataset.active === "true";
+    toggleBtn.dataset.active = (!isActive).toString();
+
+    if (!isActive) {
+      toggleBtn.classList.remove("bg-gray-300");
+      toggleBtn.classList.add("bg-[#3BB143]");
+      toggleBtn.querySelector("span")?.classList.remove("translate-x-1");
+      toggleBtn.querySelector("span")?.classList.add("translate-x-6");
+    } else {
+      toggleBtn.classList.remove("bg-[#3BB143]");
+      toggleBtn.classList.add("bg-gray-300");
+      toggleBtn.querySelector("span")?.classList.remove("translate-x-6");
+      toggleBtn.querySelector("span")?.classList.add("translate-x-1");
+    }
+  });
+</script>
+
+<style>
+  html {
+    scroll-behavior: smooth;
+  }
+</style>

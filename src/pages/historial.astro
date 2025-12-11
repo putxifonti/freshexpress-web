@@ -1,0 +1,194 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { verifyToken, getUserById } from "../lib/auth";
+
+// Verificar autenticació
+const token = Astro.cookies.get("auth_token")?.value;
+let user = null;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    user = await getUserById(payload.userId);
+  }
+}
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+// Dades de prova - en producció vindrien de la BD
+const comandes = [
+  {
+    id: "FE-2024-12345",
+    data: "10/12/2024",
+    estat: "Lliurat",
+    productes: "Fruita fresca, Verdures eco",
+    total: 24.5,
+  },
+  {
+    id: "FE-2024-12289",
+    data: "05/12/2024",
+    estat: "Lliurat",
+    productes: "Pa artesà, Formatge local",
+    total: 18.9,
+  },
+  {
+    id: "FE-2024-11987",
+    data: "28/11/2024",
+    estat: "Lliurat",
+    productes: "Cistella setmanal",
+    total: 35.0,
+  },
+  {
+    id: "FE-2024-11654",
+    data: "21/11/2024",
+    estat: "Lliurat",
+    productes: "Ous ecològics, Llet fresca",
+    total: 12.3,
+  },
+];
+---
+
+<Layout title="Historial de Comandes - FreshExpress">
+  <div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Navegació -->
+      <div class="mb-6">
+        <a
+          href="/dashboard"
+          class="text-[#3BB143] hover:text-[#32a039] text-sm font-medium flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Tornar al Dashboard
+        </a>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <svg
+            class="w-7 h-7 mr-3 text-[#0047AB]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            ></path>
+          </svg>
+          Historial de Comandes
+        </h1>
+
+        <!-- Filtres -->
+        <div class="flex flex-wrap gap-4 mb-6">
+          <select
+            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143]"
+          >
+            <option>Tots els estats</option>
+            <option>Lliurat</option>
+            <option>En trànsit</option>
+            <option>Cancel·lat</option>
+          </select>
+          <input
+            type="month"
+            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143]"
+            value="2024-12"
+          />
+        </div>
+
+        <!-- Llista de comandes -->
+        <div class="space-y-4">
+          {
+            comandes.map((comanda) => (
+              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center">
+                    <span class="font-mono font-medium text-gray-900">
+                      {comanda.id}
+                    </span>
+                    <span class="ml-3 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                      {comanda.estat}
+                    </span>
+                  </div>
+                  <span class="text-sm text-gray-500">{comanda.data}</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-3">{comanda.productes}</p>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-lg text-gray-900">
+                    {comanda.total.toFixed(2)} €
+                  </span>
+                  <div class="flex gap-2">
+                    <a
+                      href={`/seguiment?code=${comanda.id}`}
+                      class="px-3 py-1.5 text-sm text-[#3BB143] border border-[#3BB143] rounded-lg hover:bg-[#3BB143] hover:text-white transition-colors"
+                    >
+                      Veure detalls
+                    </a>
+                    <button class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                      Repetir comanda
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <!-- Resum -->
+        <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p class="text-2xl font-bold text-gray-900">{comandes.length}</p>
+              <p class="text-sm text-gray-500">Comandes totals</p>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-[#3BB143]">
+                {comandes.reduce((sum, c) => sum + c.total, 0).toFixed(2)} €
+              </p>
+              <p class="text-sm text-gray-500">Total gastat</p>
+            </div>
+            <div>
+              <p class="text-2xl font-bold text-[#0047AB]">
+                {(comandes.length * 0.8).toFixed(1)} kg
+              </p>
+              <p class="text-sm text-gray-500">CO₂ estalviat</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paginació -->
+        <div class="mt-6 flex justify-center">
+          <nav class="flex gap-2">
+            <button class="px-3 py-1 text-gray-500 hover:bg-gray-100 rounded"
+              >←</button
+            >
+            <button class="px-3 py-1 bg-[#3BB143] text-white rounded">1</button>
+            <button class="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded"
+              >2</button
+            >
+            <button class="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded"
+              >3</button
+            >
+            <button class="px-3 py-1 text-gray-500 hover:bg-gray-100 rounded"
+              >→</button
+            >
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
