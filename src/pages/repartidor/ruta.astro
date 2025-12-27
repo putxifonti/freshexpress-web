@@ -398,8 +398,12 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
   // Canviar estat de l'entrega
   document.querySelectorAll('.btn-canvi-estat').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = (btn as HTMLElement).dataset.id;
-      const nouEstat = (btn as HTMLElement).dataset.nouEstat;
+      const btnEl = btn as HTMLButtonElement;
+      const id = btnEl.dataset.id;
+      const nouEstat = btnEl.dataset.nouEstat;
+      
+      btnEl.disabled = true;
+      btnEl.classList.add('opacity-50');
       
       try {
         const res = await fetch(`/api/repartidor/pedido/${id}/estat`, {
@@ -408,27 +412,37 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
           body: JSON.stringify({ estado: nouEstat })
         });
         
-        if (res.ok) {
+        const data = await res.json();
+        if (res.ok && data.success) {
           window.location.reload();
         } else {
-          const data = await res.json();
           alert(data.error || 'Error actualitzant l\'estat');
+          btnEl.disabled = false;
+          btnEl.classList.remove('opacity-50');
         }
       } catch (e) {
         console.error('Error:', e);
         alert('Error de connexió');
+        btnEl.disabled = false;
+        btnEl.classList.remove('opacity-50');
       }
     });
   });
 
-  // Navegar
+  // Navegar - obrir Google Maps
   document.querySelectorAll('.btn-navegar').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = (btn as HTMLElement).dataset.id;
-      // Obrir Google Maps amb la direcció
-      const direccio = btn.closest('.p-4')?.querySelector('.text-gray-600')?.textContent;
+      // Buscar la direcció en el contenidor pare
+      const container = btn.closest('.p-4');
+      const direccioEl = container?.querySelector('.text-gray-600');
+      const direccio = direccioEl?.textContent?.trim();
+      
       if (direccio) {
-        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccio)}`, '_blank');
+        // Obrir Google Maps amb la direcció
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccio)}`;
+        window.open(url, '_blank');
+      } else {
+        alert('No s\'ha trobat la direcció');
       }
     });
   });
@@ -436,83 +450,159 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
   // Marcar com entregat
   document.querySelectorAll('.btn-entregat').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = (btn as HTMLElement).dataset.id;
-      if (confirm('Confirmes que has entregat aquesta comanda?')) {
-        try {
-          const res = await fetch(`/api/repartidor/entrega/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: 'entregado' })
-          });
-          if (res.ok) {
-            window.location.reload();
-          }
-        } catch (e) {
-          alert('Error actualitzant l\'entrega');
+      const btnEl = btn as HTMLButtonElement;
+      const id = btnEl.dataset.id;
+      
+      if (!confirm('Confirmes que has entregat aquesta comanda?')) return;
+      
+      btnEl.disabled = true;
+      btnEl.textContent = 'Entregant...';
+      
+      try {
+        const res = await fetch(`/api/repartidor/pedido/${id}/entregar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        if (res.ok && data.success) {
+          btnEl.textContent = '✓ Entregat!';
+          btnEl.classList.remove('bg-[#3BB143]');
+          btnEl.classList.add('bg-green-600');
+          setTimeout(() => window.location.reload(), 500);
+        } else {
+          alert(data.error || 'Error marcant com entregat');
+          btnEl.disabled = false;
+          btnEl.textContent = '✓ Entregat';
         }
+      } catch (e) {
+        console.error('Error:', e);
+        alert('Error de connexió');
+        btnEl.disabled = false;
+        btnEl.textContent = '✓ Entregat';
       }
     });
   });
 
-  // Reportar problema
+  // Reportar problema - Modal
   const modalProblema = document.getElementById('modal-problema');
   const problemaEntregaId = document.getElementById('problema-entrega-id') as HTMLInputElement;
 
   document.querySelectorAll('.btn-problema').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = (btn as HTMLElement).dataset.id;
-      problemaEntregaId.value = id || '';
+      if (problemaEntregaId) {
+        problemaEntregaId.value = id || '';
+      }
       if (modalProblema) {
         modalProblema.style.display = 'flex';
       }
     });
   });
 
-  document.getElementById('btn-cancel-problema')?.addEventListener('click', () => {
-    if (modalProblema) {
+  // Tancar modal amb clic fora
+  modalProblema?.addEventListener('click', (e) => {
+    if (e.target === modalProblema) {
       modalProblema.style.display = 'none';
     }
   });
 
+  document.getElementById('btn-cancel-problema')?.addEventListener('click', () => {
+    if (modalProblema) {
+      modalProblema.style.display = 'none';
+      // Reset form
+      document.querySelectorAll('input[name="motiu"]').forEach((input) => {
+        (input as HTMLInputElement).checked = false;
+      });
+      (document.getElementById('problema-notes') as HTMLTextAreaElement).value = '';
+    }
+  });
+
   document.getElementById('btn-confirm-problema')?.addEventListener('click', async () => {
-    const id = problemaEntregaId.value;
-    const motiu = (document.querySelector('input[name="motiu"]:checked') as HTMLInputElement)?.value;
-    const notes = (document.getElementById('problema-notes') as HTMLTextAreaElement).value;
+    const id = problemaEntregaId?.value;
+    const motiuInput = document.querySelector('input[name="motiu"]:checked') as HTMLInputElement;
+    const motiu = motiuInput?.value;
+    const notes = (document.getElementById('problema-notes') as HTMLTextAreaElement)?.value || '';
+    const btnConfirm = document.getElementById('btn-confirm-problema') as HTMLButtonElement;
 
     if (!motiu) {
-      alert('Selecciona un motiu');
+      alert('Selecciona un motiu del problema');
       return;
     }
 
+    if (!id) {
+      alert('Error: No s\'ha identificat la comanda');
+      return;
+    }
+
+    btnConfirm.disabled = true;
+    btnConfirm.textContent = 'Enviant...';
+
     try {
-      const res = await fetch(`/api/repartidor/entrega/${id}`, {
-        method: 'PUT',
+      const res = await fetch(`/api/repartidor/pedido/${id}/problema`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          estado: 'fallido',
-          motivo_fallo: motiu,
-          notas: notes
-        })
+        body: JSON.stringify({ motiu, notes })
       });
-      if (res.ok) {
+      
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert('Problema reportat correctament');
         window.location.reload();
+      } else {
+        alert(data.error || 'Error reportant el problema');
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = 'Reportar';
       }
     } catch (e) {
-      alert('Error reportant el problema');
+      console.error('Error:', e);
+      alert('Error de connexió');
+      btnConfirm.disabled = false;
+      btnConfirm.textContent = 'Reportar';
     }
   });
 
   // Optimitzar ruta
   document.getElementById('btn-optimitzar')?.addEventListener('click', async () => {
-    if (confirm('Vols optimitzar la ruta actual?')) {
-      try {
-        const res = await fetch('/api/repartidor/ruta/optimitzar', { method: 'POST' });
-        if (res.ok) {
-          window.location.reload();
-        }
-      } catch (e) {
-        alert('Error optimitzant la ruta');
+    const btn = document.getElementById('btn-optimitzar') as HTMLButtonElement;
+    
+    if (!confirm('Vols optimitzar la ruta actual? L\'ordre de les entregues pot canviar.')) return;
+    
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg class="animate-spin w-5 h-5" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Optimitzant...
+    `;
+    
+    try {
+      const res = await fetch('/api/repartidor/ruta/optimitzar', { method: 'POST' });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error optimitzant la ruta');
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Optimitzar ruta
+        `;
       }
+    } catch (e) {
+      console.error('Error:', e);
+      alert('Error de connexió');
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        Optimitzar ruta
+      `;
     }
   });
 </script>

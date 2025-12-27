@@ -337,39 +337,7 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
 
   // Checkout
   document.getElementById('checkout-btn')?.addEventListener('click', async () => {
-    const btn = document.getElementById('checkout-btn') as HTMLButtonElement;
-    const originalText = btn.textContent;
-    
-    // Confirmació
-    if (!confirm('Vols finalitzar la comanda?\nEl pagament es farà contra reemborsament en el moment de l\'entrega.')) {
-      return;
-    }
-    
-    btn.disabled = true;
-    btn.textContent = 'Processant...';
-    
-    try {
-      const res = await fetch('/api/checkout/finalitzar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          notas: ''
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        // Mostrar missatge d'èxit i redirigir
-        alert(`✅ Comanda realitzada correctament!\n\nNúmero de comanda: ${data.numeroPedido}\nTotal: ${data.total.toFixed(2)} €\nMètode de pagament: ${data.metodePagament}\n\nRebràs la teva comanda aviat!`);
-        window.location.href = '/seguiment?code=' + data.numeroPedido;
-      } else {
-        throw new Error(data.error || 'Error desconegut');
-      }
-    } catch (error: any) {
-      alert('❌ Error: ' + (error.message || 'No s\'ha pogut processar la comanda'));
-      btn.disabled = false;
-      btn.textContent = originalText;
-    }
+    // Redirigir a la pàgina de direcció
+    window.location.href = '/checkout';
   });
 </script>

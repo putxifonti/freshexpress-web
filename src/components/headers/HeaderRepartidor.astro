@@ -14,7 +14,7 @@ const { user } = Astro.props;
 <header class="bg-white shadow-md sticky top-0 z-50">
   <div class="container mx-auto px-4 py-4">
     <div class="flex items-center justify-between">
-      <!-- Logotip -->
+      <!-- Logotip amb selector de mode -->
       <div class="flex items-center">
         <a href="/" class="flex items-center">
           <img
@@ -23,11 +23,93 @@ const { user } = Astro.props;
             class="h-12 w-auto"
           />
         </a>
-        <span
-          class="ml-3 px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded"
-        >
-          Repartidor
-        </span>
+        <!-- Selector de mode -->
+        <div class="ml-3 relative" id="mode-selector-container">
+          <button
+            id="mode-selector-btn"
+            class="flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-700 text-sm font-semibold rounded-lg hover:bg-orange-200 transition-colors"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <span id="mode-current-text">Repartidor</span>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div
+            id="mode-dropdown"
+            class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          >
+            <a
+              href="/repartidor"
+              class="flex items-center gap-2 px-4 py-2 text-sm text-orange-700 bg-orange-50 font-medium"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"
+                ></path>
+              </svg>
+              Mode Repartidor
+              <svg
+                class="w-4 h-4 ml-auto text-orange-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"></path>
+              </svg>
+            </a>
+            <a
+              href="/dashboard"
+              class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+              Mode Client
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Navegació desktop -->
@@ -148,6 +230,19 @@ const { user } = Astro.props;
     link.addEventListener("click", () => {
       mobileMenu?.classList.add("hidden");
     });
+  });
+
+  // Mode selector dropdown
+  const modeSelectorBtn = document.getElementById("mode-selector-btn");
+  const modeDropdown = document.getElementById("mode-dropdown");
+
+  modeSelectorBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    modeDropdown?.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", () => {
+    modeDropdown?.classList.add("hidden");
   });
 
   // Toggle estat actiu - vinculat amb API disponibilitat

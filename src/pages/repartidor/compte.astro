@@ -157,6 +157,12 @@ try {
             >
               Editar perfil
             </a>
+            <button
+              id="logout-btn-header"
+              class="px-4 py-2 bg-white text-orange-600 hover:bg-orange-50 rounded-lg font-medium transition-colors"
+            >
+              Tancar sessió
+            </button>
           </div>
         </div>
       </div>
@@ -458,12 +464,23 @@ try {
 </Layout>
 
 <script>
-  document.getElementById("logout-btn")?.addEventListener("click", async () => {
+  // Funció de logout compartida
+  async function handleLogout() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       window.location.href = "/";
     } catch (e) {
       console.error("Error tancant sessió:", e);
     }
-  });
+  }
+
+  // Botó header
+  document
+    .getElementById("logout-btn-header")
+    ?.addEventListener("click", handleLogout);
+
+  // Botó secció informació
+  document
+    .getElementById("logout-btn")
+    ?.addEventListener("click", handleLogout);
 </script>

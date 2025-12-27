@@ -18,7 +18,7 @@ if (!user) {
   return Astro.redirect("/login");
 }
 
-// Obtenir comandes reals de la BD
+// Obtenir comandes reals de la BD amb info de repartidor i notes
 let comandes: any[] = [];
 try {
   const pedidos = await queryOperacional<any[]>(
@@ -29,10 +29,17 @@ try {
       p.fecha_pedido,
       p.estado,
       p.total,
+      p.notas_repartidor,
+      p.valoracion_cliente,
+      p.comentario_valoracion,
+      p.repartidor_id,
+      u.nombre as repartidor_nombre,
       GROUP_CONCAT(DISTINCT pr.nombre SEPARATOR ', ') as productes
     FROM pedidos p
     LEFT JOIN detalle_pedido dp ON p.id = dp.pedido_id
     LEFT JOIN productos pr ON dp.producto_id = pr.id
+    LEFT JOIN repartidores r ON p.repartidor_id = r.id
+    LEFT JOIN usuarios u ON r.usuario_id = u.id
     WHERE p.cliente_id = ?
     GROUP BY p.id
     ORDER BY p.fecha_pedido DESC
@@ -43,11 +50,17 @@ try {
 
   comandes = pedidos.map((p: any) => ({
     id: p.numero_pedido || `FE-${p.id}`,
+    pedidoId: p.id,
     data: new Date(p.fecha_pedido).toLocaleDateString("ca-ES"),
     estat: traduirEstat(p.estado),
     estatOriginal: p.estado,
     productes: p.productes || "Comanda sense productes",
     total: Number(p.total) || 0,
+    notesRepartidor: p.notas_repartidor,
+    valoracioClient: p.valoracion_cliente,
+    comentariValoracio: p.comentario_valoracion,
+    repartidorId: p.repartidor_id,
+    repartidorNom: p.repartidor_nombre,
   }));
 } catch (error) {
   console.error("Error carregant historial:", error);
@@ -184,22 +197,131 @@ function getEstatColor(estat: string): string {
                     </div>
                     <span class="text-sm text-gray-500">{comanda.data}</span>
                   </div>
+
                   <p class="text-sm text-gray-600 mb-3 line-clamp-2">
                     {comanda.productes}
                   </p>
+
+                  {/* Mostrar notes del repartidor si hi ha problemes */}
+                  {comanda.notesRepartidor &&
+                    comanda.estatOriginal === "cancelado" && (
+                      <div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-start gap-2">
+                          <svg
+                            class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <div>
+                            <p class="text-sm font-medium text-red-800">
+                              Problema reportat
+                            </p>
+                            <p class="text-sm text-red-600">
+                              {comanda.notesRepartidor}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Mostrar info del repartidor si va ser entregat */}
+                  {comanda.estatOriginal === "entregado" &&
+                    comanda.repartidorNom && (
+                      <div class="mb-3 text-sm text-gray-500 flex items-center gap-1">
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                        Entregat per: {comanda.repartidorNom}
+                      </div>
+                    )}
+
+                  {/* Mostrar valoració existent */}
+                  {comanda.valoracioClient && (
+                    <div class="mb-3 flex items-center gap-2">
+                      <span class="text-sm text-gray-500">
+                        La teva valoració:
+                      </span>
+                      <div class="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg
+                            class={`w-4 h-4 ${star <= comanda.valoracioClient ? "text-yellow-400" : "text-gray-300"}`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      {comanda.comentariValoracio && (
+                        <span class="text-xs text-gray-400 italic">
+                          "{comanda.comentariValoracio}"
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <div class="flex items-center justify-between">
                     <span class="font-bold text-lg text-gray-900">
                       {Number(comanda.total || 0).toFixed(2)} €
                     </span>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 flex-wrap justify-end">
                       <a
                         href={`/seguiment?code=${comanda.id}`}
                         class="px-3 py-1.5 text-sm text-[#3BB143] border border-[#3BB143] rounded-lg hover:bg-[#3BB143] hover:text-white transition-colors"
                       >
                         Veure detalls
                       </a>
+
+                      {/* Botó valorar - només si entregat, té repartidor i no s'ha valorat */}
+                      {comanda.estatOriginal === "entregado" &&
+                        comanda.repartidorId &&
+                        !comanda.valoracioClient && (
+                          <button
+                            class="btn-valorar px-3 py-1.5 text-sm text-yellow-600 border border-yellow-400 rounded-lg hover:bg-yellow-50 transition-colors flex items-center gap-1"
+                            data-pedido={comanda.id}
+                            data-repartidor={comanda.repartidorNom}
+                          >
+                            <svg
+                              class="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                              />
+                            </svg>
+                            Valorar
+                          </button>
+                        )}
+
+                      {/* Botó repetir comanda - només si entregat */}
                       {comanda.estatOriginal === "entregado" && (
-                        <button class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                        <button
+                          class="btn-repetir px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                          data-pedido={comanda.id}
+                        >
                           Repetir comanda
                         </button>
                       )}
@@ -258,4 +380,233 @@ function getEstatColor(estat: string): string {
       </div>
     </div>
   </div>
+
+  <!-- Modal de valoració -->
+  <div
+    id="modal-valoracio"
+    class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">Valora el repartidor</h3>
+        <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-gray-600 mb-4">
+        Com ha estat l'experiència amb <span
+          id="repartidor-nom"
+          class="font-medium"></span>?
+      </p>
+
+      <input type="hidden" id="valoracio-pedido" value="" />
+
+      <!-- Estrelles -->
+      <div class="flex justify-center gap-2 mb-4">
+        {
+          [1, 2, 3, 4, 5].map((star) => (
+            <button
+              class="star-btn text-gray-300 hover:text-yellow-400 transition-colors"
+              data-value={star}
+            >
+              <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
+          ))
+        }
+      </div>
+
+      <p id="valoracio-text" class="text-center text-gray-500 mb-4">
+        Selecciona una puntuació
+      </p>
+
+      <!-- Comentari opcional -->
+      <textarea
+        id="valoracio-comentari"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent resize-none"
+        rows="3"
+        placeholder="Deixa un comentari (opcional)..."></textarea>
+
+      <div class="flex gap-3 mt-4">
+        <button
+          id="cancel-valoracio"
+          class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          Cancel·lar
+        </button>
+        <button
+          id="submit-valoracio"
+          class="flex-1 px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled
+        >
+          Enviar valoració
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    // Repetir comanda
+    document.querySelectorAll(".btn-repetir").forEach((btn) => {
+      btn.addEventListener("click", async function () {
+        const pedido = this.dataset.pedido;
+        const originalText = this.innerHTML;
+
+        this.innerHTML =
+          '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+        this.disabled = true;
+
+        try {
+          const response = await fetch("/api/cart/repetir", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ numeroPedido: pedido }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            window.location.href = data.redirect || "/cistella";
+          } else {
+            alert(data.error || "Error repetint la comanda");
+            this.innerHTML = originalText;
+            this.disabled = false;
+          }
+        } catch (error) {
+          alert("Error de connexió");
+          this.innerHTML = originalText;
+          this.disabled = false;
+        }
+      });
+    });
+
+    // Valorar repartidor
+    const modal = document.getElementById("modal-valoracio");
+    const repartidorNom = document.getElementById("repartidor-nom");
+    const valoracioPedido = document.getElementById("valoracio-pedido");
+    const valoracioText = document.getElementById("valoracio-text");
+    const submitBtn = document.getElementById("submit-valoracio");
+    const starBtns = document.querySelectorAll(".star-btn");
+    let selectedRating = 0;
+
+    const ratingTexts = {
+      1: "Molt dolent 😞",
+      2: "Dolent 😕",
+      3: "Normal 😐",
+      4: "Bé 🙂",
+      5: "Excel·lent! 🌟",
+    };
+
+    // Obrir modal
+    document.querySelectorAll(".btn-valorar").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        valoracioPedido.value = this.dataset.pedido;
+        repartidorNom.textContent = this.dataset.repartidor || "el repartidor";
+        selectedRating = 0;
+        updateStars(0);
+        valoracioText.textContent = "Selecciona una puntuació";
+        document.getElementById("valoracio-comentari").value = "";
+        submitBtn.disabled = true;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      });
+    });
+
+    // Tancar modal
+    document
+      .getElementById("close-modal")
+      .addEventListener("click", closeModal);
+    document
+      .getElementById("cancel-valoracio")
+      .addEventListener("click", closeModal);
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) closeModal();
+    });
+
+    function closeModal() {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    // Gestionar estrelles
+    function updateStars(rating) {
+      starBtns.forEach((btn, index) => {
+        if (index < rating) {
+          btn.classList.remove("text-gray-300");
+          btn.classList.add("text-yellow-400");
+        } else {
+          btn.classList.add("text-gray-300");
+          btn.classList.remove("text-yellow-400");
+        }
+      });
+    }
+
+    starBtns.forEach((btn) => {
+      btn.addEventListener("click", function () {
+        selectedRating = parseInt(this.dataset.value);
+        updateStars(selectedRating);
+        valoracioText.textContent = ratingTexts[selectedRating];
+        submitBtn.disabled = false;
+      });
+
+      btn.addEventListener("mouseenter", function () {
+        const hoverRating = parseInt(this.dataset.value);
+        updateStars(hoverRating);
+      });
+
+      btn.addEventListener("mouseleave", function () {
+        updateStars(selectedRating);
+      });
+    });
+
+    // Enviar valoració
+    submitBtn.addEventListener("click", async function () {
+      if (selectedRating === 0) return;
+
+      const originalText = this.innerHTML;
+      this.innerHTML = "Enviant...";
+      this.disabled = true;
+
+      try {
+        const response = await fetch("/api/user/valorar-repartidor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            numeroPedido: valoracioPedido.value,
+            valoracion: selectedRating,
+            comentario: document.getElementById("valoracio-comentari").value,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          closeModal();
+          // Recarregar per veure la valoració
+          window.location.reload();
+        } else {
+          alert(data.error || "Error enviant la valoració");
+          this.innerHTML = originalText;
+          this.disabled = false;
+        }
+      } catch (error) {
+        alert("Error de connexió");
+        this.innerHTML = originalText;
+        this.disabled = false;
+      }
+    });
+  </script>
 </Layout>

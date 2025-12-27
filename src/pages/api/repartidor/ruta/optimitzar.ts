@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { verifyToken, getUserById } from '../../../../lib/auth';
 import { queryOperacional } from '../../../../lib/db';
 
-// POST - Optimitzar ruta (ordenar per proximitat)
+// POST - Optimitzar ruta (ordenar per codi postal / zones)
 export const POST: APIRoute = async ({ cookies }) => {
   try {
     const token = cookies.get('auth_token')?.value;
@@ -29,55 +29,105 @@ export const POST: APIRoute = async ({ cookies }) => {
       });
     }
 
-    // Obtenir totes les entregues pendents de la ruta
-    const entregues = await queryOperacional<any[]>(`
-      SELECT 
-        r.id as ruta_id,
-        r.entrega_id,
-        e.direccion_entrega,
-        e.codigo_postal,
-        e.estado,
-        e.latitud,
-        e.longitud
-      FROM ruta_actual r
-      JOIN entregues e ON r.entrega_id = e.id
-      WHERE r.repartidor_id = ? AND e.estado IN ('pendiente', 'en_proceso')
-      ORDER BY r.orden ASC
-    `, [user.id]);
+    // Obtenir repartidor_id
+    const repartidorData = await queryOperacional<any[]>(
+      'SELECT id FROM repartidores WHERE usuario_id = ?',
+      [user.id]
+    );
+    
+    if (!repartidorData.length) {
+      return new Response(JSON.stringify({ error: 'Repartidor no trobat' }), { 
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-    if (entregues.length === 0) {
-      return new Response(JSON.stringify({ success: true, message: 'No hi ha entregues per optimitzar' }), {
+    const repartidorId = repartidorData[0].id;
+
+    // Obtenir tots els pedidos pendents assignats a aquest repartidor
+    const pedidos = await queryOperacional<any[]>(`
+      SELECT 
+        p.id,
+        p.direccion_entrega,
+        p.estado,
+        u.ciudad,
+        u.codigo_postal
+      FROM pedidos p
+      JOIN usuarios u ON p.cliente_id = u.id
+      WHERE p.repartidor_id = ? 
+      AND p.estado NOT IN ('entregado', 'cancelado')
+      ORDER BY p.fecha_pedido ASC
+    `, [repartidorId]);
+
+    if (pedidos.length === 0) {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'No hi ha entregues per optimitzar' 
+      }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Optimització simple: ordenar per codi postal (agrupació per zones)
-    // En producció, s'utilitzaria una API de routing real (Google Directions, OSRM, etc.)
-    const entreguesOrdenades = [...entregues].sort((a, b) => {
-      // Primer per codi postal
-      const cpCompare = (a.codigo_postal || '').localeCompare(b.codigo_postal || '');
-      if (cpCompare !== 0) return cpCompare;
+    // Optimització simple: 
+    // 1. Primer els que ja estan "en_camino"
+    // 2. Després els "listo" (ja recollits)
+    // 3. Finalment els "confirmado" (pendents de recollir)
+    // Dins de cada grup, ordenar per codi postal per agrupar zones
+    
+    const prioritatEstat: Record<string, number> = {
+      'en_camino': 1,
+      'listo': 2,
+      'confirmado': 3,
+      'preparando': 4,
+      'pendiente': 5
+    };
+
+    const pedidosOrdenats = [...pedidos].sort((a, b) => {
+      // Primer per estat
+      const estatA = prioritatEstat[a.estado] || 99;
+      const estatB = prioritatEstat[b.estado] || 99;
+      if (estatA !== estatB) return estatA - estatB;
       
-      // Si tenen coordenades, ordenar per distància (simplificat)
-      if (a.latitud && b.latitud && a.longitud && b.longitud) {
-        // Aquí es podria calcular distància real
-        return a.latitud - b.latitud;
-      }
-      
-      return 0;
+      // Després per codi postal (agrupar per zones)
+      const cpA = a.codigo_postal || '';
+      const cpB = b.codigo_postal || '';
+      return cpA.localeCompare(cpB);
     });
 
-    // Actualitzar l'ordre a la base de dades
-    for (let i = 0; i < entreguesOrdenades.length; i++) {
-      await queryOperacional(
-        'UPDATE ruta_actual SET orden = ? WHERE id = ?',
-        [i + 1, entreguesOrdenades[i].ruta_id]
-      );
+    // Calcular temps estimat per cada entrega
+    let tempsAcumulat = 0;
+    for (const pedido of pedidosOrdenats) {
+      // Temps estimat: 5-15 min per entrega depenent de l'estat
+      const tempsBase = pedido.estado === 'en_camino' ? 5 : 
+                        pedido.estado === 'listo' ? 8 : 12;
+      tempsAcumulat += tempsBase;
       
-      // Calcular temps i distància estimats (simulació)
-      const tempsEstimat = 5 + Math.floor(Math.random() * 15); // 5-20 min
-      const distanciaEstimada = 0.5 + Math.random() * 3; // 0.5-3.5 km
+      // Actualitzar temps estimat
+      await queryOperacional(
+        'UPDATE pedidos SET tiempo_estimado_min = ? WHERE id = ?',
+        [tempsAcumulat, pedido.id]
+      );
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: `Ruta optimitzada amb ${pedidosOrdenats.length} entregues`,
+      entregues: pedidosOrdenats.length,
+      tempsTotal: tempsAcumulat
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Error optimitzant ruta:', error);
+    return new Response(JSON.stringify({ error: 'Error intern del servidor' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};
       
       await queryOperacional(
         'UPDATE ruta_actual SET tiempo_estimado_min = ?, distancia_km = ? WHERE id = ?',

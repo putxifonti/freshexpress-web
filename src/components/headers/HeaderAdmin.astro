@@ -14,7 +14,7 @@ const { user } = Astro.props;
 <header class="bg-white shadow-md sticky top-0 z-50 border-b-2 border-red-500">
   <div class="container mx-auto px-4 py-4">
     <div class="flex items-center justify-between">
-      <!-- Logotip -->
+      <!-- Logotip amb selector de mode -->
       <div class="flex items-center">
         <a href="/" class="flex items-center">
           <img
@@ -23,11 +23,103 @@ const { user } = Astro.props;
             class="h-12 w-auto"
           />
         </a>
-        <span
-          class="ml-3 px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded"
-        >
-          Admin
-        </span>
+        <!-- Selector de mode -->
+        <div class="ml-3 relative" id="mode-selector-container">
+          <button
+            id="mode-selector-btn"
+            class="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 text-sm font-semibold rounded-lg hover:bg-red-200 transition-colors"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              ></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span id="mode-current-text">Admin</span>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+          <div
+            id="mode-dropdown"
+            class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          >
+            <a
+              href="/admin"
+              class="flex items-center gap-2 px-4 py-2 text-sm text-red-700 bg-red-50 font-medium"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              Mode Admin
+              <svg
+                class="w-4 h-4 ml-auto text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"></path>
+              </svg>
+            </a>
+            <a
+              href="/dashboard"
+              class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+              Mode Client
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Navegació desktop -->
@@ -55,6 +147,44 @@ const { user } = Astro.props;
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
           Panell Admin
+        </a>
+        <a
+          href="/admin/historial"
+          class="text-red-600 hover:text-red-700 transition-colors font-medium flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            ></path>
+          </svg>
+          Historial
+        </a>
+        <a
+          href="/admin/solicituds"
+          class="text-red-600 hover:text-red-700 transition-colors font-medium flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+            ></path>
+          </svg>
+          Sol·licituds
         </a>
         <a
           href="/productes"
@@ -136,6 +266,12 @@ const { user } = Astro.props;
         <a href="/admin" class="text-red-600 font-medium py-2"
           >Panell d'Administració</a
         >
+        <a href="/admin/historial" class="text-red-600 font-medium py-2"
+          >Historial Entregues</a
+        >
+        <a href="/admin/solicituds" class="text-red-600 font-medium py-2"
+          >Sol·licituds Repartidor</a
+        >
         <a
           href="/productes"
           class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
@@ -148,7 +284,7 @@ const { user } = Astro.props;
         >
         <a href="/dashboard" class="text-[#3BB143] font-medium py-2"
           >El meu compte</a
-        >
+        >a >
       </nav>
     </div>
   </div>
@@ -166,6 +302,19 @@ const { user } = Astro.props;
     link.addEventListener("click", () => {
       mobileMenu?.classList.add("hidden");
     });
+  });
+
+  // Mode selector dropdown
+  const modeSelectorBtn = document.getElementById("mode-selector-btn");
+  const modeDropdown = document.getElementById("mode-dropdown");
+
+  modeSelectorBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    modeDropdown?.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", () => {
+    modeDropdown?.classList.add("hidden");
   });
 
   // Carregar comptador de la cistella

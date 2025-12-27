@@ -109,20 +109,6 @@ try {
               <p class="text-gray-500 text-sm">Repartidor</p>
             </div>
           </div>
-
-          <!-- Toggle disponibilitat -->
-          <div class="flex items-center">
-            <span class="text-sm text-gray-600 mr-3">Disponible:</span>
-            <button
-              id="toggle-disponible"
-              class={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${repartidor?.disponible ? "bg-[#3BB143]" : "bg-gray-300"}`}
-              data-disponible={repartidor?.disponible ? "true" : "false"}
-            >
-              <span
-                class={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${repartidor?.disponible ? "translate-x-8" : "translate-x-1"}`}
-              ></span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -269,11 +255,14 @@ try {
               </p>
             </div>
           ) : (
-            <div class="divide-y divide-gray-100">
+            <div class="divide-y divide-gray-100 pedidos-container">
               {pedidosPendents
                 .filter((p: any) => p.id !== pedidoActual?.id)
                 .map((pedido: any) => (
-                  <div class="p-4 hover:bg-gray-50 transition-colors">
+                  <div
+                    class="p-4 hover:bg-gray-50 transition-colors pedido-item"
+                    data-pedido-id={pedido.id}
+                  >
                     <div class="flex items-center justify-between mb-2">
                       <span class="text-sm font-medium text-gray-900">
                         #{pedido.numero_pedido}
@@ -443,49 +432,152 @@ try {
 </Layout>
 
 <script define:vars={{ repartidorId: repartidor?.id }}>
-  // Toggle disponibilitat
-  const toggleBtn = document.getElementById("toggle-disponible");
-  toggleBtn?.addEventListener("click", async () => {
-    const isDisponible = toggleBtn.dataset.disponible === "true";
-    const newState = !isDisponible;
+  // Variables globals per al polling
+  let pollingInterval = null;
+  let pedidosActuals = new Set();
 
+  // Inicialitzar pedidos actuals
+  document.querySelectorAll("[data-pedido-id]").forEach((el) => {
+    pedidosActuals.add(el.getAttribute("data-pedido-id"));
+  });
+
+  // Funció per actualitzar la llista de comandes
+  async function actualitzarComandes() {
     try {
-      const res = await fetch("/api/repartidor/disponibilitat", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ disponible: newState }),
+      const res = await fetch("/api/repartidor/pedidos-disponibles");
+      if (!res.ok) return;
+
+      const data = await res.json();
+      if (!data.success) return;
+
+      const nousPedidos = new Set(data.pedidos.map((p) => String(p.id)));
+
+      // Comprovar si hi ha canvis
+      let hiHaCanvis = false;
+
+      // Eliminar pedidos que ja no estan disponibles
+      document.querySelectorAll(".pedido-item").forEach((item) => {
+        const pedidoId = item.getAttribute("data-pedido-id");
+        const pedido = data.pedidos.find((p) => String(p.id) === pedidoId);
+
+        if (!pedido) {
+          // El pedido ja no està disponible (acceptat per un altre)
+          item.classList.add("opacity-50", "pointer-events-none");
+          item.innerHTML = `
+            <div class="p-4 text-center text-gray-500">
+              <svg class="w-6 h-6 mx-auto mb-2 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="text-sm">Aquesta comanda ja ha estat acceptada</p>
+            </div>
+          `;
+          setTimeout(() => {
+            item.remove();
+            // Si no queden items, mostrar missatge buit
+            const container = document.querySelector(".pedidos-container");
+            if (
+              container &&
+              container.querySelectorAll(".pedido-item").length === 0
+            ) {
+              container.innerHTML = `
+                <div class="p-8 text-center">
+                  <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                  </svg>
+                  <p class="text-gray-500">No hi ha comandes disponibles ara mateix</p>
+                </div>
+              `;
+            }
+          }, 2000);
+          hiHaCanvis = true;
+        } else if (
+          pedido.repartidor_id &&
+          pedido.repartidor_id !== repartidorId
+        ) {
+          // El pedido ha estat acceptat per un altre repartidor
+          item.classList.add("opacity-50", "pointer-events-none");
+          const btnAcceptar = item.querySelector(".btn-acceptar");
+          if (btnAcceptar) {
+            btnAcceptar.remove();
+          }
+          hiHaCanvis = true;
+        }
       });
 
-      if (res.ok) {
-        toggleBtn.dataset.disponible = newState.toString();
-        toggleBtn.className = `relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${newState ? "bg-[#3BB143]" : "bg-gray-300"}`;
-        const span = toggleBtn.querySelector("span");
-        if (span) {
-          span.className = `inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${newState ? "translate-x-8" : "translate-x-1"}`;
+      // Actualitzar el badge de pendents si cal
+      if (hiHaCanvis) {
+        const pendentsBadge = document.getElementById("pendents-count");
+        if (pendentsBadge) {
+          const meusAssignats = data.pedidos.filter(
+            (p) => p.repartidor_id === repartidorId
+          ).length;
+          pendentsBadge.textContent = meusAssignats;
         }
       }
-    } catch (e) {
-      console.error("Error actualitzant disponibilitat:", e);
+
+      pedidosActuals = nousPedidos;
+    } catch (error) {
+      console.error("Error actualitzant comandes:", error);
+    }
+  }
+
+  // Iniciar polling (cada 3 segons)
+  function iniciarPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(actualitzarComandes, 3000);
+  }
+
+  // Aturar polling quan la pestanya no està visible
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (pollingInterval) clearInterval(pollingInterval);
+    } else {
+      iniciarPolling();
+      actualitzarComandes(); // Actualitzar immediatament
     }
   });
+
+  // Iniciar polling al carregar
+  iniciarPolling();
 
   // Acceptar comanda
   document.querySelectorAll(".btn-acceptar").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const pedidoId = btn.getAttribute("data-pedido-id");
+      const pedidoItem = btn.closest(".pedido-item");
+
+      // Deshabilitar botó immediatament
+      btn.disabled = true;
+      btn.textContent = "Acceptant...";
+      btn.classList.add("opacity-50");
+
       try {
         const res = await fetch(`/api/repartidor/pedido/${pedidoId}/acceptar`, {
           method: "POST",
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          window.location.reload();
+          // Mostrar confirmació i recarregar
+          if (pedidoItem) {
+            pedidoItem.classList.add("bg-green-50", "border-green-200");
+            btn.textContent = "✓ Acceptada";
+            btn.classList.remove("bg-[#3BB143]");
+            btn.classList.add("bg-green-600");
+          }
+          setTimeout(() => window.location.reload(), 500);
         } else {
           alert(data.error || "Error acceptant la comanda");
+          btn.disabled = false;
+          btn.textContent = "Acceptar";
+          btn.classList.remove("opacity-50");
         }
       } catch (e) {
         console.error("Error:", e);
         alert("Error de connexió");
+        btn.disabled = false;
+        btn.textContent = "Acceptar";
+        btn.classList.remove("opacity-50");
       }
     });
   });
@@ -498,11 +590,15 @@ try {
         const res = await fetch(`/api/repartidor/pedido/${pedidoId}/iniciar`, {
           method: "POST",
         });
-        if (res.ok) {
+        const data = await res.json();
+        if (res.ok && data.success) {
           window.location.reload();
+        } else {
+          alert(data.error || "Error iniciant la entrega");
         }
       } catch (e) {
         console.error("Error:", e);
+        alert("Error de connexió");
       }
     });
   });
@@ -517,11 +613,15 @@ try {
             `/api/repartidor/pedido/${pedidoId}/entregar`,
             { method: "POST" }
           );
-          if (res.ok) {
+          const data = await res.json();
+          if (res.ok && data.success) {
             window.location.reload();
+          } else {
+            alert(data.error || "Error marcant com entregat");
           }
         } catch (e) {
           console.error("Error:", e);
+          alert("Error de connexió");
         }
       }
     });

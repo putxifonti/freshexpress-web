@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { verifyToken, getUserById } from '../../../../../lib/auth';
 import { queryOperacional } from '../../../../../lib/db';
 
-// POST - Iniciar entrega (canviar estat a en_camino)
-export const POST: APIRoute = async ({ cookies, params }) => {
+// POST - Reportar problema amb una entrega
+export const POST: APIRoute = async ({ cookies, params, request }) => {
   try {
     const token = cookies.get('auth_token')?.value;
     if (!token) {
@@ -30,6 +30,17 @@ export const POST: APIRoute = async ({ cookies, params }) => {
     }
 
     const pedidoId = params.id;
+    const body = await request.json();
+    const { motiu, notes } = body;
+
+    // Validar motiu
+    const motiusValids = ['no_contesta', 'direccio_incorrecta', 'client_absent', 'producte_danyat', 'altre'];
+    if (!motiu || !motiusValids.includes(motiu)) {
+      return new Response(JSON.stringify({ error: 'Motiu no vàlid' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
     // Obtenir el repartidor_id
     const repartidorData = await queryOperacional<any[]>(
@@ -59,22 +70,61 @@ export const POST: APIRoute = async ({ cookies, params }) => {
       });
     }
 
-    // Canviar estat a en_camino
+    // Traduir motiu a text descriptiu
+    const motiuTexts: Record<string, string> = {
+      'no_contesta': 'El client no contesta',
+      'direccio_incorrecta': 'Direcció incorrecta',
+      'client_absent': 'Client absent',
+      'producte_danyat': 'Producte danyat',
+      'altre': 'Altre motiu'
+    };
+
+    const motiuText = motiuTexts[motiu] || motiu;
+    const notaCompleta = notes ? `${motiuText}: ${notes}` : motiuText;
+
+    // Actualitzar pedido amb estat 'fallido' i guardar notes
     await queryOperacional(
-      'UPDATE pedidos SET estado = ?, fecha_recogida = COALESCE(fecha_recogida, NOW()) WHERE id = ?',
-      ['en_camino', pedidoId]
+      `UPDATE pedidos SET 
+        estado = 'cancelado',
+        notas_repartidor = ?,
+        fecha_entrega = NOW()
+       WHERE id = ?`,
+      [notaCompleta, pedidoId]
     );
+
+    // Crear registre d'incidència (opcional - si la taula existeix)
+    try {
+      await queryOperacional(`
+        CREATE TABLE IF NOT EXISTS incidencias_entrega (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          pedido_id INT NOT NULL,
+          repartidor_id INT NOT NULL,
+          motiu VARCHAR(100) NOT NULL,
+          notes TEXT,
+          fecha_incidencia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
+        )
+      `);
+      
+      await queryOperacional(
+        `INSERT INTO incidencias_entrega (pedido_id, repartidor_id, motiu, notes) VALUES (?, ?, ?, ?)`,
+        [pedidoId, repartidorId, motiu, notes || '']
+      );
+    } catch (e) {
+      // Si falla la taula d'incidències, no és crític
+      console.log('Nota: Taula incidencias_entrega no creada');
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Entrega iniciada' 
+      message: 'Problema reportat correctament' 
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('Error iniciant entrega:', error);
+    console.error('Error reportant problema:', error);
     return new Response(JSON.stringify({ error: 'Error intern del servidor' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

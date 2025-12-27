@@ -24,6 +24,11 @@ if (user.rol === "repartidor") {
   return Astro.redirect("/repartidor/compte");
 }
 
+// Redirigir admins al seu dashboard específic
+if (user.rol === "admin") {
+  return Astro.redirect("/admin/dashboard");
+}
+
 // Obtenir últimes comandes i estadístiques
 let ultimesComandes: any[] = [];
 let stats = {
