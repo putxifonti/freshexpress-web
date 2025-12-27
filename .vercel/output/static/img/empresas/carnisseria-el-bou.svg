@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <rect width="120" height="120" fill="#f3f4f6" rx="12"/>
-  <ellipse cx="60" cy="50" rx="28" ry="22" fill="#dc2626"/>
-  <ellipse cx="55" cy="45" rx="15" ry="12" fill="#ef4444"/>
-  <ellipse cx="68" cy="55" rx="10" ry="8" fill="#f87171"/>
-  <rect x="40" y="70" width="40" height="4" fill="#991b1b" rx="2"/>
-  <text x="60" y="95" font-family="Arial, sans-serif" font-size="9" fill="#0047AB" text-anchor="middle" font-weight="bold">Carnisseria El Bou</text>
-</svg>

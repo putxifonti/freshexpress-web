@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <rect width="120" height="120" fill="#f3f4f6" rx="12"/>
-  <ellipse cx="60" cy="50" rx="30" ry="20" fill="#d4a574"/>
-  <ellipse cx="60" cy="45" rx="25" ry="15" fill="#deb887"/>
-  <path d="M40 50 Q60 35 80 50" stroke="#8b4513" stroke-width="2" fill="none"/>
-  <ellipse cx="50" cy="48" rx="5" ry="3" fill="#c4956a"/>
-  <ellipse cx="70" cy="48" rx="5" ry="3" fill="#c4956a"/>
-  <text x="60" y="95" font-family="Arial, sans-serif" font-size="8" fill="#0047AB" text-anchor="middle" font-weight="bold">Forn de Pa El Molí</text>
-</svg>

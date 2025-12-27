@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <rect width="120" height="120" fill="#f3f4f6" rx="12"/>
-  <ellipse cx="60" cy="50" rx="30" ry="18" fill="#0ea5e9"/>
-  <path d="M35 50 Q60 35 85 50" stroke="#38bdf8" stroke-width="4" fill="none"/>
-  <circle cx="45" cy="48" r="3" fill="#1e3a5f"/>
-  <path d="M75 45 L90 40 L88 50 Z" fill="#0284c7"/>
-  <ellipse cx="60" cy="55" rx="20" ry="8" fill="#7dd3fc"/>
-  <text x="60" y="95" font-family="Arial, sans-serif" font-size="8" fill="#0047AB" text-anchor="middle" font-weight="bold">Peixateria Mar Blau</text>
-</svg>
