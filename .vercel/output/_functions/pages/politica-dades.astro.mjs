@@ -1,0 +1,100 @@
+/* empty css                                 */
+import { e as createComponent, k as renderComponent, r as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_Bh1FzlyL.mjs';
+import 'piccolore';
+import { $ as $$Layout } from '../chunks/Layout_D9o_KgyY.mjs';
+export { renderers } from '../renderers.mjs';
+
+const $$PoliticaDades = createComponent(($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": "Pol\xEDtica de Dades i Data Broker \xC8tic - FreshExpress" }, { "default": ($$result2) => renderTemplate` ${maybeRenderHead()}<div class="min-h-screen bg-gray-50 py-12"> <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"> <!-- Capçalera --> <div class="text-center mb-12"> <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#3BB143] to-[#0047AB] rounded-full mb-6"> <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path> </svg> </div> <h1 class="text-4xl font-bold text-gray-900 mb-4">Política de Dades</h1> <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+El nostre compromís amb la transparència, l'ètica i la protecció de
+          les teves dades
+</p> </div> <!-- Contingut principal --> <div class="space-y-8"> <!-- Secció 1: Data Broker Ètic --> <section class="bg-white rounded-2xl shadow-lg p-8"> <div class="flex items-start mb-6"> <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0"> <svg class="w-6 h-6 text-[#3BB143]" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> </div> <div class="ml-4"> <h2 class="text-2xl font-bold text-gray-900">
+Què és el Data Broker Ètic?
+</h2> <p class="text-gray-600 mt-2">
+El nostre model únic que beneficia tothom
+</p> </div> </div> <div class="prose prose-green max-w-none"> <p class="text-gray-700">
+FreshExpress opera com un <strong>data broker ètic</strong>, un
+              model innovador que permet compartir dades de consum de manera
+              responsable i transparent. A diferència dels data brokers
+              tradicionals, nosaltres:
+</p> <ul class="space-y-3 mt-4"> <li class="flex items-start"> <svg class="w-5 h-5 text-[#3BB143] mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path> </svg> <span><strong>Demanem consentiment explícit</strong> abans de recollir
+                  qualsevol dada</span> </li> <li class="flex items-start"> <svg class="w-5 h-5 text-[#3BB143] mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path> </svg> <span><strong>Anonimitzem totes les dades</strong> mitjançant hash irreversible</span> </li> <li class="flex items-start"> <svg class="w-5 h-5 text-[#3BB143] mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path> </svg> <span><strong>Compartim els beneficis</strong> amb descomptes i donacions
+                  a projectes ecològics</span> </li> <li class="flex items-start"> <svg class="w-5 h-5 text-[#3BB143] mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path> </svg> <span><strong>Som transparents</strong> sobre qui accedeix a les dades
+                  i per què</span> </li> </ul> </div> </section> <!-- Secció 2: Com funciona --> <section class="bg-white rounded-2xl shadow-lg p-8"> <h2 class="text-2xl font-bold text-gray-900 mb-6">Com funciona?</h2> <div class="grid md:grid-cols-3 gap-6"> <div class="text-center p-4"> <div class="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center"> <span class="text-2xl font-bold text-[#0047AB]">1</span> </div> <h3 class="font-bold text-gray-900 mb-2">Dones consentiment</h3> <p class="text-sm text-gray-600">
+Activar el programa "Data for Good" al registrar-te o des de
+                configuració.
+</p> </div> <div class="text-center p-4"> <div class="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center"> <span class="text-2xl font-bold text-[#3BB143]">2</span> </div> <h3 class="font-bold text-gray-900 mb-2">
+Anonimitzem les dades
+</h3> <p class="text-sm text-gray-600">
+Les teves compres i comportaments es converteixen en patrons
+                anònims impossibles de rastrejar.
+</p> </div> <div class="text-center p-4"> <div class="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center"> <span class="text-2xl font-bold text-purple-600">3</span> </div> <h3 class="font-bold text-gray-900 mb-2">Generem valor</h3> <p class="text-sm text-gray-600">
+Investigadors i empreses sostenibles accedeixen a insights
+                agregats per millorar productes ECO.
+</p> </div> </div> </section> <!-- Secció 3: Quines dades recollim --> <section class="bg-white rounded-2xl shadow-lg p-8"> <h2 class="text-2xl font-bold text-gray-900 mb-6">
+Quines dades recollim?
+</h2> <div class="grid md:grid-cols-2 gap-6"> <div class="bg-green-50 rounded-xl p-6 border border-green-100"> <h3 class="font-bold text-[#3BB143] mb-4 flex items-center"> <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg>
+Dades que SÍ recollim (amb consentiment)
+</h3> <ul class="space-y-2 text-sm text-gray-700"> <li>• Patrons de compra (categories, freqüència)</li> <li>
+• Preferències ecològiques (productes ECO vs. convencionals)
+</li> <li>• Comportament de navegació (pàgines visitades, temps)</li> <li>• Franges horàries de compra</li> <li>• Tipus de dispositiu i navegador</li> <li>• Ubicació general (codi postal, no adreça exacta)</li> </ul> </div> <div class="bg-red-50 rounded-xl p-6 border border-red-100"> <h3 class="font-bold text-red-600 mb-4 flex items-center"> <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path> </svg>
+Dades que MAI recollim
+</h3> <ul class="space-y-2 text-sm text-gray-700"> <li>• Nom real o document d'identitat</li> <li>• Adreça exacta de domicili</li> <li>• Dades bancàries o de pagament</li> <li>• Contingut de missatges o converses</li> <li>• Dades de salut o religió</li> <li>• Informació de terceres persones</li> </ul> </div> </div> </section> <!-- Secció 4: Beneficis per a tu --> <section class="bg-gradient-to-br from-[#3BB143] to-[#0047AB] rounded-2xl shadow-lg p-8 text-white"> <h2 class="text-2xl font-bold mb-6">Què hi guanyes tu?</h2> <div class="grid md:grid-cols-3 gap-6"> <div class="bg-white/10 backdrop-blur rounded-xl p-5"> <div class="text-3xl mb-3">💰</div> <h3 class="font-bold mb-2">Descomptes exclusius</h3> <p class="text-sm text-white/80">
+Fins a un 15% de descompte en productes ECO per als participants
+                del programa.
+</p> </div> <div class="bg-white/10 backdrop-blur rounded-xl p-5"> <div class="text-3xl mb-3">🌍</div> <h3 class="font-bold mb-2">Impacte ambiental</h3> <p class="text-sm text-white/80">
+El 10% dels ingressos del data broker es destinen a projectes de
+                reforestació.
+</p> </div> <div class="bg-white/10 backdrop-blur rounded-xl p-5"> <div class="text-3xl mb-3">🔬</div> <h3 class="font-bold mb-2">Contribució científica</h3> <p class="text-sm text-white/80">
+Les teves dades ajuden a investigació sobre consum responsable i
+                sostenibilitat.
+</p> </div> </div> </section> <!-- Secció 5: Qui accedeix a les dades --> <section class="bg-white rounded-2xl shadow-lg p-8"> <h2 class="text-2xl font-bold text-gray-900 mb-6">
+Qui pot accedir a les dades?
+</h2> <div class="space-y-4"> <div class="flex items-start p-4 bg-gray-50 rounded-xl"> <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0"> <svg class="w-5 h-5 text-[#0047AB]" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path> </svg> </div> <div class="ml-4"> <h3 class="font-bold text-gray-900">
+Institucions d'investigació
+</h3> <p class="text-sm text-gray-600">
+Universitats i centres d'investigació que estudien patrons de
+                  consum sostenible.
+</p> </div> </div> <div class="flex items-start p-4 bg-gray-50 rounded-xl"> <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0"> <svg class="w-5 h-5 text-[#3BB143]" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path> </svg> </div> <div class="ml-4"> <h3 class="font-bold text-gray-900">
+Empreses amb certificació ECO
+</h3> <p class="text-sm text-gray-600">
+Productors i marques amb certificacions de sostenibilitat
+                  verificades.
+</p> </div> </div> <div class="flex items-start p-4 bg-gray-50 rounded-xl"> <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0"> <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path> </svg> </div> <div class="ml-4"> <h3 class="font-bold text-gray-900">ONGs ambientals</h3> <p class="text-sm text-gray-600">
+Organitzacions sense ànim de lucre que treballen per la
+                  sostenibilitat.
+</p> </div> </div> </div> <div class="mt-6 p-4 bg-yellow-50 border border-yellow-100 rounded-xl"> <p class="text-sm text-yellow-800"> <strong>Important:</strong> MAI venem dades a empreses d'publicitat,
+              asseguradores, bancs o qualsevol entitat que pugui discriminar basant-se
+              en el comportament de consum.
+</p> </div> </section> <!-- Secció 6: Els teus drets --> <section class="bg-white rounded-2xl shadow-lg p-8"> <h2 class="text-2xl font-bold text-gray-900 mb-6">
+Els teus drets (RGPD)
+</h2> <div class="grid md:grid-cols-2 gap-4"> <div class="flex items-center p-3 border border-gray-200 rounded-lg"> <svg class="w-5 h-5 text-[#3BB143] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path> </svg> <span class="text-sm text-gray-700"><strong>Accés:</strong> Pots demanar una còpia de totes les teves
+                dades</span> </div> <div class="flex items-center p-3 border border-gray-200 rounded-lg"> <svg class="w-5 h-5 text-[#3BB143] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path> </svg> <span class="text-sm text-gray-700"><strong>Rectificació:</strong> Pots corregir dades incorrectes</span> </div> <div class="flex items-center p-3 border border-gray-200 rounded-lg"> <svg class="w-5 h-5 text-[#3BB143] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path> </svg> <span class="text-sm text-gray-700"><strong>Supressió:</strong> Pots demanar l'eliminació de les teves
+                dades</span> </div> <div class="flex items-center p-3 border border-gray-200 rounded-lg"> <svg class="w-5 h-5 text-[#3BB143] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path> </svg> <span class="text-sm text-gray-700"><strong>Portabilitat:</strong> Pots exportar les teves dades en format
+                estàndard</span> </div> <div class="flex items-center p-3 border border-gray-200 rounded-lg"> <svg class="w-5 h-5 text-[#3BB143] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path> </svg> <span class="text-sm text-gray-700"><strong>Oposició:</strong> Pots oposar-te a certs tractaments</span> </div> <div class="flex items-center p-3 border border-gray-200 rounded-lg"> <svg class="w-5 h-5 text-[#3BB143] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path> </svg> <span class="text-sm text-gray-700"><strong>Revocació:</strong> Pots retirar el consentiment en qualsevol
+                moment</span> </div> </div> </section> <!-- CTA final --> <section class="bg-white rounded-2xl shadow-lg p-8 text-center"> <h2 class="text-2xl font-bold text-gray-900 mb-4">
+Tens alguna pregunta?
+</h2> <p class="text-gray-600 mb-6">
+Estem aquí per ajudar-te amb qualsevol dubte sobre les teves dades.
+</p> <div class="flex flex-col sm:flex-row gap-4 justify-center"> <a href="mailto:privacitat@freshexpress.cat" class="px-6 py-3 bg-[#3BB143] text-white rounded-lg font-medium hover:bg-[#32a039] transition-colors">
+Contactar amb Privacitat
+</a> <a href="/configuracio#consentiments" class="px-6 py-3 border border-[#0047AB] text-[#0047AB] rounded-lg font-medium hover:bg-blue-50 transition-colors">
+Gestionar consentiments
+</a> </div> </section> <!-- Última actualització --> <p class="text-center text-sm text-gray-500">
+Última actualització: Gener 2025 | Versió 1.0
+</p> </div> </div> </div> ` })}`;
+}, "C:/dev/FreshExpress/src/pages/politica-dades.astro", void 0);
+
+const $$file = "C:/dev/FreshExpress/src/pages/politica-dades.astro";
+const $$url = "/politica-dades";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$PoliticaDades,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

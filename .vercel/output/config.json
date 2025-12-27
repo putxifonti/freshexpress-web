@@ -1,0 +1,315 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/_astro/(.*)$",
+			"headers": {
+				"cache-control": "public, max-age=31536000, immutable"
+			},
+			"continue": true
+		},
+		{
+			"src": "^/_server-islands/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/_image/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/historial/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/solicituds/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/admin/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/solicituds-repartidor/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/update-images/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/users/([^/]+?)/status/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/admin/users/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/auth/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/auth/logout/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/auth/me/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/auth/register/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/cart/add/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/cart/count/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/cart/repetir/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/cart/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/cart/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/checkout/finalitzar/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/configuracio/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/disponibilitat/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/entrega/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/entregues/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/estadistiques/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/historial/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/pedido/([^/]+?)/acceptar/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/pedido/([^/]+?)/entregar/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/pedido/([^/]+?)/estat/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/pedido/([^/]+?)/iniciar/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/pedido/([^/]+?)/problema/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/pedidos-disponibles/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/ruta/optimitzar/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/repartidor/ruta/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/seguiment/([^/]+?)/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/setup/update-images/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/track/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/canvi-mode/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/consents/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/delete/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/password/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/profile/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/solicitud-repartidor/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/update-address/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/user/valorar-repartidor/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/avis-legal/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/checkout/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/cistella/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/cobertura/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/com-funciona/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/configuracio/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/contacte/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/dashboard/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/faq/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/historial/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/login/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/politica-cookies/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/politica-dades/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/politica-privacitat/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/productes/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/rastreig/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/recuperar-contrasenya/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/registre/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/repartidor/compte/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/repartidor/configuracio/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/repartidor/guanys/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/repartidor/historial/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/repartidor/ruta/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/repartidor/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/seguiment/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/sobre-nosaltres/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/suport/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/termes-condicions/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/termes-repartidor/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/$",
+			"dest": "_render"
+		}
+	]
+}

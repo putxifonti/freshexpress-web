@@ -1,0 +1,421 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { verifyToken, getUserById } from "../lib/auth";
+
+// Verificar autenticació
+const token = Astro.cookies.get("auth_token")?.value;
+let user = null;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    user = await getUserById(payload.userId);
+  }
+}
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+// Obtenir el codi de la URL si existeix
+const codeFromUrl = Astro.url.searchParams.get("code") || "";
+---
+
+<Layout title="Seguiment de Comandes - FreshExpress">
+  <div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Navegació -->
+      <div class="mb-6">
+        <a
+          href="/dashboard"
+          class="text-[#3BB143] hover:text-[#32a039] text-sm font-medium flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Tornar al Dashboard
+        </a>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <svg
+            class="w-7 h-7 mr-3 text-[#3BB143]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+            ></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          Seguiment de Comandes
+        </h1>
+
+        <!-- Cercador de comandes -->
+        <div class="mb-8">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Introdueix el codi de seguiment
+          </label>
+          <div class="flex gap-3">
+            <input
+              type="text"
+              id="tracking-code"
+              placeholder="Ex: FE-M1ABCD-XY12"
+              value={codeFromUrl}
+              class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent"
+            />
+            <button
+              id="search-btn"
+              class="px-6 py-3 bg-[#3BB143] text-white font-medium rounded-lg hover:bg-[#32a039] transition-colors"
+            >
+              Cercar
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden text-center py-8">
+          <svg
+            class="animate-spin h-8 w-8 text-[#3BB143] mx-auto"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <p class="text-gray-500 mt-2">Cercant comanda...</p>
+        </div>
+
+        <!-- Error -->
+        <div
+          id="error-message"
+          class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
+        >
+          <p class="text-red-700" id="error-text">Error cercant la comanda</p>
+        </div>
+
+        <!-- Resultat de seguiment -->
+        <div id="tracking-result" class="hidden">
+          <div class="border border-gray-200 rounded-lg p-6">
+            <!-- Capçalera -->
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <p class="text-sm text-gray-500">Comanda</p>
+                <p class="text-lg font-bold text-gray-900" id="result-code"></p>
+              </div>
+              <span
+                id="result-status"
+                class="px-3 py-1 rounded-full text-sm font-medium"></span>
+            </div>
+
+            <!-- Direcció d'entrega -->
+            <div id="direccio-section" class="mb-6 p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-500 mb-1">Adreça d'entrega</p>
+              <p class="font-medium text-gray-900" id="result-direccio"></p>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative mb-8" id="timeline-container">
+              <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
+              <div id="timeline" class="space-y-6"></div>
+            </div>
+
+            <!-- Detalls productes -->
+            <div id="productes-section" class="mb-6">
+              <h3 class="font-semibold text-gray-900 mb-3">Productes</h3>
+              <div id="productes-list" class="space-y-3"></div>
+            </div>
+
+            <!-- Resum de preus -->
+            <div class="border-t border-gray-200 pt-4">
+              <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Subtotal</span>
+                <span id="result-subtotal">0.00 €</span>
+              </div>
+              <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Enviament</span>
+                <span id="result-enviament">0.00 €</span>
+              </div>
+              <div class="flex justify-between font-bold text-gray-900 text-lg">
+                <span>Total</span>
+                <span id="result-total">0.00 €</span>
+              </div>
+            </div>
+
+            <!-- Info repartidor (si en camí) -->
+            <div
+              id="repartidor-section"
+              class="hidden mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg"
+            >
+              <div class="flex items-center">
+                <svg
+                  class="w-6 h-6 mr-3 text-orange-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"
+                  ></path>
+                </svg>
+                <div>
+                  <p class="font-medium text-orange-800">Repartidor assignat</p>
+                  <p class="text-sm text-orange-600" id="repartidor-info"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Info ecològica -->
+            <div
+              class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <div class="flex items-center">
+                <svg
+                  class="w-6 h-6 mr-3 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                  ></path>
+                </svg>
+                <div>
+                  <p class="font-medium text-green-800">
+                    Lliurament 100% ecològic
+                  </p>
+                  <p class="text-sm text-green-600">
+                    Aquesta comanda es lliura amb transport sostenible
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estat buit -->
+        <div id="no-orders" class="text-center py-12">
+          <svg
+            class="w-16 h-16 mx-auto text-gray-300 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            ></path>
+          </svg>
+          <p class="text-gray-500">
+            Introdueix un codi de seguiment per veure l'estat de la teva comanda
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const searchBtn = document.getElementById("search-btn");
+  const trackingCode = document.getElementById(
+    "tracking-code"
+  ) as HTMLInputElement;
+  const trackingResult = document.getElementById("tracking-result");
+  const noOrders = document.getElementById("no-orders");
+  const loading = document.getElementById("loading");
+  const errorMessage = document.getElementById("error-message");
+  const errorText = document.getElementById("error-text");
+
+  async function cercarComanda(code: string) {
+    if (!code.trim()) return;
+
+    // Mostrar loading
+    loading?.classList.remove("hidden");
+    trackingResult?.classList.add("hidden");
+    noOrders?.classList.add("hidden");
+    errorMessage?.classList.add("hidden");
+
+    try {
+      const res = await fetch(`/api/seguiment/${encodeURIComponent(code)}`);
+      const data = await res.json();
+
+      loading?.classList.add("hidden");
+
+      if (!res.ok || !data.success) {
+        if (errorText)
+          errorText.textContent = data.error || "Error cercant la comanda";
+        errorMessage?.classList.remove("hidden");
+        noOrders?.classList.add("hidden");
+        return;
+      }
+
+      const comanda = data.comanda;
+
+      // Actualitzar elements
+      const resultCode = document.getElementById("result-code");
+      const resultStatus = document.getElementById("result-status");
+      const resultDireccio = document.getElementById("result-direccio");
+      const resultSubtotal = document.getElementById("result-subtotal");
+      const resultEnviament = document.getElementById("result-enviament");
+      const resultTotal = document.getElementById("result-total");
+
+      if (resultCode) resultCode.textContent = comanda.numeroPedido;
+      if (resultDireccio)
+        resultDireccio.textContent = comanda.direccio || "No especificada";
+      if (resultSubtotal)
+        resultSubtotal.textContent = `${comanda.subtotal.toFixed(2)} €`;
+      if (resultEnviament)
+        resultEnviament.textContent = `${comanda.costEnviament.toFixed(2)} €`;
+      if (resultTotal)
+        resultTotal.textContent = `${comanda.total.toFixed(2)} €`;
+
+      // Estat amb color
+      if (resultStatus) {
+        resultStatus.textContent = comanda.estatText;
+        resultStatus.className = `px-3 py-1 rounded-full text-sm font-medium ${getEstatClass(comanda.estat)}`;
+      }
+
+      // Timeline
+      const timelineContainer = document.getElementById("timeline");
+      if (timelineContainer) {
+        timelineContainer.innerHTML = comanda.timeline
+          .map(
+            (step: any) => `
+          <div class="relative flex items-start">
+            <div class="absolute left-0 w-8 h-8 ${step.completat ? "bg-[#3BB143]" : "bg-gray-300"} rounded-full flex items-center justify-center">
+              ${
+                step.completat
+                  ? `
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              `
+                  : `
+                <span class="text-gray-600 text-xs">${comanda.timeline.indexOf(step) + 1}</span>
+              `
+              }
+            </div>
+            <div class="ml-12">
+              <p class="font-medium ${step.completat ? "text-gray-900" : "text-gray-400"}">${step.text}</p>
+              ${step.data ? `<p class="text-sm ${step.completat ? "text-gray-500" : "text-gray-400"}">${step.data}</p>` : ""}
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      // Productes
+      const productesList = document.getElementById("productes-list");
+      if (productesList && comanda.productes && comanda.productes.length > 0) {
+        productesList.innerHTML = comanda.productes
+          .map(
+            (p: any) => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div class="flex items-center">
+              ${p.imatge ? `<img src="${p.imatge}" alt="${p.nom}" class="w-12 h-12 object-cover rounded mr-3">` : ""}
+              <div>
+                <p class="font-medium text-gray-900">${p.nom}</p>
+                <p class="text-sm text-gray-500">${p.quantitat} x ${p.preu.toFixed(2)} €</p>
+              </div>
+            </div>
+            <span class="font-medium text-gray-900">${p.subtotal.toFixed(2)} €</span>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      // Repartidor
+      const repartidorSection = document.getElementById("repartidor-section");
+      const repartidorInfo = document.getElementById("repartidor-info");
+      if (comanda.repartidor && comanda.estat === "en_camino") {
+        if (repartidorSection) repartidorSection.classList.remove("hidden");
+        if (repartidorInfo)
+          repartidorInfo.textContent =
+            comanda.repartidor +
+            (comanda.telefonRepartidor
+              ? ` - ${comanda.telefonRepartidor}`
+              : "");
+      } else {
+        repartidorSection?.classList.add("hidden");
+      }
+
+      trackingResult?.classList.remove("hidden");
+      noOrders?.classList.add("hidden");
+    } catch (error) {
+      console.error("Error:", error);
+      loading?.classList.add("hidden");
+      if (errorText) errorText.textContent = "Error de connexió";
+      errorMessage?.classList.remove("hidden");
+    }
+  }
+
+  function getEstatClass(estat: string): string {
+    const classes: Record<string, string> = {
+      pendiente: "bg-yellow-100 text-yellow-800",
+      confirmado: "bg-blue-100 text-blue-800",
+      preparando: "bg-purple-100 text-purple-800",
+      listo: "bg-indigo-100 text-indigo-800",
+      en_camino: "bg-orange-100 text-orange-800",
+      entregado: "bg-green-100 text-green-800",
+      cancelado: "bg-red-100 text-red-800",
+    };
+    return classes[estat] || "bg-gray-100 text-gray-800";
+  }
+
+  searchBtn?.addEventListener("click", () => {
+    cercarComanda(trackingCode.value);
+  });
+
+  trackingCode?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      cercarComanda(trackingCode.value);
+    }
+  });
+
+  // Si hi ha un codi a la URL, cercar automàticament
+  const urlParams = new URLSearchParams(window.location.search);
+  const codeFromUrl = urlParams.get("code");
+  if (codeFromUrl) {
+    trackingCode.value = codeFromUrl;
+    cercarComanda(codeFromUrl);
+  }
+</script>

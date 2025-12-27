@@ -1,0 +1,150 @@
+/* empty css                                 */
+import { e as createComponent, k as renderComponent, r as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_Bh1FzlyL.mjs';
+import 'piccolore';
+import { $ as $$Layout } from '../chunks/Layout_D9o_KgyY.mjs';
+export { renderers } from '../renderers.mjs';
+
+const $$AvisLegal = createComponent(($$result, $$props, $$slots) => {
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": "Av\xEDs Legal - FreshExpress" }, { "default": ($$result2) => renderTemplate` ${maybeRenderHead()}<div class="min-h-screen bg-gray-50 py-16"> <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"> <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12"> <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+Avís Legal
+</h1> <div class="prose prose-lg max-w-none text-gray-600"> <p class="text-sm text-gray-500 mb-8">
+Última actualització: ${(/* @__PURE__ */ new Date()).toLocaleDateString("ca-ES")} </p> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+1. Dades Identificatives
+</h2> <p>
+En compliment del deure d'informació establert a l'article 10 de
+              la Llei 34/2002, d'11 de juliol, de Serveis de la Societat de la
+              Informació i de Comerç Electrònic (LSSI-CE), es faciliten les
+              següents dades:
+</p> <div class="bg-gray-50 rounded-lg p-6 mt-4 space-y-2"> <p><strong>Denominació Social:</strong> FreshExpress S.L.</p> <p><strong>CIF:</strong> B-XXXXXXXX</p> <p> <strong>Domicili Social:</strong> Carrer Example, 123, 08001 Barcelona
+</p> <p><strong>Email de contacte:</strong> info@freshexpress.cat</p> <p><strong>Telèfon:</strong> +34 900 123 456</p> <p> <strong>Inscripció Registral:</strong> Inscrita al Registre Mercantil
+                de Barcelona, Tom XXXXX, Foli XX, Full B-XXXXXX
+</p> </div> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+2. Objecte
+</h2> <p>
+El present avís legal regula l'accés i ús del lloc web
+              www.freshexpress.cat (en endavant, "el Lloc Web"), que
+              FreshExpress S.L. posa a disposició dels usuaris d'Internet.
+</p> <p class="mt-4">
+L'accés al Lloc Web implica l'acceptació plena i sense reserves de
+              totes les disposicions incloses en aquest Avís Legal, així com de
+              qualsevol altra disposició legal aplicable.
+</p> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+3. Condicions d'Accés i Ús
+</h2> <p>
+L'usuari es compromet a fer un ús correcte del Lloc Web de
+              conformitat amb les lleis, la bona fe, l'ordre públic, els usos
+              del tràfic i el present Avís Legal.
+</p> <p class="mt-4">
+L'usuari respondrà davant FreshExpress o davant tercers, de
+              qualsevol dany o perjudici que es pogués causar com a conseqüència
+              de l'incompliment d'aquesta obligació.
+</p> <p class="mt-4">Queda expressament prohibit:</p> <ul class="list-disc pl-6 space-y-2 mt-4"> <li>
+Utilitzar els continguts amb finalitats comercials no
+                autoritzades
+</li> <li>
+Modificar, copiar, distribuir o transmetre els continguts sense
+                autorització
+</li> <li>
+Suprimir, eludir o manipular el copyright i altres dades
+                identificatives
+</li> <li>
+Utilitzar el Lloc Web per transmetre contingut il·legal o
+                contrari a la moral
+</li> <li>
+Intentar accedir a àrees restringides dels sistemes informàtics
+</li> </ul> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+4. Propietat Intel·lectual i Industrial
+</h2> <p>
+Tots els continguts del Lloc Web, incloent-hi a títol enunciatiu
+              però no limitatiu: textos, fotografies, gràfics, imatges, icones,
+              tecnologia, programari, enllaços i altres continguts audiovisuals,
+              així com el seu disseny gràfic i codis font, són propietat
+              intel·lectual de FreshExpress S.L. o de tercers, sense que puguin
+              entendre's cedits a l'usuari cap dels drets d'explotació
+              reconeguts per la normativa vigent en matèria de propietat
+              intel·lectual.
+</p> <p class="mt-4">
+Les marques, noms comercials o signes distintius són titularitat
+              de FreshExpress S.L. o tercers, sense que pugui entendre's que
+              l'accés al Lloc Web atribueix cap dret sobre ells.
+</p> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+5. Exclusió de Garanties i Responsabilitat
+</h2> <p>
+FreshExpress S.L. no es fa responsable, en cap cas, dels danys de
+              qualsevol naturalesa que poguessin derivar de:
+</p> <ul class="list-disc pl-6 space-y-2 mt-4"> <li>
+La falta de disponibilitat, manteniment i efectiu funcionament
+                del web
+</li> <li>
+La falta d'utilitat, adequació o validesa del web per a
+                necessitats específiques
+</li> <li>
+La il·licitud, falta de qualitat, fiabilitat, utilitat i
+                disponibilitat dels serveis prestats per tercers
+</li> <li>
+Els virus o altres elements en els continguts que puguin produir
+                alteracions
+</li> <li>
+L'ús il·lícit, negligent, fraudulent o contrari a aquest Avís
+                Legal
+</li> </ul> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+6. Enllaços
+</h2> <p>
+El Lloc Web pot contenir enllaços a altres pàgines web gestionades
+              per tercers. FreshExpress S.L. no exerceix cap control sobre
+              aquests llocs ni és responsable dels seus continguts. Els enllaços
+              a tercers que pugui contenir el Lloc Web es faciliten únicament a
+              efectes informatius.
+</p> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+7. Protecció de Dades
+</h2> <p>
+FreshExpress S.L. compleix amb les directrius de la Llei Orgànica
+              3/2018, de 5 de desembre, de Protecció de Dades Personals i
+              garantia dels drets digitals, i el Reglament (UE) 2016/679 del
+              Parlament Europeu i del Consell, de 27 d'abril de 2016 (RGPD).
+</p> <p class="mt-4">
+Per a més informació sobre el tractament de les vostres dades
+              personals, consulteu la nostra
+<a href="/politica-privacitat" class="text-[#3BB143] hover:underline">Política de Privacitat</a>.
+</p> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+8. Modificacions
+</h2> <p>
+FreshExpress S.L. es reserva el dret de realitzar, sense previ
+              avís, les modificacions que consideri oportunes en el Lloc Web,
+              podent canviar, suprimir o afegir tant els continguts i serveis
+              que es prestin com la forma en què aquests apareguin presentats.
+</p> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+9. Legislació Aplicable i Jurisdicció
+</h2> <p>
+La relació entre FreshExpress S.L. i l'usuari es regirà per la
+              normativa espanyola vigent i qualsevol controvèrsia se sotmetrà
+              als Jutjats i tribunals de la ciutat de Barcelona, llevat que la
+              Llei aplicable disposi una altra cosa.
+</p> </section> <section class="mb-8"> <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+10. Contacte
+</h2> <p>
+Per a qualsevol consulta relacionada amb aquest Avís Legal, pot
+              contactar amb nosaltres a:
+</p> <div class="bg-gray-50 rounded-lg p-6 mt-4 space-y-2"> <p><strong>Email:</strong> legal@freshexpress.cat</p> <p> <strong>Adreça:</strong> Carrer Example, 123, 08001 Barcelona
+</p> <p><strong>Telèfon:</strong> +34 900 123 456</p> </div> </section> </div> <div class="mt-12 pt-8 border-t border-gray-200 flex flex-wrap gap-4"> <a href="/" class="inline-flex items-center text-[#3BB143] hover:text-[#2d8a33] font-medium"> <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path> </svg>
+Tornar a l'inici
+</a> <a href="/politica-privacitat" class="text-gray-600 hover:text-gray-900 font-medium">
+Política de Privacitat
+</a> <a href="/termes-condicions" class="text-gray-600 hover:text-gray-900 font-medium">
+Termes i Condicions
+</a> </div> </div> </div> </div> ` })}`;
+}, "C:/dev/FreshExpress/src/pages/avis-legal.astro", void 0);
+
+const $$file = "C:/dev/FreshExpress/src/pages/avis-legal.astro";
+const $$url = "/avis-legal";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: $$AvisLegal,
+  file: $$file,
+  url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };

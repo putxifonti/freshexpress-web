@@ -1,0 +1,310 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Política de Cookies - FreshExpress">
+  <div class="min-h-screen bg-gray-50 py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+          Política de Cookies
+        </h1>
+
+        <div class="prose prose-lg max-w-none text-gray-600">
+          <p class="text-sm text-gray-500 mb-8">
+            Última actualització: {new Date().toLocaleDateString("ca-ES")}
+          </p>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              1. Què són les Cookies?
+            </h2>
+            <p>
+              Les cookies són petits fitxers de text que s'emmagatzemen al teu
+              dispositiu (ordinador, tauleta o mòbil) quan visites un lloc web.
+              Serveixen per recordar les teves preferències i millorar la teva
+              experiència de navegació.
+            </p>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              2. Tipus de Cookies que Utilitzem
+            </h2>
+
+            <div class="space-y-6 mt-4">
+              <div class="bg-gray-50 rounded-lg p-5">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                  Cookies Essencials
+                </h3>
+                <p class="text-sm text-gray-600 mb-3">
+                  Necessàries per al funcionament bàsic del lloc web. No es
+                  poden desactivar.
+                </p>
+                <table class="min-w-full text-sm">
+                  <thead class="bg-gray-100">
+                    <tr>
+                      <th class="px-3 py-2 text-left">Nom</th>
+                      <th class="px-3 py-2 text-left">Propòsit</th>
+                      <th class="px-3 py-2 text-left">Duració</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200">
+                    <tr>
+                      <td class="px-3 py-2 font-mono">auth_token</td>
+                      <td class="px-3 py-2">Mantenir la sessió iniciada</td>
+                      <td class="px-3 py-2">7 dies</td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-2 font-mono">cookie_consent</td>
+                      <td class="px-3 py-2"
+                        >Recordar les teves preferències de cookies</td
+                      >
+                      <td class="px-3 py-2">1 any</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="bg-blue-50 rounded-lg p-5">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                  Cookies d'Anàlisi
+                </h3>
+                <p class="text-sm text-gray-600 mb-3">
+                  Ens ajuden a entendre com utilitzes el lloc per millorar-lo.
+                </p>
+                <table class="min-w-full text-sm">
+                  <thead class="bg-blue-100">
+                    <tr>
+                      <th class="px-3 py-2 text-left">Nom</th>
+                      <th class="px-3 py-2 text-left">Propòsit</th>
+                      <th class="px-3 py-2 text-left">Duració</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-blue-200">
+                    <tr>
+                      <td class="px-3 py-2 font-mono">fe_session_id</td>
+                      <td class="px-3 py-2">Identificar sessions anònimes</td>
+                      <td class="px-3 py-2">Sessió</td>
+                    </tr>
+                    <tr>
+                      <td class="px-3 py-2 font-mono">fe_analytics</td>
+                      <td class="px-3 py-2">Estadístiques d'ús agregades</td>
+                      <td class="px-3 py-2">30 dies</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="bg-purple-50 rounded-lg p-5">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                  Cookies de Màrqueting
+                </h3>
+                <p class="text-sm text-gray-600 mb-3">
+                  Utilitzades per mostrar-te contingut personalitzat (només amb
+                  consentiment).
+                </p>
+                <table class="min-w-full text-sm">
+                  <thead class="bg-purple-100">
+                    <tr>
+                      <th class="px-3 py-2 text-left">Nom</th>
+                      <th class="px-3 py-2 text-left">Propòsit</th>
+                      <th class="px-3 py-2 text-left">Duració</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-purple-200">
+                    <tr>
+                      <td class="px-3 py-2 font-mono">fe_marketing</td>
+                      <td class="px-3 py-2">Personalització d'ofertes</td>
+                      <td class="px-3 py-2">90 dies</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="bg-green-50 rounded-lg p-5">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">
+                  Cookies Data for Good
+                </h3>
+                <p class="text-sm text-gray-600 mb-3">
+                  Relacionades amb el nostre programa de dades per al bé social
+                  (només amb consentiment explícit).
+                </p>
+                <table class="min-w-full text-sm">
+                  <thead class="bg-green-100">
+                    <tr>
+                      <th class="px-3 py-2 text-left">Nom</th>
+                      <th class="px-3 py-2 text-left">Propòsit</th>
+                      <th class="px-3 py-2 text-left">Duració</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-green-200">
+                    <tr>
+                      <td class="px-3 py-2 font-mono">fe_data_broker</td>
+                      <td class="px-3 py-2">Recollida de dades anonimitzades</td
+                      >
+                      <td class="px-3 py-2">1 any</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              3. Gestionar les Teves Preferències
+            </h2>
+            <p>
+              Pots gestionar les teves preferències de cookies en qualsevol
+              moment:
+            </p>
+            <ul class="list-disc pl-6 space-y-2 mt-4">
+              <li>
+                <strong>Des del navegador:</strong> Configura el teu navegador per
+                bloquejar o eliminar cookies
+              </li>
+              <li>
+                <strong>Des del teu compte:</strong> A <a
+                  href="/configuracio"
+                  class="text-[#3BB143] hover:underline">Configuració</a
+                > pots gestionar els consentiments
+              </li>
+              <li>
+                <strong>Bàner de cookies:</strong> Fes clic a "Gestionar preferències"
+                al bàner
+              </li>
+            </ul>
+
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+              <button
+                id="manage-cookies-btn"
+                class="px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#2d8a33] transition-colors"
+              >
+                Gestionar preferències de cookies
+              </button>
+            </div>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              4. Configuració per Navegador
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              <a
+                href="https://support.google.com/chrome/answer/95647"
+                target="_blank"
+                rel="noopener"
+                class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span class="text-sm font-bold text-gray-600 mb-2">Chrome</span>
+              </a>
+              <a
+                href="https://support.mozilla.org/kb/cookies-information-websites-store-on-your-computer"
+                target="_blank"
+                rel="noopener"
+                class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span class="text-sm font-bold text-gray-600 mb-2">Firefox</span
+                >
+              </a>
+              <a
+                href="https://support.apple.com/guide/safari/manage-cookies-sfri11471"
+                target="_blank"
+                rel="noopener"
+                class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span class="text-sm font-bold text-gray-600 mb-2">Safari</span>
+              </a>
+              <a
+                href="https://support.microsoft.com/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
+                target="_blank"
+                rel="noopener"
+                class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span class="text-sm font-bold text-gray-600 mb-2">Edge</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              5. Cookies de Tercers
+            </h2>
+            <p>
+              Actualment, FreshExpress utilitza les seves pròpies cookies
+              (first-party). En cas d'integrar serveis externs en el futur
+              (mapes, analítica, pagaments), actualitzarem aquesta política per
+              reflectir-ho.
+            </p>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              6. Actualitzacions
+            </h2>
+            <p>
+              Podem actualitzar aquesta Política de Cookies periòdicament.
+              T'informarem dels canvis significatius mitjançant el nostre lloc
+              web o per correu electrònic si tens un compte actiu.
+            </p>
+          </section>
+
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+              7. Contacte
+            </h2>
+            <p>Per a consultes sobre les cookies, contacta'ns a:</p>
+            <p class="mt-2">
+              <strong>Email:</strong> privacitat@freshexpress.cat
+            </p>
+          </section>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-gray-200 flex flex-wrap gap-4">
+          <a
+            href="/"
+            class="inline-flex items-center text-[#3BB143] hover:text-[#2d8a33] font-medium"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Tornar a l'inici
+          </a>
+          <a
+            href="/politica-privacitat"
+            class="text-gray-600 hover:text-gray-900 font-medium"
+          >
+            Política de Privacitat
+          </a>
+          <a
+            href="/politica-dades"
+            class="text-gray-600 hover:text-gray-900 font-medium"
+          >
+            Política de Dades
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  document
+    .getElementById("manage-cookies-btn")
+    ?.addEventListener("click", () => {
+      // En una implementació real, això obriria un modal de gestió de cookies
+      alert(
+        "Funcionalitat de gestió de cookies pròximament. Mentrestant, pots gestionar les cookies des de la configuració del teu navegador."
+      );
+    });
+</script>

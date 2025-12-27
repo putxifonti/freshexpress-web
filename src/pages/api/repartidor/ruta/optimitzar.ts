@@ -128,26 +128,3 @@ export const POST: APIRoute = async ({ cookies }) => {
     });
   }
 };
-      
-      await queryOperacional(
-        'UPDATE ruta_actual SET tiempo_estimado_min = ?, distancia_km = ? WHERE id = ?',
-        [tempsEstimat, distanciaEstimada.toFixed(2), entreguesOrdenades[i].ruta_id]
-      );
-    }
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: `Ruta optimitzada amb ${entreguesOrdenades.length} entregues`
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-  } catch (error) {
-    console.error('Error optimitzant ruta:', error);
-    return new Response(JSON.stringify({ error: 'Error intern del servidor' }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-};
