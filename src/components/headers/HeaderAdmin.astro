@@ -65,9 +65,9 @@ const { user } = Astro.props;
             id="mode-dropdown"
             class="hidden absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
           >
-            <a
-              href="/admin"
-              class="flex items-center gap-2 px-4 py-2 text-sm text-red-700 bg-red-50 font-medium"
+            <button
+              id="mode-admin-btn"
+              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-700 bg-red-50 font-medium"
             >
               <svg
                 class="w-4 h-4"
@@ -98,10 +98,10 @@ const { user } = Astro.props;
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                   clip-rule="evenodd"></path>
               </svg>
-            </a>
-            <a
-              href="/dashboard"
-              class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            </button>
+            <button
+              id="mode-client-btn"
+              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             >
               <svg
                 class="w-4 h-4"
@@ -117,7 +117,7 @@ const { user } = Astro.props;
                 ></path>
               </svg>
               Mode Client
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -316,6 +316,33 @@ const { user } = Astro.props;
   document.addEventListener("click", () => {
     modeDropdown?.classList.add("hidden");
   });
+
+  // Funció per canviar de mode
+  async function canviarMode(mode: string) {
+    try {
+      const res = await fetch("/api/user/canvi-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = data.redirect;
+      } else {
+        console.error("Error canviant mode:", data.error);
+      }
+    } catch (e) {
+      console.error("Error canviant mode:", e);
+    }
+  }
+
+  // Event listeners per als botons de mode
+  document
+    .getElementById("mode-admin-btn")
+    ?.addEventListener("click", () => canviarMode("admin"));
+  document
+    .getElementById("mode-client-btn")
+    ?.addEventListener("click", () => canviarMode("cliente"));
 
   // Carregar comptador de la cistella
   async function loadCartCount() {

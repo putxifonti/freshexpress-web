@@ -1,9 +1,10 @@
 ---
 // Header.astro - Component de capçalera dinàmic per FreshExpress
-// Selecciona automàticament el header segons el rol de l'usuari
+// Selecciona automàticament el header segons el rol de l'usuari o el mode seleccionat
 import { verifyToken, getUserById } from "../lib/auth";
 import HeaderPublic from "./headers/HeaderPublic.astro";
 import HeaderClient from "./headers/HeaderClient.astro";
+import HeaderClientMode from "./headers/HeaderClientMode.astro";
 import HeaderRepartidor from "./headers/HeaderRepartidor.astro";
 import HeaderAdmin from "./headers/HeaderAdmin.astro";
 
@@ -21,13 +22,37 @@ if (token) {
     }
   }
 }
+
+// Comprovar si l'usuari ha seleccionat un mode diferent
+const viewMode = Astro.cookies.get("view_mode")?.value;
+let effectiveRole = userRole;
+let isInClientMode = false; // Per saber si un admin/repartidor està en mode client
+
+// Només permetre canviar a mode client si l'usuari té un rol superior
+if (
+  viewMode === "cliente" &&
+  (userRole === "admin" || userRole === "repartidor")
+) {
+  effectiveRole = "cliente";
+  isInClientMode = true;
+}
+// Permetre admin tornar al seu mode
+if (viewMode === "admin" && userRole === "admin") {
+  effectiveRole = "admin";
+}
+// Permetre repartidor tornar al seu mode
+if (viewMode === "repartidor" && userRole === "repartidor") {
+  effectiveRole = "repartidor";
+}
 ---
 
 {
-  userRole === "admin" && user ? (
+  effectiveRole === "admin" && user ? (
     <HeaderAdmin user={user} />
-  ) : userRole === "repartidor" && user ? (
+  ) : effectiveRole === "repartidor" && user ? (
     <HeaderRepartidor user={user} />
+  ) : isInClientMode && user ? (
+    <HeaderClientMode user={user} originalRole={userRole} />
   ) : user ? (
     <HeaderClient user={user} />
   ) : (

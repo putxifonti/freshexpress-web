@@ -19,13 +19,17 @@ if (!user) {
   return Astro.redirect("/login");
 }
 
-// Redirigir repartidors al seu dashboard específic
-if (user.rol === "repartidor") {
+// Comprovar si l'usuari ha seleccionat mode client
+const viewMode = Astro.cookies.get("view_mode")?.value;
+const isClientMode = viewMode === "cliente";
+
+// Redirigir repartidors al seu dashboard específic (si no estan en mode client)
+if (user.rol === "repartidor" && !isClientMode) {
   return Astro.redirect("/repartidor/compte");
 }
 
-// Redirigir admins al seu dashboard específic
-if (user.rol === "admin") {
+// Redirigir admins al seu dashboard específic (si no estan en mode client)
+if (user.rol === "admin" && !isClientMode) {
   return Astro.redirect("/admin/dashboard");
 }
 

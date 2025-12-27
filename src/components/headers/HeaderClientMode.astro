@@ -1,0 +1,292 @@
+---
+// HeaderClientMode.astro - Header per admins/repartidors en mode client
+// Mostra l'opció de tornar al mode original
+interface Props {
+  user: {
+    id: number;
+    nombre: string;
+    email: string;
+    rol?: string;
+  };
+  originalRole: string; // "admin" o "repartidor"
+}
+
+const { user, originalRole } = Astro.props;
+const modeLabel = originalRole === "admin" ? "Mode Admin" : "Mode Repartidor";
+---
+
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <!-- Banner de mode client -->
+  <div
+    class="bg-gradient-to-r from-[#0047AB] to-[#3BB143] text-white py-2 px-4"
+  >
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          ></path>
+        </svg>
+        <span class="text-sm font-medium">Estàs veient com a client</span>
+      </div>
+      <button
+        id="btn-tornar-mode"
+        class="flex items-center space-x-2 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-sm font-medium transition-colors"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span>Tornar a {modeLabel}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <!-- Logotip -->
+      <div class="flex items-center">
+        <a href="/" class="flex items-center">
+          <img
+            src="/logotip-cut.png"
+            alt="FreshExpress Logo"
+            class="h-12 w-auto"
+          />
+        </a>
+      </div>
+
+      <!-- Navegació desktop -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <a
+          href="/productes"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Productes
+        </a>
+        <a
+          href="/rastreig"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Rastreig
+        </a>
+        <a
+          href="/com-funciona"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Com Funciona
+        </a>
+        <a
+          href="/contacte"
+          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          Contacte
+        </a>
+      </nav>
+
+      <!-- Botons d'Acció -->
+      <div class="flex items-center space-x-3">
+        <!-- Icona Cistella -->
+        <a
+          href="/cistella"
+          class="relative p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
+          title="La meva cistella"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            ></path>
+          </svg>
+          <span
+            id="cart-count"
+            class="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-[#3BB143] text-white text-xs font-bold rounded-full hidden items-center justify-center"
+            >0</span
+          >
+        </a>
+
+        <!-- Perfil usuari -->
+        <a
+          href="/dashboard"
+          class="hidden sm:flex items-center px-4 py-2 text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
+        >
+          <div
+            class="w-8 h-8 bg-gradient-to-br from-[#3BB143] to-[#0047AB] rounded-full flex items-center justify-center text-white text-sm font-bold mr-2"
+          >
+            {user.nombre.charAt(0).toUpperCase()}
+          </div>
+          {user.nombre}
+        </a>
+
+        <!-- Menú hamburguesa mòbil -->
+        <button
+          id="mobile-menu-btn"
+          class="md:hidden p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
+          aria-label="Obrir menú"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú mòbil -->
+    <div
+      id="mobile-menu"
+      class="hidden md:hidden mt-4 pb-4 border-t border-gray-200 pt-4"
+    >
+      <nav class="flex flex-col space-y-3">
+        <a
+          href="/productes"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Productes</a
+        >
+        <a
+          href="/cistella"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Cistella</a
+        >
+        <a
+          href="/rastreig"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Rastreig</a
+        >
+        <a
+          href="/com-funciona"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Com Funciona</a
+        >
+        <a
+          href="/contacte"
+          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+          >Contacte</a
+        >
+        <a href="/dashboard" class="text-[#3BB143] font-medium py-2"
+          >El meu compte</a
+        >
+        <button
+          id="btn-tornar-mode-mobile"
+          class="flex items-center space-x-2 text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <span>Tornar a {modeLabel}</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script define:vars={{ originalRole }}>
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+
+  mobileMenuBtn?.addEventListener("click", () => {
+    mobileMenu?.classList.toggle("hidden");
+  });
+
+  mobileMenu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      mobileMenu?.classList.add("hidden");
+    });
+  });
+
+  // Funció per tornar al mode original
+  async function tornarModeOriginal() {
+    try {
+      const res = await fetch("/api/user/canvi-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: originalRole }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = data.redirect;
+      } else {
+        console.error("Error tornant al mode:", data.error);
+      }
+    } catch (e) {
+      console.error("Error tornant al mode:", e);
+    }
+  }
+
+  // Event listeners per als botons de tornar
+  document
+    .getElementById("btn-tornar-mode")
+    ?.addEventListener("click", tornarModeOriginal);
+  document
+    .getElementById("btn-tornar-mode-mobile")
+    ?.addEventListener("click", tornarModeOriginal);
+
+  // Carregar comptador de la cistella
+  async function loadCartCount() {
+    try {
+      const res = await fetch("/api/cart/count");
+      const data = await res.json();
+      const cartCount = document.getElementById("cart-count");
+      if (cartCount && data.count > 0) {
+        cartCount.textContent = String(data.count);
+        cartCount.classList.remove("hidden");
+        cartCount.classList.add("flex");
+      } else if (cartCount) {
+        cartCount.classList.add("hidden");
+        cartCount.classList.remove("flex");
+      }
+    } catch (e) {}
+  }
+
+  loadCartCount();
+</script>
+
+<style>
+  html {
+    scroll-behavior: smooth;
+  }
+</style>
