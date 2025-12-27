@@ -140,7 +140,7 @@ const historialPerData = historial.reduce((acc: any, pedido: any) => {
                             </span>
                           </div>
                           <span class="text-sm font-medium text-gray-900">
-                            {pedido.total.toFixed(2)} €
+                            {Number(pedido.total || 0).toFixed(2)} €
                           </span>
                         </div>
                         <p class="text-sm text-gray-600">
@@ -160,7 +160,7 @@ const historialPerData = historial.reduce((acc: any, pedido: any) => {
                           </span>
                           {pedido.propina > 0 && (
                             <span class="text-xs text-green-600 font-medium">
-                              +{pedido.propina.toFixed(2)} € propina
+                              +{Number(pedido.propina).toFixed(2)} € propina
                             </span>
                           )}
                           {pedido.valoracion_cliente && (

@@ -24,7 +24,7 @@ export const PUT: APIRoute = async ({ request, cookies, params }) => {
 
     const userId = params.id;
     const body = await request.json();
-    const { nombre, apellidos, email, rol } = body;
+    const { nombre, email, rol } = body;
 
     // Validar rol
     const rolsValids = ['admin', 'repartidor', 'cliente'];
@@ -55,10 +55,6 @@ export const PUT: APIRoute = async ({ request, cookies, params }) => {
     if (nombre !== undefined) {
       updates.push('nombre = ?');
       values.push(nombre);
-    }
-    if (apellidos !== undefined) {
-      updates.push('apellidos = ?');
-      values.push(apellidos);
     }
     if (email) {
       updates.push('email = ?');
@@ -107,8 +103,8 @@ export const GET: APIRoute = async ({ cookies, params }) => {
 
     const userId = params.id;
     const users = await queryOperacional<any[]>(
-      `SELECT u.id, u.email, u.nombre, u.apellidos, u.estado, u.rol, u.fecha_registro, u.ultimo_login,
-              c.consentimiento_data_broker, c.consentimiento_marketing
+      `SELECT u.id, u.email, u.nombre, u.estado, u.rol, u.fecha_registro, u.ultimo_login,
+              c.compartir_datos, c.acepta_comunicaciones
        FROM usuarios u
        LEFT JOIN consentimientos c ON u.id = c.usuario_id
        WHERE u.id = ?`,

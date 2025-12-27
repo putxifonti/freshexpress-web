@@ -28,7 +28,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 
     // Obtenir contrasenya actual
     const users = await queryOperacional<any[]>(
-      'SELECT password_hash FROM usuarios WHERE id = ?',
+      'SELECT password FROM usuarios WHERE id = ?',
       [payload.userId]
     );
 
@@ -37,7 +37,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     // Verificar contrasenya actual
-    const isValid = await verifyPassword(currentPassword, users[0].password_hash);
+    const isValid = await verifyPassword(currentPassword, users[0].password);
     if (!isValid) {
       return new Response(JSON.stringify({ success: false, error: 'Contrasenya actual incorrecta' }), { status: 400 });
     }
@@ -45,7 +45,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     // Actualitzar contrasenya
     const newHash = await hashPassword(newPassword);
     await queryOperacional(
-      'UPDATE usuarios SET password_hash = ? WHERE id = ?',
+      'UPDATE usuarios SET password = ? WHERE id = ?',
       [newHash, payload.userId]
     );
 

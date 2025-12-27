@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { verifyToken, getUserById } from "../lib/auth";
+import { queryOperacional } from "../lib/db";
 
 // Verificar autenticació
 const token = Astro.cookies.get("auth_token")?.value;
@@ -16,6 +17,93 @@ if (token) {
 // Redirigir si no està autenticat
 if (!user) {
   return Astro.redirect("/login");
+}
+
+// Redirigir repartidors al seu dashboard específic
+if (user.rol === "repartidor") {
+  return Astro.redirect("/repartidor/compte");
+}
+
+// Obtenir últimes comandes i estadístiques
+let ultimesComandes: any[] = [];
+let stats = {
+  totalComandes: 0,
+  puntsAcumulats: 0,
+  impacteEco: 0,
+};
+
+try {
+  // Últimes 5 comandes
+  const comandes = await queryOperacional<any[]>(
+    `
+    SELECT 
+      p.id,
+      p.numero_pedido,
+      p.fecha_pedido,
+      p.estado,
+      p.total
+    FROM pedidos p
+    WHERE p.cliente_id = ?
+    ORDER BY p.fecha_pedido DESC
+    LIMIT 5
+  `,
+    [user.id]
+  );
+
+  ultimesComandes = comandes.map((c: any) => ({
+    id: c.numero_pedido || `FE-${c.id}`,
+    data: new Date(c.fecha_pedido).toLocaleDateString("ca-ES"),
+    estat: c.estado,
+    total: Number(c.total) || 0,
+  }));
+
+  // Estadístiques
+  const totalRes = await queryOperacional<any[]>(
+    "SELECT COUNT(*) as total FROM pedidos WHERE cliente_id = ?",
+    [user.id]
+  );
+  stats.totalComandes = Number(totalRes[0]?.total) || 0;
+
+  // Punts (10 punts per cada euro gastat)
+  const puntosRes = await queryOperacional<any[]>(
+    'SELECT COALESCE(SUM(total), 0) as totalGastat FROM pedidos WHERE cliente_id = ? AND estado = "entregado"',
+    [user.id]
+  );
+  stats.puntsAcumulats = Math.floor(
+    Number(puntosRes[0]?.totalGastat || 0) * 10
+  );
+
+  // Impacte ECO (0.5kg CO2 estalviat per comanda)
+  stats.impacteEco = stats.totalComandes * 0.5;
+} catch (error) {
+  console.error("Error obtenint dades dashboard:", error);
+}
+
+// Funció per traduir estat
+function traduirEstat(estat: string): string {
+  const traduccions: Record<string, string> = {
+    pendiente: "Pendent",
+    confirmado: "Confirmat",
+    preparando: "Preparant",
+    listo: "Llest",
+    en_camino: "En camí",
+    entregado: "Lliurat",
+    cancelado: "Cancel·lat",
+  };
+  return traduccions[estat] || estat;
+}
+
+function getEstatClass(estat: string): string {
+  const classes: Record<string, string> = {
+    pendiente: "bg-yellow-100 text-yellow-800",
+    confirmado: "bg-blue-100 text-blue-800",
+    preparando: "bg-purple-100 text-purple-800",
+    listo: "bg-indigo-100 text-indigo-800",
+    en_camino: "bg-orange-100 text-orange-800",
+    entregado: "bg-green-100 text-green-800",
+    cancelado: "bg-red-100 text-red-800",
+  };
+  return classes[estat] || "bg-gray-100 text-gray-800";
 }
 ---
 
@@ -94,7 +182,9 @@ if (!user) {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Comandes totals</p>
-              <p class="text-3xl font-bold text-gray-900">0</p>
+              <p class="text-3xl font-bold text-gray-900">
+                {stats.totalComandes}
+              </p>
             </div>
             <div
               class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
@@ -119,7 +209,9 @@ if (!user) {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Punts acumulats</p>
-              <p class="text-3xl font-bold text-gray-900">0</p>
+              <p class="text-3xl font-bold text-gray-900">
+                {stats.puntsAcumulats}
+              </p>
             </div>
             <div
               class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center"
@@ -145,7 +237,9 @@ if (!user) {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Impacte ECO</p>
-              <p class="text-3xl font-bold text-[#3BB143]">0 kg</p>
+              <p class="text-3xl font-bold text-[#3BB143]">
+                {stats.impacteEco.toFixed(1)} kg
+              </p>
             </div>
             <div
               class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
@@ -203,7 +297,7 @@ if (!user) {
             </h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <a
-                href="/"
+                href="/productes"
                 class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-green-50 hover:border-[#3BB143] border border-transparent transition-all group"
               >
                 <div
@@ -317,30 +411,86 @@ if (!user) {
                 >Veure totes →</a
               >
             </div>
-            <div class="text-center py-12 text-gray-500">
-              <svg
-                class="w-16 h-16 mx-auto mb-4 text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-              </svg>
-              <p class="font-medium">Encara no tens cap comanda</p>
-              <p class="text-sm mt-1">
-                Comença a comprar productes frescos i ecològics!
-              </p>
-              <a
-                href="/"
-                class="inline-block mt-4 px-6 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors"
-              >
-                Explorar productes
-              </a>
-            </div>
+            {
+              ultimesComandes.length === 0 ? (
+                <div class="text-center py-12 text-gray-500">
+                  <svg
+                    class="w-16 h-16 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                    />
+                  </svg>
+                  <p class="font-medium">Encara no tens cap comanda</p>
+                  <p class="text-sm mt-1">
+                    Comença a comprar productes frescos i ecològics!
+                  </p>
+                  <a
+                    href="/productes"
+                    class="inline-block mt-4 px-6 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors"
+                  >
+                    Explorar productes
+                  </a>
+                </div>
+              ) : (
+                <div class="space-y-3">
+                  {ultimesComandes.map((comanda) => (
+                    <a
+                      href={`/seguiment?code=${comanda.id}`}
+                      class="block p-4 border border-gray-200 rounded-lg hover:border-[#3BB143] hover:shadow-md transition-all"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <svg
+                              class="w-5 h-5 text-gray-500"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            <p class="font-medium text-gray-900 text-sm">
+                              {comanda.id}
+                            </p>
+                            <p class="text-xs text-gray-500">{comanda.data}</p>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                          <span
+                            class={`px-2 py-1 text-xs font-medium rounded-full ${getEstatClass(comanda.estat)}`}
+                          >
+                            {traduirEstat(comanda.estat)}
+                          </span>
+                          <span class="font-bold text-gray-900">
+                            {comanda.total.toFixed(2)} €
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                  <a
+                    href="/historial"
+                    class="block text-center text-sm text-[#3BB143] hover:underline mt-2"
+                  >
+                    Veure tot l'historial →
+                  </a>
+                </div>
+              )
+            }
           </div>
         </div>
 

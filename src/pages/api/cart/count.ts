@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     );
 
     return new Response(JSON.stringify({ 
-      count: result[0]?.total || 0 
+      count: Number(result[0]?.total || 0) 
     }), { status: 200 });
 
   } catch (error) {

@@ -6,6 +6,7 @@ import { queryOperacional } from '../../lib/db';
 // Verificar autenticació i rol
 const token = Astro.cookies.get('auth_token')?.value;
 let user = null;
+let repartidor = null;
 
 if (token) {
   const payload = verifyToken(token);
@@ -18,34 +19,56 @@ if (!user || user.rol !== 'repartidor') {
   return Astro.redirect('/dashboard');
 }
 
-// Obtenir ruta actual
-let ruta: any[] = [];
+// Obtenir dades del repartidor
 try {
-  ruta = await queryOperacional<any[]>(`
-    SELECT 
-      e.id,
-      e.direccion_entrega,
-      e.codigo_postal,
-      e.telefono_cliente,
-      e.nombre_cliente,
-      e.notas_entrega,
-      e.hora_estimada_entrega,
-      e.estado,
-      r.orden,
-      r.distancia_km,
-      r.tiempo_estimado_min
-    FROM ruta_actual r
-    JOIN entregues e ON r.entrega_id = e.id
-    WHERE r.repartidor_id = ?
-    ORDER BY r.orden ASC
-  `, [user.id]);
+  const repartidorData = await queryOperacional<any[]>(
+    'SELECT * FROM repartidores WHERE usuario_id = ?',
+    [user.id]
+  );
+  repartidor = repartidorData[0] || null;
 } catch (error) {
-  console.error('Error obtenint ruta:', error);
+  console.error('Error obtenint dades repartidor:', error);
 }
 
-// Obtenir entrega actual (la primera en procés o la primera pendent)
-const entregaActual = ruta.find(e => e.estado === 'en_proceso') || ruta.find(e => e.estado === 'pendiente') || null;
-const entreguesPendents = ruta.filter(e => e.estado === 'pendiente' || e.estado === 'en_proceso');
+// Obtenir comandes assignades a aquest repartidor (ruta actual)
+let ruta: any[] = [];
+let errorCarregant = false;
+
+try {
+  // Usem la taula pedidos - mostrem totes les comandes assignades a aquest repartidor
+  ruta = await queryOperacional<any[]>(`
+    SELECT 
+      p.id,
+      p.numero_pedido,
+      p.direccion_entrega,
+      u.telefono as telefono_cliente,
+      u.nombre as nombre_cliente,
+      p.notas_cliente as notas_entrega,
+      p.tiempo_estimado_min,
+      p.estado,
+      p.total
+    FROM pedidos p
+    JOIN usuarios u ON p.cliente_id = u.id
+    WHERE p.repartidor_id = ? 
+    AND p.estado NOT IN ('entregado', 'cancelado')
+    ORDER BY 
+      CASE p.estado 
+        WHEN 'en_camino' THEN 1 
+        WHEN 'listo' THEN 2 
+        WHEN 'confirmado' THEN 3 
+        WHEN 'pendiente' THEN 4 
+        ELSE 5 
+      END,
+      p.fecha_pedido ASC
+  `, [repartidor?.id || 0]);
+} catch (error) {
+  console.error('Error obtenint ruta:', error);
+  errorCarregant = true;
+}
+
+// Obtenir entrega actual (la primera en curs o la primera pendent)
+const entregaActual = ruta.find(e => e.estado === 'en_camino') || ruta.find(e => e.estado === 'listo') || null;
+const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado !== 'cancelado');
 ---
 
 <Layout title="Ruta Actual - Repartidor - FreshExpress">
@@ -171,22 +194,54 @@ const entreguesPendents = ruta.filter(e => e.estado === 'pendiente' || e.estado 
                       )}
                       
                       <div class="flex gap-2 mt-4">
-                        <button 
-                          data-id={entregaActual.id}
-                          class="btn-navegar flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                          </svg>
-                          Navegar
-                        </button>
-                        <button 
-                          data-id={entregaActual.id}
-                          class="btn-entregat flex-1 bg-[#3BB143] hover:bg-[#32a039] text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors"
-                        >
-                          Entregat
-                        </button>
+                        {/* Botons segons l'estat actual */}
+                        {entregaActual.estado === 'confirmado' && (
+                          <button 
+                            data-id={entregaActual.id}
+                            data-nou-estat="listo"
+                            class="btn-canvi-estat flex-1 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                            </svg>
+                            Productes recollits
+                          </button>
+                        )}
+                        
+                        {entregaActual.estado === 'listo' && (
+                          <button 
+                            data-id={entregaActual.id}
+                            data-nou-estat="en_camino"
+                            class="btn-canvi-estat flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                            Començar entrega
+                          </button>
+                        )}
+                        
+                        {entregaActual.estado === 'en_camino' && (
+                          <>
+                            <button 
+                              data-id={entregaActual.id}
+                              class="btn-navegar flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1"
+                            >
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                              </svg>
+                              Navegar
+                            </button>
+                            <button 
+                              data-id={entregaActual.id}
+                              class="btn-entregat flex-1 bg-[#3BB143] hover:bg-[#32a039] text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors"
+                            >
+                              ✓ Entregat
+                            </button>
+                          </>
+                        )}
+                        
                         <button 
                           data-id={entregaActual.id}
                           class="btn-problema bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 px-3 rounded-lg transition-colors"
@@ -196,6 +251,24 @@ const entreguesPendents = ruta.filter(e => e.estado === 'pendiente' || e.estado 
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                           </svg>
                         </button>
+                      </div>
+                      
+                      {/* Indicador d'estat actual */}
+                      <div class="mt-3 pt-3 border-t">
+                        <p class="text-xs text-gray-500 mb-2">Estat actual:</p>
+                        <div class="flex items-center gap-2">
+                          <span class={`px-2 py-1 rounded-full text-xs font-medium ${
+                            entregaActual.estado === 'confirmado' ? 'bg-blue-100 text-blue-700' :
+                            entregaActual.estado === 'listo' ? 'bg-purple-100 text-purple-700' :
+                            entregaActual.estado === 'en_camino' ? 'bg-orange-100 text-orange-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {entregaActual.estado === 'confirmado' ? '📋 Confirmat - Pendent recollida' :
+                             entregaActual.estado === 'listo' ? '📦 Productes recollits' :
+                             entregaActual.estado === 'en_camino' ? '🚴 En camí al client' :
+                             entregaActual.estado}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -322,6 +395,32 @@ const entreguesPendents = ruta.filter(e => e.estado === 'pendiente' || e.estado 
 </Layout>
 
 <script>
+  // Canviar estat de l'entrega
+  document.querySelectorAll('.btn-canvi-estat').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).dataset.id;
+      const nouEstat = (btn as HTMLElement).dataset.nouEstat;
+      
+      try {
+        const res = await fetch(`/api/repartidor/pedido/${id}/estat`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: nouEstat })
+        });
+        
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          const data = await res.json();
+          alert(data.error || 'Error actualitzant l\'estat');
+        }
+      } catch (e) {
+        console.error('Error:', e);
+        alert('Error de connexió');
+      }
+    });
+  });
+
   // Navegar
   document.querySelectorAll('.btn-navegar').forEach(btn => {
     btn.addEventListener('click', () => {

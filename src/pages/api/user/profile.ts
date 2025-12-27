@@ -16,19 +16,17 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { nombre, apellidos, telefono, direccion, ciudad, provincia, codigo_postal } = body;
+    const { nombre, telefono, direccion, ciudad, codigo_postal } = body;
 
     await queryOperacional(
       `UPDATE usuarios SET 
         nombre = COALESCE(?, nombre),
-        apellidos = COALESCE(?, apellidos),
         telefono = ?,
         direccion = ?,
         ciudad = ?,
-        provincia = ?,
         codigo_postal = ?
        WHERE id = ?`,
-      [nombre, apellidos, telefono, direccion, ciudad, provincia, codigo_postal, payload.userId]
+      [nombre, telefono || null, direccion || null, ciudad || null, codigo_postal || null, payload.userId]
     );
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });

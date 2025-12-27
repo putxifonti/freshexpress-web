@@ -33,7 +33,8 @@ try {
       p.precio,
       p.precio_oferta,
       p.unidad,
-      p.eco,
+      p.destacado,
+      p.imagen,
       e.nombre as empresa_nombre,
       e.id as empresa_id
     FROM carrito c
@@ -110,17 +111,21 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
                 </div>
                 <div class="divide-y divide-gray-100">
                   {data.items.map((item: any) => (
-                    <div class="p-5 flex items-center gap-4" data-cart-id={item.cart_id}>
-                      <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
+                    <div class="cart-item p-5 flex items-center gap-4" data-cart-id={item.cart_id}>
+                      <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {item.imagen ? (
+                          <img src={item.imagen} alt={item.nombre} class="w-full h-full object-cover" />
+                        ) : (
+                          <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                          </svg>
+                        )}
                       </div>
                       <div class="flex-1 min-w-0">
                         <h4 class="font-medium text-gray-900 truncate">{item.nombre}</h4>
-                        <p class="text-sm text-gray-500">{(item.precio_oferta || item.precio).toFixed(2)} € / {item.unidad}</p>
-                        {item.eco === 1 && (
-                          <span class="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">ECO</span>
+                        <p class="text-sm text-gray-500">{Number(item.precio_oferta || item.precio).toFixed(2)} € / {item.unidad}</p>
+                        {item.destacado === 1 && (
+                          <span class="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Destacat</span>
                         )}
                       </div>
                       <div class="flex items-center gap-2">
@@ -146,7 +151,7 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
                       </div>
                       <div class="text-right w-20">
                         <p class="font-bold text-gray-900">
-                          {((item.precio_oferta || item.precio) * item.cantidad).toFixed(2)} €
+                          {(Number(item.precio_oferta || item.precio) * Number(item.cantidad)).toFixed(2)} €
                         </p>
                       </div>
                       <button 
@@ -218,12 +223,35 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
 </Layout>
 
 <script>
+  // Funció per recalcular totals sense recarregar
+  async function refreshCart() {
+    try {
+      const res = await fetch('/api/cart');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('subtotal')!.textContent = `${data.subtotal.toFixed(2)} €`;
+          const shipping = data.subtotal >= 30 ? 0 : 3.99;
+          const total = data.subtotal + shipping;
+          document.getElementById('total')!.textContent = `${total.toFixed(2)} €`;
+          // Actualitzar comptador header
+          const cartCount = document.querySelector('[data-cart-count]');
+          if (cartCount) cartCount.textContent = String(data.totalItems);
+        }
+      }
+    } catch {}
+  }
+
   // Actualitzar quantitat
   document.querySelectorAll('.qty-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
+      const btnEl = btn as HTMLButtonElement;
+      btnEl.disabled = true;
+      
       const cartId = (btn as HTMLElement).dataset.cartId;
       const action = (btn as HTMLElement).dataset.action;
       const display = document.querySelector(`.qty-display[data-cart-id="${cartId}"]`);
+      const itemRow = document.querySelector(`.cart-item[data-cart-id="${cartId}"]`);
       
       if (!display) return;
       
@@ -231,8 +259,10 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
       qty = action === 'increase' ? qty + 1 : qty - 1;
       
       if (qty < 1) {
-        // Eliminar
-        if (!confirm('Vols eliminar aquest producte?')) return;
+        if (!confirm('Vols eliminar aquest producte?')) {
+          btnEl.disabled = false;
+          return;
+        }
         qty = 0;
       }
 
@@ -245,16 +275,28 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
 
         if (res.ok) {
           if (qty === 0) {
-            location.reload();
+            itemRow?.remove();
+            // Comprovar si queden items
+            const remainingItems = document.querySelectorAll('.cart-item');
+            if (remainingItems.length === 0) {
+              location.reload();
+            } else {
+              // Comprovar si l'empresa s'ha quedat sense productes
+              document.querySelectorAll('.divide-y').forEach(container => {
+                if (container.querySelectorAll('.cart-item').length === 0) {
+                  container.closest('.bg-white.rounded-xl')?.remove();
+                }
+              });
+            }
           } else {
             display.textContent = String(qty);
-            // Recalcular totals
-            location.reload();
           }
+          await refreshCart();
         }
       } catch {
         alert('Error actualitzant la cistella');
       }
+      btnEl.disabled = false;
     });
   });
 
@@ -263,21 +305,71 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
     btn.addEventListener('click', async () => {
       if (!confirm('Vols eliminar aquest producte de la cistella?')) return;
       
+      const btnEl = btn as HTMLButtonElement;
+      btnEl.disabled = true;
       const cartId = (btn as HTMLElement).dataset.cartId;
+      const itemRow = document.querySelector(`.cart-item[data-cart-id="${cartId}"]`);
 
       try {
         const res = await fetch(`/api/cart/${cartId}`, { method: 'DELETE' });
         if (res.ok) {
-          location.reload();
+          itemRow?.remove();
+          // Comprovar si queden items
+          const remainingItems = document.querySelectorAll('.cart-item');
+          if (remainingItems.length === 0) {
+            location.reload();
+          } else {
+            // Comprovar si l'empresa s'ha quedat sense productes
+            document.querySelectorAll('.divide-y').forEach(container => {
+              if (container.querySelectorAll('.cart-item').length === 0) {
+                container.closest('.bg-white.rounded-xl')?.remove();
+              }
+            });
+          }
+          await refreshCart();
         }
       } catch {
         alert('Error eliminant el producte');
       }
+      btnEl.disabled = false;
     });
   });
 
   // Checkout
-  document.getElementById('checkout-btn')?.addEventListener('click', () => {
-    alert('Funcionalitat de checkout disponible pròximament');
+  document.getElementById('checkout-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('checkout-btn') as HTMLButtonElement;
+    const originalText = btn.textContent;
+    
+    // Confirmació
+    if (!confirm('Vols finalitzar la comanda?\nEl pagament es farà contra reemborsament en el moment de l\'entrega.')) {
+      return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = 'Processant...';
+    
+    try {
+      const res = await fetch('/api/checkout/finalitzar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notas: ''
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        // Mostrar missatge d'èxit i redirigir
+        alert(`✅ Comanda realitzada correctament!\n\nNúmero de comanda: ${data.numeroPedido}\nTotal: ${data.total.toFixed(2)} €\nMètode de pagament: ${data.metodePagament}\n\nRebràs la teva comanda aviat!`);
+        window.location.href = '/seguiment?code=' + data.numeroPedido;
+      } else {
+        throw new Error(data.error || 'Error desconegut');
+      }
+    } catch (error: any) {
+      alert('❌ Error: ' + (error.message || 'No s\'ha pogut processar la comanda'));
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 </script>

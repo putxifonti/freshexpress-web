@@ -532,24 +532,21 @@
     const nomCognoms = (
       document.getElementById("nom-cognoms") as HTMLInputElement
     ).value;
-    const [nombre, ...apellidosArr] = nomCognoms.trim().split(" ");
-    const apellidos = apellidosArr.join(" ");
 
     const formData = {
-      nombre,
-      apellidos,
+      nombre: nomCognoms.trim(),
       email: (document.getElementById("email") as HTMLInputElement).value,
       telefono:
         (document.getElementById("mobil") as HTMLInputElement).value || null,
       password,
       consentimientos: {
-        marketing: (
+        acepta_comunicaciones: (
           document.getElementById("consent-marketing") as HTMLInputElement
         ).checked,
         analytics: (
           document.getElementById("consent-analytics") as HTMLInputElement
         ).checked,
-        databroker: (
+        compartir_datos: (
           document.getElementById("consent-databroker") as HTMLInputElement
         ).checked,
       },
@@ -588,7 +585,7 @@
         // Activar tracking si ha donat consentiment
         if (
           formData.consentimientos.analytics ||
-          formData.consentimientos.databroker
+          formData.consentimientos.compartir_datos
         ) {
           localStorage.setItem("freshexpress_tracking_consent", "true");
         }

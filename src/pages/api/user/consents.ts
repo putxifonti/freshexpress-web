@@ -15,13 +15,13 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     }
 
     const body = await request.json();
-    const { marketing, analitica, data_broker, newsletter } = body;
+    const { acepta_comunicaciones, analytics, compartir_datos, recibir_ofertas } = body;
 
     const success = await updateUserConsents(payload.userId, {
-      marketing,
-      analitica,
-      data_broker,
-      newsletter
+      acepta_comunicaciones,
+      analytics,
+      compartir_datos,
+      recibir_ofertas
     });
 
     if (success) {

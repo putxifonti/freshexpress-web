@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ cookies }) => {
         p.precio,
         p.precio_oferta,
         p.unidad,
-        p.eco,
+        p.destacado,
         e.nombre as empresa_nombre,
         e.id as empresa_id
       FROM carrito c

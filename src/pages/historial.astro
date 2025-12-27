@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { verifyToken, getUserById } from "../lib/auth";
+import { queryOperacional } from "../lib/db";
 
 // Verificar autenticació
 const token = Astro.cookies.get("auth_token")?.value;
@@ -17,37 +18,68 @@ if (!user) {
   return Astro.redirect("/login");
 }
 
-// Dades de prova - en producció vindrien de la BD
-const comandes = [
-  {
-    id: "FE-2024-12345",
-    data: "10/12/2024",
-    estat: "Lliurat",
-    productes: "Fruita fresca, Verdures eco",
-    total: 24.5,
-  },
-  {
-    id: "FE-2024-12289",
-    data: "05/12/2024",
-    estat: "Lliurat",
-    productes: "Pa artesà, Formatge local",
-    total: 18.9,
-  },
-  {
-    id: "FE-2024-11987",
-    data: "28/11/2024",
-    estat: "Lliurat",
-    productes: "Cistella setmanal",
-    total: 35.0,
-  },
-  {
-    id: "FE-2024-11654",
-    data: "21/11/2024",
-    estat: "Lliurat",
-    productes: "Ous ecològics, Llet fresca",
-    total: 12.3,
-  },
-];
+// Obtenir comandes reals de la BD
+let comandes: any[] = [];
+try {
+  const pedidos = await queryOperacional<any[]>(
+    `
+    SELECT 
+      p.id,
+      p.numero_pedido,
+      p.fecha_pedido,
+      p.estado,
+      p.total,
+      GROUP_CONCAT(DISTINCT pr.nombre SEPARATOR ', ') as productes
+    FROM pedidos p
+    LEFT JOIN detalle_pedido dp ON p.id = dp.pedido_id
+    LEFT JOIN productos pr ON dp.producto_id = pr.id
+    WHERE p.cliente_id = ?
+    GROUP BY p.id
+    ORDER BY p.fecha_pedido DESC
+    LIMIT 20
+  `,
+    [user.id]
+  );
+
+  comandes = pedidos.map((p: any) => ({
+    id: p.numero_pedido || `FE-${p.id}`,
+    data: new Date(p.fecha_pedido).toLocaleDateString("ca-ES"),
+    estat: traduirEstat(p.estado),
+    estatOriginal: p.estado,
+    productes: p.productes || "Comanda sense productes",
+    total: Number(p.total) || 0,
+  }));
+} catch (error) {
+  console.error("Error carregant historial:", error);
+}
+
+// Funció per traduir estat al català
+function traduirEstat(estat: string): string {
+  const traduccions: Record<string, string> = {
+    pendiente: "Pendent",
+    confirmado: "Confirmat",
+    preparando: "Preparant",
+    listo: "Llest",
+    en_camino: "En camí",
+    entregado: "Lliurat",
+    cancelado: "Cancel·lat",
+  };
+  return traduccions[estat] || estat;
+}
+
+// Funció per obtenir color estat
+function getEstatColor(estat: string): string {
+  const colors: Record<string, string> = {
+    pendiente: "bg-yellow-100 text-yellow-800",
+    confirmado: "bg-blue-100 text-blue-800",
+    preparando: "bg-purple-100 text-purple-800",
+    listo: "bg-indigo-100 text-indigo-800",
+    en_camino: "bg-orange-100 text-orange-800",
+    entregado: "bg-green-100 text-green-800",
+    cancelado: "bg-red-100 text-red-800",
+  };
+  return colors[estat] || "bg-gray-100 text-gray-800";
+}
 ---
 
 <Layout title="Historial de Comandes - FreshExpress">
@@ -113,38 +145,69 @@ const comandes = [
         <!-- Llista de comandes -->
         <div class="space-y-4">
           {
-            comandes.map((comanda) => (
-              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center">
-                    <span class="font-mono font-medium text-gray-900">
-                      {comanda.id}
-                    </span>
-                    <span class="ml-3 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                      {comanda.estat}
-                    </span>
-                  </div>
-                  <span class="text-sm text-gray-500">{comanda.data}</span>
-                </div>
-                <p class="text-sm text-gray-600 mb-3">{comanda.productes}</p>
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-lg text-gray-900">
-                    {comanda.total.toFixed(2)} €
-                  </span>
-                  <div class="flex gap-2">
-                    <a
-                      href={`/seguiment?code=${comanda.id}`}
-                      class="px-3 py-1.5 text-sm text-[#3BB143] border border-[#3BB143] rounded-lg hover:bg-[#3BB143] hover:text-white transition-colors"
-                    >
-                      Veure detalls
-                    </a>
-                    <button class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
-                      Repetir comanda
-                    </button>
-                  </div>
-                </div>
+            comandes.length === 0 ? (
+              <div class="text-center py-12">
+                <svg
+                  class="w-16 h-16 mx-auto text-gray-300 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+                <p class="text-gray-500 mb-4">Encara no tens cap comanda</p>
+                <a
+                  href="/productes"
+                  class="inline-block px-6 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors"
+                >
+                  Descobreix els nostres productes
+                </a>
               </div>
-            ))
+            ) : (
+              comandes.map((comanda) => (
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center">
+                      <span class="font-mono font-medium text-gray-900">
+                        {comanda.id}
+                      </span>
+                      <span
+                        class={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${getEstatColor(comanda.estatOriginal)}`}
+                      >
+                        {comanda.estat}
+                      </span>
+                    </div>
+                    <span class="text-sm text-gray-500">{comanda.data}</span>
+                  </div>
+                  <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+                    {comanda.productes}
+                  </p>
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-lg text-gray-900">
+                      {Number(comanda.total || 0).toFixed(2)} €
+                    </span>
+                    <div class="flex gap-2">
+                      <a
+                        href={`/seguiment?code=${comanda.id}`}
+                        class="px-3 py-1.5 text-sm text-[#3BB143] border border-[#3BB143] rounded-lg hover:bg-[#3BB143] hover:text-white transition-colors"
+                      >
+                        Veure detalls
+                      </a>
+                      {comanda.estatOriginal === "entregado" && (
+                        <button class="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
+                          Repetir comanda
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )
           }
         </div>
 
@@ -157,7 +220,11 @@ const comandes = [
             </div>
             <div>
               <p class="text-2xl font-bold text-[#3BB143]">
-                {comandes.reduce((sum, c) => sum + c.total, 0).toFixed(2)} €
+                {
+                  comandes
+                    .reduce((sum, c) => sum + Number(c.total || 0), 0)
+                    .toFixed(2)
+                } €
               </p>
               <p class="text-sm text-gray-500">Total gastat</p>
             </div>

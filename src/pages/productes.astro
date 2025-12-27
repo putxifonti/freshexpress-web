@@ -23,11 +23,12 @@ const empresaId = Astro.url.searchParams.get('empresa');
 let empresaActual: any = null;
 let productes: any[] = [];
 let empreses: any[] = [];
+let errorCarregant = false;
 
 try {
   // Obtenir totes les empreses
   empreses = await queryOperacional<any[]>(`
-    SELECT id, nombre, descripcion, categoria, logo_url, horario
+    SELECT id, nombre, descripcion, categoria, logo
     FROM empresas 
     WHERE activo = 1 
     ORDER BY nombre ASC
@@ -36,14 +37,14 @@ try {
   // Si hi ha empresa seleccionada, obtenir els seus productes
   if (empresaId) {
     const empresaData = await queryOperacional<any[]>(
-      'SELECT * FROM empresas WHERE id = ? AND activo = 1',
+      'SELECT id, nombre, descripcion, categoria, logo, direccion, telefono, email FROM empresas WHERE id = ? AND activo = 1',
       [empresaId]
     );
     empresaActual = empresaData[0] || null;
 
     if (empresaActual) {
       productes = await queryOperacional<any[]>(`
-        SELECT id, nombre, descripcion, categoria, precio, precio_oferta, unidad, eco, imagen_url
+        SELECT id, nombre, descripcion, categoria, precio, precio_oferta, unidad, imagen, destacado
         FROM productos 
         WHERE empresa_id = ? AND activo = 1 
         ORDER BY categoria, nombre
@@ -52,6 +53,7 @@ try {
   }
 } catch (error) {
   console.error('Error carregant dades:', error);
+  errorCarregant = true;
 }
 
 // Agrupar empreses per categoria
@@ -96,9 +98,17 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                       class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
                     >
                       <div class="h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
-                        <div class="w-20 h-20 bg-white rounded-xl shadow flex items-center justify-center text-2xl font-bold text-[#0047AB] group-hover:scale-110 transition-transform">
-                          {empresa.nombre.charAt(0)}
-                        </div>
+                        {empresa.logo ? (
+                          <img 
+                            src={empresa.logo} 
+                            alt={`Logo ${empresa.nombre}`}
+                            class="w-20 h-20 object-contain group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div class="w-20 h-20 bg-white rounded-xl shadow flex items-center justify-center text-2xl font-bold text-[#0047AB] group-hover:scale-110 transition-transform">
+                            {empresa.nombre.charAt(0)}
+                          </div>
+                        )}
                       </div>
                       <div class="p-5">
                         <h3 class="font-semibold text-lg text-gray-900 group-hover:text-[#3BB143] transition-colors">
@@ -108,7 +118,12 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                           {empresa.descripcion}
                         </p>
                         <div class="mt-3 flex items-center justify-between">
-                          <span class="text-xs text-gray-400">{empresa.horario}</span>
+                          <div class="flex items-center">
+                            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <span class="text-sm text-gray-600 ml-1">{empresa.valoracion_media || '5.0'}</span>
+                          </div>
                           <span class="text-[#3BB143] text-sm font-medium group-hover:translate-x-1 transition-transform">
                             Veure productes →
                           </span>
@@ -144,9 +159,14 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                 <h1 class="text-2xl font-bold text-gray-900">{empresaActual.nombre}</h1>
                 <p class="text-gray-600 mt-1">{empresaActual.descripcion}</p>
                 <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                  <span>{empresaActual.categoria}</span>
+                  <span class="capitalize">{empresaActual.categoria}</span>
                   <span>•</span>
-                  <span>{empresaActual.horario}</span>
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                    <span>{empresaActual.valoracion_media || '5.0'}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -160,14 +180,26 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
           ) : (
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {productes.map((producte: any) => (
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="product-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow" data-product-id={producte.id}>
                   <div class="h-40 bg-gray-100 flex items-center justify-center relative">
-                    <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    {producte.eco === 1 && (
-                      <span class="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs font-medium rounded">
-                        ECO
+                    {producte.imagen ? (
+                      <img 
+                        src={producte.imagen} 
+                        alt={producte.nombre}
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div class="flex flex-col items-center justify-center text-gray-300">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="text-xs mt-1">Sense imatge</span>
+                      </div>
+                    )}
+                    {producte.destacado === 1 && (
+                      <span class="absolute top-2 left-2 px-2 py-1 bg-yellow-500 text-white text-xs font-medium rounded">
+                        ⭐ Destacat
                       </span>
                     )}
                     {producte.precio_oferta && (
@@ -180,28 +212,53 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                     <span class="text-xs text-gray-400 uppercase">{producte.categoria}</span>
                     <h3 class="font-medium text-gray-900 mt-1 line-clamp-2">{producte.nombre}</h3>
                     <p class="text-sm text-gray-500 mt-1 line-clamp-2">{producte.descripcion}</p>
-                    <div class="flex items-center justify-between mt-4">
-                      <div>
-                        {producte.precio_oferta ? (
-                          <div class="flex items-center gap-2">
-                            <span class="text-lg font-bold text-[#3BB143]">{producte.precio_oferta.toFixed(2)} €</span>
-                            <span class="text-sm text-gray-400 line-through">{producte.precio.toFixed(2)} €</span>
-                          </div>
-                        ) : (
-                          <span class="text-lg font-bold text-gray-900">{producte.precio.toFixed(2)} €</span>
-                        )}
-                        <span class="text-xs text-gray-400">/ {producte.unidad}</span>
+                    <div class="mt-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div>
+                          {producte.precio_oferta ? (
+                            <div class="flex items-center gap-2">
+                              <span class="text-lg font-bold text-[#3BB143]">{Number(producte.precio_oferta).toFixed(2)} €</span>
+                              <span class="text-sm text-gray-400 line-through">{Number(producte.precio).toFixed(2)} €</span>
+                            </div>
+                          ) : (
+                            <span class="text-lg font-bold text-gray-900">{Number(producte.precio).toFixed(2)} €</span>
+                          )}
+                          <span class="text-xs text-gray-400">/ {producte.unidad}</span>
+                        </div>
                       </div>
-                      <button 
-                        class="add-to-cart-btn w-10 h-10 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors flex items-center justify-center"
-                        data-product-id={producte.id}
-                        data-product-name={producte.nombre}
-                        data-product-price={producte.precio_oferta || producte.precio}
-                      >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                      </button>
+                      <!-- Selector de quantitat i botó afegir -->
+                      <div class="flex items-center gap-2">
+                        <div class="flex items-center border border-gray-300 rounded-lg">
+                          <button 
+                            class="qty-decrease w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-l-lg transition-colors"
+                            data-product-id={producte.id}
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                            </svg>
+                          </button>
+                          <span class="qty-value w-10 text-center font-medium text-gray-900" data-product-id={producte.id}>1</span>
+                          <button 
+                            class="qty-increase w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-r-lg transition-colors"
+                            data-product-id={producte.id}
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                          </button>
+                        </div>
+                        <button 
+                          class="add-to-cart-btn flex-1 h-8 bg-[#3BB143] text-white text-sm font-medium rounded-lg hover:bg-[#32a039] transition-colors flex items-center justify-center gap-1"
+                          data-product-id={producte.id}
+                          data-product-name={producte.nombre}
+                          data-product-price={producte.precio_oferta || producte.precio}
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                          </svg>
+                          Afegir
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -215,17 +272,47 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
 </Layout>
 
 <script>
+  // Gestionar selector de quantitat
+  document.querySelectorAll('.qty-decrease').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const productId = (btn as HTMLElement).dataset.productId;
+      const qtySpan = document.querySelector(`.qty-value[data-product-id="${productId}"]`);
+      if (qtySpan) {
+        const current = parseInt(qtySpan.textContent || '1');
+        if (current > 1) qtySpan.textContent = String(current - 1);
+      }
+    });
+  });
+
+  document.querySelectorAll('.qty-increase').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const productId = (btn as HTMLElement).dataset.productId;
+      const qtySpan = document.querySelector(`.qty-value[data-product-id="${productId}"]`);
+      if (qtySpan) {
+        const current = parseInt(qtySpan.textContent || '1');
+        if (current < 99) qtySpan.textContent = String(current + 1);
+      }
+    });
+  });
+
   // Afegir producte a la cistella
   document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const productId = (btn as HTMLElement).dataset.productId;
-      const productName = (btn as HTMLElement).dataset.productName;
+      const btnEl = btn as HTMLButtonElement;
+      const productId = btnEl.dataset.productId;
+      const qtySpan = document.querySelector(`.qty-value[data-product-id="${productId}"]`);
+      const quantity = parseInt(qtySpan?.textContent || '1');
+      const originalContent = btnEl.innerHTML;
+      
+      // Disabled i loading state
+      btnEl.disabled = true;
+      btnEl.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>`;
       
       try {
         const res = await fetch('/api/cart/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, quantity: 1 })
+          body: JSON.stringify({ productId, quantity })
         });
 
         if (res.ok) {
@@ -233,19 +320,41 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
           const cartCount = document.getElementById('cart-count');
           if (cartCount) {
             const current = parseInt(cartCount.textContent || '0');
-            cartCount.textContent = String(current + 1);
+            cartCount.textContent = String(current + quantity);
             cartCount.classList.remove('hidden');
+            cartCount.classList.add('flex');
           }
           
-          // Feedback visual
-          btn.classList.add('bg-green-600');
-          setTimeout(() => btn.classList.remove('bg-green-600'), 500);
+          // Feedback visual de èxit
+          btnEl.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Afegit!`;
+          btnEl.classList.remove('bg-[#3BB143]');
+          btnEl.classList.add('bg-green-600');
+          
+          // Reset quantitat a 1
+          if (qtySpan) qtySpan.textContent = '1';
+          
+          setTimeout(() => {
+            btnEl.innerHTML = originalContent;
+            btnEl.classList.remove('bg-green-600');
+            btnEl.classList.add('bg-[#3BB143]');
+            btnEl.disabled = false;
+          }, 1500);
           
         } else {
-          alert('Error afegint el producte a la cistella');
+          throw new Error('Error');
         }
       } catch {
-        alert('Error de connexió');
+        // Error feedback
+        btnEl.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Error`;
+        btnEl.classList.remove('bg-[#3BB143]');
+        btnEl.classList.add('bg-red-500');
+        
+        setTimeout(() => {
+          btnEl.innerHTML = originalContent;
+          btnEl.classList.remove('bg-red-500');
+          btnEl.classList.add('bg-[#3BB143]');
+          btnEl.disabled = false;
+        }, 1500);
       }
     });
   });

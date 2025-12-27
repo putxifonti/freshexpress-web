@@ -34,25 +34,19 @@ const { user } = Astro.props;
           Productes
         </a>
         <a
-          href="/#rastreig"
+          href="/rastreig"
           class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
         >
           Rastreig
         </a>
         <a
-          href="/#avantatges"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
-        >
-          Avantatges
-        </a>
-        <a
-          href="/#com-funciona"
+          href="/com-funciona"
           class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
         >
           Com Funciona
         </a>
         <a
-          href="/#contacte"
+          href="/contacte"
           class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
         >
           Contacte
@@ -82,7 +76,7 @@ const { user } = Astro.props;
           </svg>
           <span
             id="cart-count"
-            class="absolute -top-1 -right-1 w-5 h-5 bg-[#3BB143] text-white text-xs font-bold rounded-full hidden"
+            class="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-[#3BB143] text-white text-xs font-bold rounded-full hidden items-center justify-center"
             >0</span
           >
         </a>
@@ -139,22 +133,17 @@ const { user } = Astro.props;
           >Cistella</a
         >
         <a
-          href="/#rastreig"
+          href="/rastreig"
           class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
           >Rastreig</a
         >
         <a
-          href="/#avantatges"
-          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
-          >Avantatges</a
-        >
-        <a
-          href="/#com-funciona"
+          href="/com-funciona"
           class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
           >Com Funciona</a
         >
         <a
-          href="/#contacte"
+          href="/contacte"
           class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
           >Contacte</a
         >
@@ -187,9 +176,12 @@ const { user } = Astro.props;
       const data = await res.json();
       const cartCount = document.getElementById("cart-count");
       if (cartCount && data.count > 0) {
-        cartCount.textContent = data.count;
+        cartCount.textContent = String(data.count);
         cartCount.classList.remove("hidden");
         cartCount.classList.add("flex");
+      } else if (cartCount) {
+        cartCount.classList.add("hidden");
+        cartCount.classList.remove("flex");
       }
     } catch (e) {}
   }

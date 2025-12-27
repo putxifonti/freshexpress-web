@@ -60,7 +60,7 @@ try {
     SELECT p.*, u.nombre as cliente_nombre, u.telefono as cliente_telefono
     FROM pedidos p
     JOIN usuarios u ON p.cliente_id = u.id
-    WHERE (p.repartidor_id = ? OR (p.repartidor_id IS NULL AND p.estado IN ('listo', 'confirmado')))
+    WHERE (p.repartidor_id = ? OR (p.repartidor_id IS NULL AND p.estado IN ('pendiente', 'listo', 'confirmado')))
     AND p.estado NOT IN ('entregado', 'cancelado')
     ORDER BY p.fecha_pedido ASC
     LIMIT 10
@@ -156,7 +156,7 @@ try {
               ></path>
             </svg>
             <span class="text-2xl font-bold text-gray-900"
-              >{stats.valoracio.toFixed(1)}</span
+              >{Number(stats.valoracio || 5).toFixed(1)}</span
             >
           </div>
           <p class="text-xs text-gray-500">Valoració</p>
@@ -284,14 +284,18 @@ try {
                             ? "bg-green-100 text-green-700"
                             : pedido.estado === "confirmado"
                               ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-600"
+                              : pedido.estado === "pendiente"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {pedido.estado === "listo"
                           ? "Llest per recollir"
                           : pedido.estado === "confirmado"
                             ? "Confirmat"
-                            : pedido.estado}
+                            : pedido.estado === "pendiente"
+                              ? "Pendent"
+                              : pedido.estado}
                       </span>
                     </div>
                     <p class="text-sm text-gray-600 mb-2 line-clamp-1">
@@ -306,7 +310,7 @@ try {
                       </span>
                       <div class="flex items-center gap-2">
                         <span class="text-sm font-medium text-gray-900">
-                          {pedido.total.toFixed(2)} €
+                          {Number(pedido.total || 0).toFixed(2)} €
                         </span>
                         {!pedido.repartidor_id && (
                           <button
@@ -335,7 +339,53 @@ try {
       </div>
 
       <!-- Navegació ràpida -->
-      <div class="grid grid-cols-2 gap-4 mt-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <a
+          href="/repartidor/ruta"
+          class="bg-white rounded-xl shadow p-4 flex items-center hover:shadow-lg transition-shadow"
+        >
+          <div
+            class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3"
+          >
+            <svg
+              class="w-5 h-5 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              ></path>
+            </svg>
+          </div>
+          <span class="font-medium text-gray-900">Ruta</span>
+        </a>
+        <a
+          href="/repartidor/guanys"
+          class="bg-white rounded-xl shadow p-4 flex items-center hover:shadow-lg transition-shadow"
+        >
+          <div
+            class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3"
+          >
+            <svg
+              class="w-5 h-5 text-yellow-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+          </div>
+          <span class="font-medium text-gray-900">Guanys</span>
+        </a>
         <a
           href="/repartidor/historial"
           class="bg-white rounded-xl shadow p-4 flex items-center hover:shadow-lg transition-shadow"
@@ -427,13 +477,15 @@ try {
         const res = await fetch(`/api/repartidor/pedido/${pedidoId}/acceptar`, {
           method: "POST",
         });
-        if (res.ok) {
+        const data = await res.json();
+        if (res.ok && data.success) {
           window.location.reload();
         } else {
-          alert("Error acceptant la comanda");
+          alert(data.error || "Error acceptant la comanda");
         }
       } catch (e) {
         console.error("Error:", e);
+        alert("Error de connexió");
       }
     });
   });

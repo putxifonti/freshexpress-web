@@ -8,11 +8,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     
     const { 
       nombre, 
-      apellidos, 
       email, 
       telefono, 
       password, 
-      direccion_envio,
       consentimientos 
     } = body;
 
@@ -50,25 +48,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Processar consentiments
+    // Processar consentiments (usar noms correctes de columnes)
     const consents = {
-      marketing: consentimientos?.marketing || false,
+      acepta_comunicaciones: consentimientos?.acepta_comunicaciones || false,
       analytics: consentimientos?.analytics || false,
-      databroker: consentimientos?.databroker || false,
-      comunicaciones: consentimientos?.comunicaciones || false
+      compartir_datos: consentimientos?.compartir_datos || false,
+      recibir_ofertas: consentimientos?.recibir_ofertas || false
     };
 
     // Registrar usuari
     const result = await registerUser({
       nombre,
-      apellidos: apellidos || '',
       email,
       telefono: telefono || null,
       password,
-      direccion: direccion_envio || null,
-      consentimiento_marketing: consents.marketing,
-      consentimiento_analytics: consents.analytics,
-      consentimiento_databroker: consents.databroker
+      acepta_comunicaciones: consents.acepta_comunicaciones,
+      analytics: consents.analytics,
+      compartir_datos: consents.compartir_datos
     });
 
     if (!result.success) {

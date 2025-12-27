@@ -30,20 +30,62 @@ import Footer from "../components/Footer.astro";
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content="/logotip-cut.svg" />
+    <meta property="og:image" content="/logotip-cut.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
 
+    <!-- Preconnect per fonts i CDN -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload del logotip per evitar flash -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+      rel="preload"
+      href="/logotip-cut.png"
+      as="image"
+      type="image/svg+xml"
+    />
+
+    <!-- Fonts amb display=swap per evitar FOIT -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
     <title>{title}</title>
+
+    <!-- Inline critical CSS per evitar render-blocking -->
+    <style>
+      body {
+        font-family:
+          "Poppins",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #fff;
+        margin: 0;
+      }
+      .loading-skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e0e0e0 50%,
+          #f0f0f0 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+    </style>
   </head>
   <body class="bg-white min-h-screen">
     <Header />

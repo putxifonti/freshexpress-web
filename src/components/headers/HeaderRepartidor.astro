@@ -36,7 +36,7 @@ const { user } = Astro.props;
           href="/repartidor"
           class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
         >
-          Les meves entregues
+          Entregues
         </a>
         <a
           href="/repartidor/ruta"
@@ -70,7 +70,7 @@ const { user } = Astro.props;
 
         <!-- Perfil usuari -->
         <a
-          href="/dashboard"
+          href="/repartidor/compte"
           class="hidden sm:flex items-center px-4 py-2 text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
         >
           <div
@@ -112,7 +112,7 @@ const { user } = Astro.props;
         <a
           href="/repartidor"
           class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
-          >Les meves entregues</a
+          >Entregues</a
         >
         <a
           href="/repartidor/ruta"
@@ -124,7 +124,7 @@ const { user } = Astro.props;
           class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
           >Historial</a
         >
-        <a href="/dashboard" class="text-[#3BB143] font-medium py-2"
+        <a href="/repartidor/compte" class="text-[#3BB143] font-medium py-2"
           >El meu compte</a
         >
         <div class="flex items-center py-2">
@@ -150,24 +150,71 @@ const { user } = Astro.props;
     });
   });
 
-  // Toggle estat actiu
+  // Toggle estat actiu - vinculat amb API disponibilitat
   const toggleBtn = document.getElementById("toggle-status");
-  toggleBtn?.addEventListener("click", () => {
-    const isActive = toggleBtn.dataset.active === "true";
-    toggleBtn.dataset.active = (!isActive).toString();
+  const mobileToggle = document.getElementById(
+    "mobile-toggle-status"
+  ) as HTMLInputElement;
 
-    if (!isActive) {
-      toggleBtn.classList.remove("bg-gray-300");
-      toggleBtn.classList.add("bg-[#3BB143]");
-      toggleBtn.querySelector("span")?.classList.remove("translate-x-1");
-      toggleBtn.querySelector("span")?.classList.add("translate-x-6");
-    } else {
-      toggleBtn.classList.remove("bg-[#3BB143]");
-      toggleBtn.classList.add("bg-gray-300");
-      toggleBtn.querySelector("span")?.classList.remove("translate-x-6");
-      toggleBtn.querySelector("span")?.classList.add("translate-x-1");
+  // Carregar estat inicial
+  async function carregarEstatDisponibilitat() {
+    try {
+      const res = await fetch("/api/repartidor/disponibilitat");
+      if (res.ok) {
+        const data = await res.json();
+        actualitzarUI(data.disponible);
+      }
+    } catch (e) {
+      console.error("Error carregant disponibilitat:", e);
     }
+  }
+
+  function actualitzarUI(isActive: boolean) {
+    if (toggleBtn) {
+      toggleBtn.dataset.active = isActive.toString();
+      if (isActive) {
+        toggleBtn.classList.remove("bg-gray-300");
+        toggleBtn.classList.add("bg-[#3BB143]");
+        toggleBtn.querySelector("span")?.classList.remove("translate-x-1");
+        toggleBtn.querySelector("span")?.classList.add("translate-x-6");
+      } else {
+        toggleBtn.classList.remove("bg-[#3BB143]");
+        toggleBtn.classList.add("bg-gray-300");
+        toggleBtn.querySelector("span")?.classList.remove("translate-x-6");
+        toggleBtn.querySelector("span")?.classList.add("translate-x-1");
+      }
+    }
+    if (mobileToggle) {
+      mobileToggle.checked = isActive;
+    }
+  }
+
+  async function canviarDisponibilitat(newState: boolean) {
+    try {
+      const res = await fetch("/api/repartidor/disponibilitat", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ disponible: newState }),
+      });
+      if (res.ok) {
+        actualitzarUI(newState);
+      }
+    } catch (e) {
+      console.error("Error actualitzant disponibilitat:", e);
+    }
+  }
+
+  toggleBtn?.addEventListener("click", async () => {
+    const isActive = toggleBtn.dataset.active === "true";
+    await canviarDisponibilitat(!isActive);
   });
+
+  mobileToggle?.addEventListener("change", async () => {
+    await canviarDisponibilitat(mobileToggle.checked);
+  });
+
+  // Carregar estat inicial quan es carrega la pàgina
+  carregarEstatDisponibilitat();
 </script>
 
 <style>

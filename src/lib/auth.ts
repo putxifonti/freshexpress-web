@@ -12,19 +12,16 @@ export interface User {
   id: number;
   email: string;
   nombre: string;
-  apellidos?: string;
   telefono?: string;
   direccion?: string;
   ciudad?: string;
-  provincia?: string;
   codigo_postal?: string;
-  fecha_nacimiento?: Date;
   fecha_registro?: Date;
   ultimo_login?: Date;
   estado: string;
+  activo?: boolean;
   rol?: 'admin' | 'cliente' | 'repartidor';
   hash_anonimizacion?: string;
-  preferencias?: object;
   consentimiento_databroker?: boolean;
   consentimiento_analytics?: boolean;
   consentimiento_marketing?: boolean;
@@ -38,20 +35,18 @@ export interface JWTPayload {
 
 export interface RegisterData {
   nombre: string;
-  apellidos?: string;
   email: string;
   password: string;
   telefono?: string;
   direccion?: string;
-  direccion_envio?: string;
   ciudad?: string;
-  provincia?: string;
   codigo_postal?: string;
-  fecha_nacimiento?: string;
-  consentimiento_databroker?: boolean;
-  consentimiento_analytics?: boolean;
-  consentimiento_marketing?: boolean;
-  consentimiento_newsletter?: boolean;
+  acepta_terminos?: boolean;
+  acepta_privacidad?: boolean;
+  compartir_datos?: boolean;
+  analytics?: boolean;
+  acepta_comunicaciones?: boolean;
+  recibir_ofertas?: boolean;
 }
 
 // Hash de contrasenya
@@ -160,7 +155,7 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
 
     // Generar hash d'anonimització si té consentiment
     let hashAnonimizacion = null;
-    if (data.consentimiento_databroker) {
+    if (data.compartir_datos) {
       try {
         hashAnonimizacion = generateAnonymousHash(userId);
         
@@ -195,10 +190,10 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
         ) VALUES (?, 1, 1, 1, ?, ?, ?, ?)`,
         [
           userId,
-          data.consentimiento_newsletter || false ? 1 : 0,
-          data.consentimiento_databroker || false ? 1 : 0,
-          data.consentimiento_newsletter || false ? 1 : 0,
-          data.consentimiento_analytics !== false ? 1 : 0
+          data.acepta_comunicaciones || false ? 1 : 0,
+          data.compartir_datos || false ? 1 : 0,
+          data.recibir_ofertas || false ? 1 : 0,
+          data.analytics !== false ? 1 : 0
         ]
       );
     } catch (consentError) {
@@ -296,25 +291,25 @@ export async function getUserConsents(userId: number) {
 
 // Actualitzar consentiments
 export async function updateUserConsents(userId: number, consents: {
-  data_broker?: boolean;
-  newsletter?: boolean;
-  marketing?: boolean;
-  analitica?: boolean;
+  compartir_datos?: boolean;
+  recibir_ofertas?: boolean;
+  acepta_comunicaciones?: boolean;
+  analytics?: boolean;
 }) {
   try {
     await queryOperacional(
       `UPDATE consentimientos SET 
-        consentimiento_data_broker = COALESCE(?, consentimiento_data_broker),
-        consentimiento_newsletter = COALESCE(?, consentimiento_newsletter),
-        consentimiento_marketing = COALESCE(?, consentimiento_marketing),
-        consentimiento_analitica = COALESCE(?, consentimiento_analitica),
+        compartir_datos = COALESCE(?, compartir_datos),
+        recibir_ofertas = COALESCE(?, recibir_ofertas),
+        acepta_comunicaciones = COALESCE(?, acepta_comunicaciones),
+        analytics = COALESCE(?, analytics),
         fecha_actualizacion = NOW()
        WHERE usuario_id = ?`,
       [
-        consents.data_broker,
-        consents.newsletter,
-        consents.marketing,
-        consents.analitica,
+        consents.compartir_datos,
+        consents.recibir_ofertas,
+        consents.acepta_comunicaciones,
+        consents.analytics,
         userId
       ]
     );
