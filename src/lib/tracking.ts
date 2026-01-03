@@ -77,25 +77,23 @@ export function generateSessionId(): string {
 // Processar event de tracking
 export async function processTrackingEvent(event: TrackingEvent): Promise<boolean> {
   try {
-    // Insertar event
+    // Insertar event - usant les columnes correctes de la taula eventos_web
     await queryBroker(
       `INSERT INTO eventos_web (
-        session_id, user_hash, tipo_evento, elemento, categoria_elemento,
-        datos_evento, url, url_anterior, x_percent, y_percent,
-        dispositivo, navegador_familia, sistema_operativo, resolucion_pantalla,
-        pais, region, ciudad, fecha_evento, tiempo_en_pagina_ms
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
+        sesion_id, usuario_id, tipo_evento, elemento, categoria_evento,
+        datos_evento, url_actual, url_referrer, 
+        dispositivo, navegador, sistema_operativo, resolucion_pantalla,
+        pais, region, ciudad, fecha_evento, tiempo_en_pagina
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
       [
         event.session_id,
-        event.user_hash || null,
+        null, // usuario_id - es pot afegir si tenim l'usuari autenticat
         event.tipo_evento,
         event.elemento || null,
         event.categoria_elemento || null,
         event.datos_evento ? JSON.stringify(event.datos_evento) : null,
         event.url || null,
         event.url_anterior || null,
-        event.x_percent || null,
-        event.y_percent || null,
         event.dispositivo || 'desktop',
         event.navegador_familia || null,
         event.sistema_operativo || null,
@@ -103,41 +101,49 @@ export async function processTrackingEvent(event: TrackingEvent): Promise<boolea
         event.pais || 'ES',
         event.region || null,
         event.ciudad || null,
-        event.tiempo_en_pagina_ms || null
+        event.tiempo_en_pagina_ms ? Math.floor(event.tiempo_en_pagina_ms / 1000) : null
       ]
     );
 
-    // Actualitzar o crear sessió
-    const isEcoEvent = (event.elemento || '').includes('eco') || 
-                       (event.categoria_elemento || '').includes('eco');
+    // Actualitzar o crear sessió - usant les columnes correctes de sesiones_web
+    const isProductEvent = event.tipo_evento === 'product_click' || event.tipo_evento === 'product_impression';
+    const isCartEvent = event.tipo_evento === 'add_to_cart';
+    const isClickEvent = event.tipo_evento === 'click';
+    const isScrollEvent = event.tipo_evento === 'scroll';
     
     await queryBroker(
       `INSERT INTO sesiones_web (
-        session_id, user_hash, fecha_inicio, fecha_fin, 
-        total_eventos, paginas_vistas, clics_eco, dispositivo, pais, region
-      ) VALUES (?, ?, NOW(), NOW(), 1, ?, ?, ?, ?, ?)
+        sesion_id, usuario_id, fecha_inicio, fecha_fin, 
+        paginas_vistas, eventos_totales, clics_totales, scrolls_totales,
+        productos_vistos, productos_carrito, dispositivo, pais, ciudad
+      ) VALUES (?, ?, NOW(), NOW(), ?, 1, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        user_hash = COALESCE(VALUES(user_hash), user_hash),
         fecha_fin = NOW(),
         duracion_segundos = TIMESTAMPDIFF(SECOND, fecha_inicio, NOW()),
-        total_eventos = total_eventos + 1,
+        eventos_totales = eventos_totales + 1,
         paginas_vistas = paginas_vistas + ?,
-        clics_eco = clics_eco + ?,
-        llego_carrito = llego_carrito OR ?,
-        llego_checkout = llego_checkout OR ?,
-        compra_completada = compra_completada OR ?`,
+        clics_totales = clics_totales + ?,
+        scrolls_totales = scrolls_totales + ?,
+        productos_vistos = productos_vistos + ?,
+        productos_carrito = productos_carrito + ?,
+        conversion = conversion OR ?`,
       [
         event.session_id,
-        event.user_hash || null,
+        null, // usuario_id
         event.tipo_evento === 'pageview' ? 1 : 0,
-        isEcoEvent ? 1 : 0,
+        isClickEvent ? 1 : 0,
+        isScrollEvent ? 1 : 0,
+        isProductEvent ? 1 : 0,
+        isCartEvent ? 1 : 0,
         event.dispositivo || 'desktop',
         event.pais || 'ES',
-        event.region || null,
+        event.ciudad || null,
+        // ON DUPLICATE KEY UPDATE values
         event.tipo_evento === 'pageview' ? 1 : 0,
-        isEcoEvent ? 1 : 0,
-        event.tipo_evento === 'add_to_cart',
-        event.tipo_evento === 'checkout_start',
+        isClickEvent ? 1 : 0,
+        isScrollEvent ? 1 : 0,
+        isProductEvent ? 1 : 0,
+        isCartEvent ? 1 : 0,
         event.tipo_evento === 'purchase'
       ]
     );

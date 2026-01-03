@@ -1,13 +1,26 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import ContacteSection from "../components/Contacte.astro";
+import { verifyToken, getUserById } from "../lib/auth";
+
+// Verificar si l'usuari està autenticat
+const token = Astro.cookies.get("auth_token")?.value;
+let isLoggedIn = false;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    const user = await getUserById(payload.userId);
+    isLoggedIn = !!user;
+  }
+}
 ---
 
 <Layout
   title="Contacte - FreshExpress"
   description="Contacta amb nosaltres. Tens alguna pregunta o suggeriment? Estem aquí per ajudar-te."
 >
-  <main class="pt-4">
-    <ContacteSection />
+  <main class="min-h-screen flex flex-col">
+    <ContacteSection hideHeader={isLoggedIn} />
   </main>
 </Layout>

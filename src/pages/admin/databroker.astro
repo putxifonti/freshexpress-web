@@ -1,0 +1,1461 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { verifyToken, getUserById } from "../../lib/auth";
+
+// Verificar autenticació i rol admin
+const token = Astro.cookies.get("auth_token")?.value;
+let user = null;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    user = await getUserById(payload.userId);
+  }
+}
+
+// Redirigir si no és admin
+if (!user || user.rol !== "admin") {
+  return Astro.redirect("/dashboard");
+}
+---
+
+<Layout title="Data Broker - FreshExpress Admin">
+  <div class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="bg-white shadow">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <a href="/admin" class="text-gray-500 hover:text-gray-700 mr-4">
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </a>
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                <svg
+                  class="w-7 h-7 mr-2 text-[#3BB143]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  ></path>
+                </svg>
+                Data Broker Ètic
+              </h1>
+              <p class="text-sm text-gray-500">
+                Analítiques i estadístiques de la plataforma
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <!-- Selector de període -->
+            <select
+              id="periodo-selector"
+              class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3BB143] focus:border-[#3BB143]"
+            >
+              <option value="7d">Últims 7 dies</option>
+              <option value="30d" selected>Últims 30 dies</option>
+              <option value="90d">Últims 90 dies</option>
+              <option value="all">Tot el temps</option>
+            </select>
+            <button
+              id="refresh-btn"
+              class="bg-[#3BB143] text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center"
+            >
+              <svg
+                class="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                ></path>
+              </svg>
+              Actualitzar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-8">
+          <button
+            data-tab="general"
+            class="tab-btn border-b-2 border-[#3BB143] text-[#3BB143] py-4 px-1 text-sm font-medium"
+          >
+            General
+          </button>
+          <button
+            data-tab="productes"
+            class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium"
+          >
+            Productes
+          </button>
+          <button
+            data-tab="usuaris"
+            class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium"
+          >
+            Usuaris
+          </button>
+          <button
+            data-tab="tracking"
+            class="tab-btn border-b-2 border-transparent text-gray-500 hover:text-gray-700 py-4 px-1 text-sm font-medium"
+          >
+            Tracking
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Contingut -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Loading -->
+      <div id="loading" class="flex items-center justify-center py-12">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3BB143]"
+        >
+        </div>
+        <span class="ml-3 text-gray-600">Carregant dades...</span>
+      </div>
+
+      <!-- Tab: General -->
+      <div id="tab-general" class="tab-content hidden">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Total Sessions</p>
+                <p class="text-3xl font-bold text-gray-900" id="stat-sessions">
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Total Events</p>
+                <p class="text-3xl font-bold text-purple-600" id="stat-events">
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Total Clicks</p>
+                <p class="text-3xl font-bold text-orange-600" id="stat-clicks">
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-orange-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Pàgines Vistes</p>
+                <p
+                  class="text-3xl font-bold text-[#3BB143]"
+                  id="stat-pageviews"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-[#3BB143]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gràfics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Events per dia -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Events per Dia
+            </h3>
+            <div class="h-64" id="chart-events-dia">
+              <canvas id="canvas-events-dia"></canvas>
+            </div>
+          </div>
+          <!-- Dispositius -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Distribució per Dispositiu
+            </h3>
+            <div class="h-64" id="chart-dispositius">
+              <canvas id="canvas-dispositius"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Taules -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Pàgines més visitades -->
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Pàgines més Visitades
+              </h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Pàgina</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Visites</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Sessions</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-pagines"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="3" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Elements més clicats -->
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Elements més Clicats
+              </h3>
+            </div>
+            <div class="overflow-x-auto max-h-80">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Element</th
+                    >
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Categoria</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Clics</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-elements"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="3" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Productes -->
+      <div id="tab-productes" class="tab-content hidden">
+        <!-- Stats Cards Productes -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Total Productes</p>
+                <p
+                  class="text-3xl font-bold text-gray-900"
+                  id="stat-total-productes"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Productes Venuts</p>
+                <p
+                  class="text-3xl font-bold text-blue-600"
+                  id="stat-productes-venuts"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Ingressos Totals</p>
+                <p
+                  class="text-3xl font-bold text-[#3BB143]"
+                  id="stat-ingressos"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Productes més demanats -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-green-50">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Productes MÉS Demanats
+              </h3>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Producte</th
+                    >
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Categoria</th
+                    >
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Vegades</th
+                    >
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Unitats</th
+                    >
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Ingressos</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-productes-top"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="5" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-red-50">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Productes MENYS Demanats
+              </h3>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Producte</th
+                    >
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Categoria</th
+                    >
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Vegades</th
+                    >
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Unitats</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-productes-bottom"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="4" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vendes per categoria i productes no venuts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Vendes per Categoria
+              </h3>
+            </div>
+            <div class="p-6">
+              <div class="h-64">
+                <canvas id="canvas-categories"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-yellow-50">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Productes Mai Venuts
+              </h3>
+            </div>
+            <div class="overflow-x-auto max-h-72">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Producte</th
+                    >
+                    <th
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Empresa</th
+                    >
+                    <th
+                      class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Preu</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-productes-no-venuts"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="3" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Usuaris -->
+      <div id="tab-usuaris" class="tab-content hidden">
+        <!-- Stats Cards Usuaris -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Total Usuaris</p>
+                <p
+                  class="text-3xl font-bold text-gray-900"
+                  id="stat-total-usuaris"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Usuaris amb Compres</p>
+                <p
+                  class="text-3xl font-bold text-purple-600"
+                  id="stat-usuaris-compres"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500">Data for Good</p>
+                <p
+                  class="text-3xl font-bold text-[#3BB143]"
+                  id="stat-data-good"
+                >
+                  -
+                </p>
+              </div>
+              <div
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gràfics usuaris -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Nous Usuaris per Dia
+            </h3>
+            <div class="h-64">
+              <canvas id="canvas-usuaris-dia"></canvas>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Distribució per Rol
+            </h3>
+            <div class="h-64">
+              <canvas id="canvas-rols"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Segments i consentiments -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Segments de Clients
+              </h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Segment</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Usuaris</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Gasto Mitjà</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-segments"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="3" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-green-50">
+              <h3 class="text-lg font-semibold text-gray-900">Consentiments</h3>
+            </div>
+            <div class="p-6" id="consentiments-container">
+              <p class="text-gray-500">Carregant...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Tracking -->
+      <div id="tab-tracking" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Events per hora -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Events per Hora del Dia
+            </h3>
+            <div class="h-64">
+              <canvas id="canvas-events-hora"></canvas>
+            </div>
+          </div>
+
+          <!-- Navegadors -->
+          <div class="bg-white rounded-xl shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+              Distribució per Navegador
+            </h3>
+            <div class="h-64">
+              <canvas id="canvas-navegadors"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clicks en productes -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Clicks en Productes
+              </h3>
+            </div>
+            <div class="overflow-x-auto max-h-80">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Producte</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Clics</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-clicks-productes"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="2" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Afegits al Carret
+              </h3>
+            </div>
+            <div class="overflow-x-auto max-h-80">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                      >Producte</th
+                    >
+                    <th
+                      class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                      >Vegades</th
+                    >
+                  </tr>
+                </thead>
+                <tbody
+                  id="table-carret"
+                  class="bg-white divide-y divide-gray-200"
+                >
+                  <tr
+                    ><td colspan="2" class="px-6 py-4 text-center text-gray-500"
+                      >Carregant...</td
+                    ></tr
+                  >
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // @ts-nocheck
+    // Variables globals
+    let currentPeriodo = "30d";
+    let statsData = null;
+    let productesData = null;
+    let usuarisData = null;
+    let charts = {};
+
+    // Funcions d'utilitat
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+      if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+      return num?.toLocaleString() || "0";
+    }
+
+    function formatCurrency(num) {
+      return new Intl.NumberFormat("ca-ES", {
+        style: "currency",
+        currency: "EUR",
+      }).format(num || 0);
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("ca-ES", {
+        day: "2-digit",
+        month: "short",
+      });
+    }
+
+    function truncateText(text, maxLength = 30) {
+      if (!text) return "-";
+      return text.length > maxLength
+        ? text.substring(0, maxLength) + "..."
+        : text;
+    }
+
+    // Gestió de tabs
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tabId = btn.dataset.tab;
+
+        // Actualitzar botons
+        document.querySelectorAll(".tab-btn").forEach((b) => {
+          b.classList.remove("border-[#3BB143]", "text-[#3BB143]");
+          b.classList.add("border-transparent", "text-gray-500");
+        });
+        btn.classList.add("border-[#3BB143]", "text-[#3BB143]");
+        btn.classList.remove("border-transparent", "text-gray-500");
+
+        // Mostrar tab
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((t) => t.classList.add("hidden"));
+        document.getElementById("tab-" + tabId)?.classList.remove("hidden");
+      });
+    });
+
+    // Selector de període
+    document
+      .getElementById("periodo-selector")
+      ?.addEventListener("change", (e) => {
+        currentPeriodo = e.target.value;
+        loadAllData();
+      });
+
+    // Botó refresh
+    document.getElementById("refresh-btn")?.addEventListener("click", () => {
+      loadAllData();
+    });
+
+    // Carregar dades
+    async function loadAllData() {
+      document.getElementById("loading")?.classList.remove("hidden");
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((t) => t.classList.add("hidden"));
+
+      await Promise.all([loadStats(), loadProductes(), loadUsuaris()]);
+
+      document.getElementById("loading")?.classList.add("hidden");
+      document.getElementById("tab-general")?.classList.remove("hidden");
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch(
+          `/api/admin/databroker/stats?periodo=${currentPeriodo}`
+        );
+        statsData = await res.json();
+
+        if (statsData.success) {
+          // Actualitzar stats
+          document.getElementById("stat-sessions").textContent = formatNumber(
+            statsData.stats.totalSessions
+          );
+          document.getElementById("stat-events").textContent = formatNumber(
+            statsData.stats.totalEvents
+          );
+          document.getElementById("stat-clicks").textContent = formatNumber(
+            statsData.stats.totalClicks
+          );
+          document.getElementById("stat-pageviews").textContent = formatNumber(
+            statsData.stats.totalPageviews
+          );
+
+          // Taula pàgines
+          const tablePagines = document.getElementById("table-pagines");
+          if (statsData.paginasVisitades?.length > 0) {
+            tablePagines.innerHTML = statsData.paginasVisitades
+              .map(
+                (p) => `
+              <tr>
+                <td class="px-6 py-3 text-sm text-gray-900">${truncateText(p.pagina, 40)}</td>
+                <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(p.visites)}</td>
+                <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(p.sessions_uniques)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tablePagines.innerHTML =
+              '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hi ha dades</td></tr>';
+          }
+
+          // Taula elements
+          const tableElements = document.getElementById("table-elements");
+          if (statsData.elementsClicats?.length > 0) {
+            tableElements.innerHTML = statsData.elementsClicats
+              .map(
+                (e) => `
+              <tr>
+                <td class="px-6 py-3 text-sm text-gray-900 font-mono text-xs">${truncateText(e.elemento, 30)}</td>
+                <td class="px-6 py-3 text-sm">
+                  <span class="px-2 py-1 text-xs rounded-full ${getCategoryColor(e.categoria)}">${e.categoria || "other"}</span>
+                </td>
+                <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(e.clics)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableElements.innerHTML =
+              '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hi ha dades</td></tr>';
+          }
+
+          // Gràfics
+          renderEventsPerDiaChart(statsData.eventsPerDia);
+          renderDispositiusChart(statsData.dispositius);
+          renderEventsPerHoraChart(statsData.eventsPerHora);
+          renderNavegadorsChart(statsData.navegadors);
+        }
+      } catch (error) {
+        console.error("Error carregant stats:", error);
+      }
+    }
+
+    async function loadProductes() {
+      try {
+        const res = await fetch(
+          `/api/admin/databroker/productes?periodo=${currentPeriodo}`
+        );
+        productesData = await res.json();
+
+        if (productesData.success) {
+          // Stats
+          document.getElementById("stat-total-productes").textContent =
+            formatNumber(productesData.resum.totalProductes);
+          document.getElementById("stat-productes-venuts").textContent =
+            formatNumber(productesData.resum.productesVenuts);
+          document.getElementById("stat-ingressos").textContent =
+            formatCurrency(productesData.resum.ingressosTotals);
+
+          // Taula productes top
+          const tableTop = document.getElementById("table-productes-top");
+          if (productesData.productesMesDemands?.length > 0) {
+            tableTop.innerHTML = productesData.productesMesDemands
+              .map(
+                (p, i) => `
+              <tr class="${i < 3 ? "bg-green-50" : ""}">
+                <td class="px-4 py-3 text-sm">
+                  <div class="flex items-center">
+                    <span class="mr-2 font-bold text-gray-600">${i < 3 ? ["#1", "#2", "#3"][i] : ""}</span>
+                    <span class="font-medium text-gray-900">${truncateText(p.nombre, 25)}</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600">${p.categoria || "-"}</td>
+                <td class="px-4 py-3 text-sm text-gray-900 text-right font-semibold">${p.vegades_demanat}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 text-right">${p.unitats_venudes || 0}</td>
+                <td class="px-4 py-3 text-sm text-[#3BB143] text-right font-semibold">${formatCurrency(p.ingressos)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableTop.innerHTML =
+              '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No hi ha dades</td></tr>';
+          }
+
+          // Taula productes bottom
+          const tableBottom = document.getElementById("table-productes-bottom");
+          if (productesData.productesMenysDemands?.length > 0) {
+            tableBottom.innerHTML = productesData.productesMenysDemands
+              .map(
+                (p) => `
+              <tr>
+                <td class="px-4 py-3 text-sm text-gray-900">${truncateText(p.nombre, 25)}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">${p.categoria || "-"}</td>
+                <td class="px-4 py-3 text-sm text-red-600 text-right font-semibold">${p.vegades_demanat}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 text-right">${p.unitats_venudes || 0}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableBottom.innerHTML =
+              '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No hi ha dades</td></tr>';
+          }
+
+          // Productes no venuts
+          const tableNoVenuts = document.getElementById(
+            "table-productes-no-venuts"
+          );
+          if (productesData.productesNoVenuts?.length > 0) {
+            tableNoVenuts.innerHTML = productesData.productesNoVenuts
+              .map(
+                (p) => `
+              <tr>
+                <td class="px-4 py-3 text-sm text-gray-900">${truncateText(p.nombre, 25)}</td>
+                <td class="px-4 py-3 text-sm text-gray-600">${p.empresa || "-"}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 text-right">${formatCurrency(p.precio)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableNoVenuts.innerHTML =
+              '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Tots els productes tenen vendes!</td></tr>';
+          }
+
+          // Clicks i carret
+          const tableClicks = document.getElementById("table-clicks-productes");
+          if (productesData.clicksProductes?.length > 0) {
+            tableClicks.innerHTML = productesData.clicksProductes
+              .map(
+                (p) => `
+              <tr>
+                <td class="px-6 py-3 text-sm text-gray-900">${p.product_name || p.product_id || "-"}</td>
+                <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(p.clics)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableClicks.innerHTML =
+              '<tr><td colspan="2" class="px-6 py-4 text-center text-gray-500">No hi ha dades de tracking</td></tr>';
+          }
+
+          const tableCarret = document.getElementById("table-carret");
+          if (productesData.productesCarret?.length > 0) {
+            tableCarret.innerHTML = productesData.productesCarret
+              .map(
+                (p) => `
+              <tr>
+                <td class="px-6 py-3 text-sm text-gray-900">${p.product_name || p.product_id || "-"}</td>
+                <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(p.vegades_afegit)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableCarret.innerHTML =
+              '<tr><td colspan="2" class="px-6 py-4 text-center text-gray-500">No hi ha dades de tracking</td></tr>';
+          }
+
+          // Gràfic categories
+          renderCategoriesChart(productesData.vendesPerCategoria);
+        }
+      } catch (error) {
+        console.error("Error carregant productes:", error);
+      }
+    }
+
+    async function loadUsuaris() {
+      try {
+        const res = await fetch(
+          `/api/admin/databroker/usuaris?periodo=${currentPeriodo}`
+        );
+        usuarisData = await res.json();
+
+        if (usuarisData.success) {
+          // Stats
+          document.getElementById("stat-total-usuaris").textContent =
+            formatNumber(usuarisData.resum.totalUsuaris);
+          document.getElementById("stat-usuaris-compres").textContent =
+            formatNumber(usuarisData.resum.usuarisAmbCompres);
+          document.getElementById("stat-data-good").textContent = formatNumber(
+            usuarisData.resum.consentimentsDataBroker
+          );
+
+          // Segments
+          const tableSegments = document.getElementById("table-segments");
+          if (usuarisData.segments?.length > 0) {
+            tableSegments.innerHTML = usuarisData.segments
+              .map(
+                (s) => `
+              <tr>
+                <td class="px-6 py-3 text-sm">
+                  <span class="font-medium text-gray-900">${s.segment}</span>
+                </td>
+                <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(s.usuaris)}</td>
+                <td class="px-6 py-3 text-sm text-[#3BB143] text-right font-semibold">${formatCurrency(s.gasto_medio)}</td>
+              </tr>
+            `
+              )
+              .join("");
+          } else {
+            tableSegments.innerHTML =
+              '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hi ha dades</td></tr>';
+          }
+
+          // Consentiments
+          const consentimentsContainer = document.getElementById(
+            "consentiments-container"
+          );
+          if (usuarisData.consentiments) {
+            const c = usuarisData.consentiments;
+            consentimentsContainer.innerHTML = `
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Compartir Dades (Data for Good)</span>
+                  <span class="text-lg font-bold text-[#3BB143]">${c.compartir_datos || 0}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Comunicacions</span>
+                  <span class="text-lg font-bold text-blue-600">${c.acepta_comunicaciones || 0}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Analytics</span>
+                  <span class="text-lg font-bold text-purple-600">${c.analytics || 0}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-700">Rebre Ofertes</span>
+                  <span class="text-lg font-bold text-orange-600">${c.recibir_ofertas || 0}</span>
+                </div>
+                <div class="pt-4 border-t">
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-700 font-medium">Total Usuaris amb Consentiment</span>
+                    <span class="text-xl font-bold text-gray-900">${c.total || 0}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          // Gràfics
+          renderUsuarisPerDiaChart(usuarisData.usuarisPerDia);
+          renderRolsChart(usuarisData.usuarisPerRol);
+        }
+      } catch (error) {
+        console.error("Error carregant usuaris:", error);
+      }
+    }
+
+    // Funcions de gràfics
+    function renderEventsPerDiaChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-events-dia");
+      if (charts.eventsDia) charts.eventsDia.destroy();
+
+      charts.eventsDia = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.map((d) => formatDate(d.dia)),
+          datasets: [
+            {
+              label: "Events",
+              data: data.map((d) => d.total),
+              borderColor: "#3BB143",
+              backgroundColor: "rgba(59, 177, 67, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Sessions",
+              data: data.map((d) => d.sessions),
+              borderColor: "#6366f1",
+              backgroundColor: "rgba(99, 102, 241, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+        },
+      });
+    }
+
+    function renderDispositiusChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-dispositius");
+      if (charts.dispositius) charts.dispositius.destroy();
+
+      charts.dispositius = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: data.map((d) => d.dispositiu),
+          datasets: [
+            {
+              data: data.map((d) => d.total),
+              backgroundColor: ["#3BB143", "#6366f1", "#f59e0b"],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+        },
+      });
+    }
+
+    function renderEventsPerHoraChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-events-hora");
+      if (charts.eventsHora) charts.eventsHora.destroy();
+
+      charts.eventsHora = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((d) => d.hora + ":00"),
+          datasets: [
+            {
+              label: "Events",
+              data: data.map((d) => d.total),
+              backgroundColor: "#3BB143",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+        },
+      });
+    }
+
+    function renderNavegadorsChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-navegadors");
+      if (charts.navegadors) charts.navegadors.destroy();
+
+      charts.navegadors = new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: data.map((d) => d.navegador),
+          datasets: [
+            {
+              data: data.map((d) => d.total),
+              backgroundColor: [
+                "#3BB143",
+                "#6366f1",
+                "#f59e0b",
+                "#ef4444",
+                "#8b5cf6",
+              ],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+        },
+      });
+    }
+
+    function renderCategoriesChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-categories");
+      if (charts.categories) charts.categories.destroy();
+
+      charts.categories = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.map((d) => d.categoria || "Altres"),
+          datasets: [
+            {
+              label: "Ingressos (€)",
+              data: data.map((d) => d.ingressos),
+              backgroundColor: "#3BB143",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: "y",
+          plugins: { legend: { display: false } },
+        },
+      });
+    }
+
+    function renderUsuarisPerDiaChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-usuaris-dia");
+      if (charts.usuarisDia) charts.usuarisDia.destroy();
+
+      charts.usuarisDia = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.map((d) => formatDate(d.dia)),
+          datasets: [
+            {
+              label: "Nous Usuaris",
+              data: data.map((d) => d.nous_usuaris),
+              borderColor: "#6366f1",
+              backgroundColor: "rgba(99, 102, 241, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+        },
+      });
+    }
+
+    function renderRolsChart(data) {
+      if (!data || data.length === 0) return;
+
+      const ctx = document.getElementById("canvas-rols");
+      if (charts.rols) charts.rols.destroy();
+
+      charts.rols = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: data.map((d) => d.rol),
+          datasets: [
+            {
+              data: data.map((d) => d.total),
+              backgroundColor: ["#3BB143", "#6366f1", "#f59e0b"],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+        },
+      });
+    }
+
+    function getCategoryColor(category) {
+      const colors = {
+        navigation: "bg-blue-100 text-blue-800",
+        product: "bg-green-100 text-green-800",
+        cart: "bg-orange-100 text-orange-800",
+        form: "bg-purple-100 text-purple-800",
+        eco: "bg-emerald-100 text-emerald-800",
+        interactive: "bg-yellow-100 text-yellow-800",
+        footer: "bg-gray-100 text-gray-800",
+        content: "bg-slate-100 text-slate-800",
+      };
+      return colors[category] || "bg-gray-100 text-gray-800";
+    }
+
+    // Carregar dades al iniciar
+    loadAllData();
+  </script>
+</Layout>

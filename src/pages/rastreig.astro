@@ -1,13 +1,26 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Restreo from "../components/Restreo.astro";
+import { verifyToken, getUserById } from "../lib/auth";
+
+// Verificar si l'usuari està autenticat
+const token = Astro.cookies.get("auth_token")?.value;
+let isLoggedIn = false;
+
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    const user = await getUserById(payload.userId);
+    isLoggedIn = !!user;
+  }
+}
 ---
 
 <Layout
   title="Rastreig de Comandes - FreshExpress"
   description="Segueix la teva comanda en temps real. Introdueix el teu codi de seguiment per veure l'estat de la teva entrega."
 >
-  <main class="pt-4">
-    <Restreo />
+  <main class="min-h-screen flex flex-col">
+    <Restreo hideHeader={isLoggedIn} />
   </main>
 </Layout>

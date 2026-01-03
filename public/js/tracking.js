@@ -183,7 +183,9 @@
         const productEl = target.closest('[data-product-id]');
         trackEvent('product_click', target, {
           productId: productEl.dataset.productId,
-          productName: productEl.dataset.productName || ''
+          productName: productEl.dataset.productName || '',
+          productPrice: productEl.dataset.productPrice || '',
+          productCategory: productEl.dataset.productCategory || ''
         });
       }
 
@@ -194,8 +196,67 @@
       }
 
       if (target.closest('.add-to-cart, [data-action="add-to-cart"]')) {
-        trackEvent('add_to_cart', target);
+        const productEl = target.closest('[data-product-id]') || target.closest('[data-product]');
+        trackEvent('add_to_cart', target, {
+          productId: productEl?.dataset.productId || productEl?.dataset.product || '',
+          productName: productEl?.dataset.productName || '',
+          productPrice: productEl?.dataset.productPrice || ''
+        });
       }
+
+      // Tracking de categoria de productes
+      if (target.closest('[data-category]')) {
+        const categoryEl = target.closest('[data-category]');
+        trackEvent('category_click', target, {
+          category: categoryEl.dataset.category
+        });
+      }
+
+      // Tracking de cerca
+      if (target.closest('[data-search]') || target.matches('input[type="search"], .search-input')) {
+        trackEvent('search_interaction', target);
+      }
+
+      // Tracking de checkout
+      if (target.closest('[data-action="checkout"], .checkout-btn, #checkout-btn')) {
+        trackEvent('checkout_start', target);
+      }
+
+      // Tracking de compra completada
+      if (target.closest('[data-action="purchase"], .purchase-btn')) {
+        trackEvent('purchase', target);
+      }
+    });
+
+    // Observer per nous productes afegits dinàmicament
+    const productObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        mutation.addedNodes.forEach(function(node) {
+          if (node.nodeType === 1) { // Element node
+            const productCards = node.querySelectorAll ? 
+              node.querySelectorAll('[data-product-id]') : [];
+            productCards.forEach(function(card) {
+              trackEvent('product_impression', card, {
+                productId: card.dataset.productId,
+                productName: card.dataset.productName || '',
+                productPrice: card.dataset.productPrice || ''
+              });
+            });
+          }
+        });
+      });
+    });
+
+    // Observar canvis al DOM per detectar nous productes
+    productObserver.observe(document.body, { childList: true, subtree: true });
+
+    // Track inicial de productes visibles
+    document.querySelectorAll('[data-product-id]').forEach(function(card) {
+      trackEvent('product_impression', card, {
+        productId: card.dataset.productId,
+        productName: card.dataset.productName || '',
+        productPrice: card.dataset.productPrice || ''
+      });
     });
   }
 

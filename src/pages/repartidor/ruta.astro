@@ -66,9 +66,47 @@ try {
   errorCarregant = true;
 }
 
+// Obtenir comandes disponibles per acceptar (sense repartidor assignat)
+let comandesDisponibles: any[] = [];
+try {
+  comandesDisponibles = await queryOperacional<any[]>(`
+    SELECT 
+      p.id,
+      p.numero_pedido,
+      p.direccion_entrega,
+      u.telefono as telefono_cliente,
+      u.nombre as nombre_cliente,
+      p.notas_cliente as notas_entrega,
+      p.tiempo_estimado_min,
+      p.estado,
+      p.total,
+      p.fecha_pedido
+    FROM pedidos p
+    JOIN usuarios u ON p.cliente_id = u.id
+    WHERE p.repartidor_id IS NULL 
+    AND p.estado IN ('pendiente', 'confirmado', 'listo')
+    ORDER BY p.fecha_pedido ASC
+    LIMIT 10
+  `);
+} catch (error) {
+  console.error('Error obtenint comandes disponibles:', error);
+}
+
 // Obtenir entrega actual (la primera en curs o la primera pendent)
-const entregaActual = ruta.find(e => e.estado === 'en_camino') || ruta.find(e => e.estado === 'listo') || null;
+const entregaActual = ruta.find(e => e.estado === 'en_camino') || ruta.find(e => e.estado === 'listo') || ruta.find(e => e.estado === 'confirmado') || null;
 const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado !== 'cancelado');
+
+// Funció per formatar temps des de la comanda
+function formatTemps(fechaPedido: string) {
+  const ara = new Date();
+  const comanda = new Date(fechaPedido);
+  const diffMs = ara.getTime() - comanda.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `fa ${diffMin} min`;
+  const diffHores = Math.floor(diffMin / 60);
+  if (diffHores < 24) return `fa ${diffHores}h`;
+  return `fa ${Math.floor(diffHores / 24)}d`;
+}
 ---
 
 <Layout title="Ruta Actual - Repartidor - FreshExpress">
@@ -77,7 +115,7 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
     <!-- Header de la ruta -->
     <div class="bg-[#3BB143] text-white py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-4">
           <div>
             <a href="/repartidor" class="text-white/80 hover:text-white text-sm flex items-center mb-2">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,46 +123,82 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
               </svg>
               Tornar al panell
             </a>
-            <h1 class="text-2xl font-bold">Ruta Actual</h1>
+            <h1 class="text-2xl font-bold">Gestió d'Entregues</h1>
             <p class="text-white/80 text-sm">
-              {entreguesPendents.length} entregues pendents
+              {entreguesPendents.length} assignades · {comandesDisponibles.length} disponibles
             </p>
           </div>
           
-          {entreguesPendents.length > 0 && (
+          <div class="flex items-center gap-3">
             <button 
-              id="btn-optimitzar"
-              class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              id="btn-refresh"
+              class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
+              title="Actualitzar"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
-              Optimitzar ruta
             </button>
-          )}
+            {entreguesPendents.length > 0 && (
+              <button 
+                id="btn-optimitzar"
+                class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Optimitzar ruta
+              </button>
+            )}
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Tabs de navegació -->
+    <div class="bg-white border-b sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex gap-6" aria-label="Tabs">
+          <button 
+            data-tab="assignades"
+            class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-[#3BB143] text-[#3BB143]"
+          >
+            Les meves ({entreguesPendents.length})
+          </button>
+          <button 
+            data-tab="disponibles"
+            class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700"
+          >
+            Disponibles ({comandesDisponibles.length})
+          </button>
+        </nav>
       </div>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       
-      {ruta.length === 0 ? (
-        <div class="bg-white rounded-xl shadow p-12 text-center">
-          <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-          </svg>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">No tens cap ruta activa</h3>
-          <p class="text-gray-500 mb-6">Torna al panell per acceptar noves entregues</p>
-          <a href="/repartidor" class="inline-flex items-center px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors">
-            Anar al panell
-          </a>
-        </div>
-      ) : (
-        <div class="grid lg:grid-cols-3 gap-6">
+      <!-- Tab: Les meves entregues -->
+      <div id="tab-assignades" class="tab-content">
+        {ruta.length === 0 ? (
+          <div class="bg-white rounded-xl shadow p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No tens cap entrega assignada</h3>
+            <p class="text-gray-500 mb-6">Accepta comandes des de la pestanya "Disponibles"</p>
+            <button 
+              onclick="document.querySelector('[data-tab=disponibles]').click()"
+              class="inline-flex items-center px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors"
+            >
+              Veure disponibles
+            </button>
+          </div>
+        ) : (
+          <div class="grid lg:grid-cols-3 gap-6">
           
-          <!-- Mapa (placeholder) -->
-          <div class="lg:col-span-2 bg-white rounded-xl shadow overflow-hidden">
-            <div class="h-[500px] bg-gray-200 relative">
+            <!-- Mapa (placeholder) -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow overflow-hidden">
+              <div class="h-[500px] bg-gray-200 relative">
               <!-- Aquí aniria el mapa real (Google Maps, Mapbox, etc.) -->
               <div class="absolute inset-0 flex items-center justify-center flex-col">
                 <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,50 +378,153 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
                       )}
                     </div>
                     <div class="flex-1 min-w-0">
-                      <p class={`font-medium ${entrega.estado === 'entregado' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                        {entrega.nombre_cliente}
-                      </p>
+                      <div class="flex items-center gap-2 mb-1">
+                        <p class={`font-medium ${entrega.estado === 'entregado' ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                          {entrega.nombre_cliente}
+                        </p>
+                        <span class={`px-2 py-0.5 text-xs rounded-full ${
+                          entrega.estado === 'en_camino' ? 'bg-orange-100 text-orange-700' :
+                          entrega.estado === 'listo' ? 'bg-purple-100 text-purple-700' :
+                          entrega.estado === 'confirmado' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {entrega.estado === 'en_camino' ? 'En camí' :
+                           entrega.estado === 'listo' ? 'Recollit' :
+                           entrega.estado === 'confirmado' ? 'Confirmat' :
+                           entrega.estado}
+                        </span>
+                      </div>
                       <p class={`text-sm ${entrega.estado === 'entregado' ? 'text-gray-400' : 'text-gray-600'} truncate`}>
                         {entrega.direccion_entrega}
                       </p>
-                      {entrega.tiempo_estimado_min && (
-                        <p class="text-xs text-gray-400 mt-1">
-                          ~{entrega.tiempo_estimado_min} min · {entrega.distancia_km} km
-                        </p>
+                      {entrega.telefono_cliente && (
+                        <a href={`tel:${entrega.telefono_cliente}`} class="text-xs text-[#3BB143] hover:underline">
+                          {entrega.telefono_cliente}
+                        </a>
+                      )}
+                      
+                      {/* Botons d'acció per cada entrega */}
+                      {entrega.id !== entregaActual?.id && entrega.estado !== 'entregado' && (
+                        <div class="flex gap-2 mt-2">
+                          {entrega.estado === 'confirmado' && (
+                            <button 
+                              data-id={entrega.id}
+                              data-nou-estat="listo"
+                              class="btn-canvi-estat text-xs bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded transition-colors"
+                            >
+                              Recollit
+                            </button>
+                          )}
+                          {entrega.estado === 'listo' && (
+                            <button 
+                              data-id={entrega.id}
+                              data-nou-estat="en_camino"
+                              class="btn-canvi-estat text-xs bg-orange-500 hover:bg-orange-600 text-white py-1 px-2 rounded transition-colors"
+                            >
+                              Iniciar
+                            </button>
+                          )}
+                          {entrega.estado === 'en_camino' && (
+                            <>
+                              <button 
+                                data-id={entrega.id}
+                                data-direccio={entrega.direccion_entrega}
+                                class="btn-navegar text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded transition-colors"
+                              >
+                                Navegar
+                              </button>
+                              <button 
+                                data-id={entrega.id}
+                                class="btn-entregat text-xs bg-[#3BB143] hover:bg-[#32a039] text-white py-1 px-2 rounded transition-colors"
+                              >
+                                Entregat
+                              </button>
+                            </>
+                          )}
+                          <button 
+                            data-id={entrega.id}
+                            class="btn-problema text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-2 rounded transition-colors"
+                          >
+                            Problema
+                          </button>
+                        </div>
                       )}
                     </div>
-                    
-                    {entrega.estado === 'pendiente' && entrega.id !== entregaActual?.id && (
-                      <div class="flex gap-1">
-                        <button 
-                          data-id={entrega.id}
-                          data-ordre={index}
-                          class="btn-up text-gray-400 hover:text-gray-600 p-1"
-                          disabled={index === 0}
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                          </svg>
-                        </button>
-                        <button 
-                          data-id={entrega.id}
-                          data-ordre={index}
-                          class="btn-down text-gray-400 hover:text-gray-600 p-1"
-                          disabled={index === ruta.length - 1}
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      )}
+        )}
+      </div>
+
+      <!-- Tab: Comandes disponibles -->
+      <div id="tab-disponibles" class="tab-content hidden">
+        {comandesDisponibles.length === 0 ? (
+          <div class="bg-white rounded-xl shadow p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hi ha comandes disponibles</h3>
+            <p class="text-gray-500">Totes les comandes han estat assignades</p>
+          </div>
+        ) : (
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {comandesDisponibles.map((comanda) => (
+              <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div class="p-4">
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
+                      #{comanda.numero_pedido}
+                    </span>
+                    <span class={`text-xs px-2 py-1 rounded-full font-medium ${
+                      comanda.estado === 'listo' ? 'bg-green-100 text-green-700' :
+                      comanda.estado === 'confirmado' ? 'bg-blue-100 text-blue-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {comanda.estado === 'listo' ? 'Llest per recollir' :
+                       comanda.estado === 'confirmado' ? 'Confirmat' :
+                       'Pendent'}
+                    </span>
+                  </div>
+                  
+                  <h3 class="font-semibold text-gray-900 mb-1">{comanda.nombre_cliente}</h3>
+                  
+                  <div class="flex items-start gap-2 mb-2 text-sm text-gray-600">
+                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="line-clamp-2">{comanda.direccion_entrega}</span>
+                  </div>
+                  
+                  <div class="flex items-center justify-between text-sm mb-3">
+                    <span class="text-gray-500">{formatTemps(comanda.fecha_pedido)}</span>
+                    <span class="font-bold text-[#3BB143]">{Number(comanda.total).toFixed(2)}€</span>
+                  </div>
+                  
+                  {comanda.notas_entrega && (
+                    <div class="p-2 bg-yellow-50 border border-yellow-100 rounded-lg mb-3">
+                      <p class="text-xs text-yellow-800 line-clamp-2">{comanda.notas_entrega}</p>
+                    </div>
+                  )}
+                  
+                  <button 
+                    data-id={comanda.id}
+                    class="btn-acceptar w-full py-2 bg-[#3BB143] hover:bg-[#32a039] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Acceptar comanda
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   </div>
 
@@ -395,6 +572,74 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
 </Layout>
 
 <script>
+  // Gestió de tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = (btn as HTMLElement).dataset.tab;
+      
+      // Actualitzar botons
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('border-[#3BB143]', 'text-[#3BB143]');
+        b.classList.add('border-transparent', 'text-gray-500');
+      });
+      btn.classList.add('border-[#3BB143]', 'text-[#3BB143]');
+      btn.classList.remove('border-transparent', 'text-gray-500');
+      
+      // Mostrar tab
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.getElementById(`tab-${tabId}`)?.classList.remove('hidden');
+    });
+  });
+
+  // Botó refresh
+  document.getElementById('btn-refresh')?.addEventListener('click', () => {
+    window.location.reload();
+  });
+
+  // Acceptar comanda
+  document.querySelectorAll('.btn-acceptar').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const btnEl = btn as HTMLButtonElement;
+      const id = btnEl.dataset.id;
+      
+      if (!confirm('Vols acceptar aquesta comanda?')) return;
+      
+      btnEl.disabled = true;
+      const originalContent = btnEl.innerHTML;
+      btnEl.innerHTML = `
+        <svg class="animate-spin w-5 h-5" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Acceptant...
+      `;
+      
+      try {
+        const res = await fetch(`/api/repartidor/pedido/${id}/acceptar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        if (res.ok && data.success) {
+          btnEl.innerHTML = '✓ Acceptada!';
+          btnEl.classList.remove('bg-[#3BB143]');
+          btnEl.classList.add('bg-green-600');
+          setTimeout(() => window.location.reload(), 500);
+        } else {
+          alert(data.error || 'Error acceptant la comanda');
+          btnEl.disabled = false;
+          btnEl.innerHTML = originalContent;
+        }
+      } catch (e) {
+        console.error('Error:', e);
+        alert('Error de connexió');
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalContent;
+      }
+    });
+  });
+
   // Canviar estat de l'entrega
   document.querySelectorAll('.btn-canvi-estat').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -432,10 +677,16 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
   // Navegar - obrir Google Maps
   document.querySelectorAll('.btn-navegar').forEach(btn => {
     btn.addEventListener('click', () => {
-      // Buscar la direcció en el contenidor pare
-      const container = btn.closest('.p-4');
-      const direccioEl = container?.querySelector('.text-gray-600');
-      const direccio = direccioEl?.textContent?.trim();
+      const btnEl = btn as HTMLElement;
+      // Primer intentem obtenir la direcció del data-attribute
+      let direccio = btnEl.dataset.direccio;
+      
+      // Si no hi ha data-direccio, buscar-la en el contenidor pare
+      if (!direccio) {
+        const container = btn.closest('.p-4');
+        const direccioEl = container?.querySelector('.text-gray-600');
+        direccio = direccioEl?.textContent?.trim();
+      }
       
       if (direccio) {
         // Obrir Google Maps amb la direcció
@@ -603,6 +854,48 @@ const entreguesPendents = ruta.filter(e => e.estado !== 'entregado' && e.estado 
         </svg>
         Optimitzar ruta
       `;
+    }
+  });
+
+  // Auto-actualització cada 30 segons per comandes disponibles
+  let autoRefreshInterval: ReturnType<typeof setInterval> | null = null;
+  
+  function startAutoRefresh() {
+    if (autoRefreshInterval) return;
+    autoRefreshInterval = setInterval(async () => {
+      // Només actualitzar si estem a la pestanya de disponibles
+      const disponiblesTab = document.getElementById('tab-disponibles');
+      if (disponiblesTab && !disponiblesTab.classList.contains('hidden')) {
+        try {
+          const res = await fetch('/api/repartidor/pedidos-disponibles');
+          const data = await res.json();
+          if (data.success && data.pedidos) {
+            const nouCount = data.pedidos.filter((p: any) => !p.repartidor_id).length;
+            const tabBtn = document.querySelector('[data-tab="disponibles"]');
+            if (tabBtn) {
+              tabBtn.textContent = `Disponibles (${nouCount})`;
+            }
+            // Si hi ha noves comandes, mostrar notificació
+            const currentCount = document.querySelectorAll('.btn-acceptar').length;
+            if (nouCount > currentCount) {
+              // Mostrar badge o notificació
+              console.log(`Noves comandes disponibles: ${nouCount - currentCount}`);
+            }
+          }
+        } catch (e) {
+          console.error('Error actualitzant comandes:', e);
+        }
+      }
+    }, 30000);
+  }
+  
+  // Iniciar auto-refresh
+  startAutoRefresh();
+  
+  // Netejar quan es tanca la pàgina
+  window.addEventListener('beforeunload', () => {
+    if (autoRefreshInterval) {
+      clearInterval(autoRefreshInterval);
     }
   });
 </script>
