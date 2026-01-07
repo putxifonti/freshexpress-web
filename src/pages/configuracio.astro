@@ -358,24 +358,6 @@ const zonesBCN = [
               </label>
             </div>
 
-            <div class="flex items-start p-4 bg-gray-50 rounded-lg">
-              <input
-                type="checkbox"
-                id="consent-newsletter"
-                name="recibir_ofertas"
-                checked={consents?.recibir_ofertas}
-                class="w-5 h-5 text-[#3BB143] border-gray-300 rounded focus:ring-[#3BB143] mt-0.5"
-              />
-              <label for="consent-newsletter" class="ml-3">
-                <span class="font-medium text-gray-900"
-                  >Newsletter setmanal</span
-                >
-                <p class="text-sm text-gray-600">
-                  Rebre la newsletter amb consells de sostenibilitat.
-                </p>
-              </label>
-            </div>
-
             <div class="pt-4">
               <button
                 type="submit"
@@ -760,9 +742,6 @@ const zonesBCN = [
       const compartir_datos = (
         document.getElementById("consent-databroker") as HTMLInputElement
       ).checked;
-      const recibir_ofertas = (
-        document.getElementById("consent-newsletter") as HTMLInputElement
-      ).checked;
 
       // Actualitzar tracking consent local
       if (analytics || compartir_datos) {
@@ -779,7 +758,6 @@ const zonesBCN = [
             acepta_comunicaciones,
             analytics,
             compartir_datos,
-            recibir_ofertas,
           }),
         });
 

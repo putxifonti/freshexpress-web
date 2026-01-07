@@ -429,6 +429,97 @@ try {
       </div>
     </div>
   </div>
+
+  <!-- Modal Incidència -->
+  <div
+    id="modal-incidencia"
+    class="fixed inset-0 bg-black/50 items-center justify-center z-50"
+    style="display: none;"
+  >
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Reportar incidència</h3>
+      <input type="hidden" id="incidencia-pedido-id" />
+
+      <div class="space-y-3 mb-4">
+        <label
+          class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+        >
+          <input
+            type="radio"
+            name="motiu-incidencia"
+            value="no_contesta"
+            class="text-[#3BB143]"
+          />
+          <span class="text-sm">El client no contesta</span>
+        </label>
+        <label
+          class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+        >
+          <input
+            type="radio"
+            name="motiu-incidencia"
+            value="direccio_incorrecta"
+            class="text-[#3BB143]"
+          />
+          <span class="text-sm">Direcció incorrecta</span>
+        </label>
+        <label
+          class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+        >
+          <input
+            type="radio"
+            name="motiu-incidencia"
+            value="client_absent"
+            class="text-[#3BB143]"
+          />
+          <span class="text-sm">Client absent</span>
+        </label>
+        <label
+          class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+        >
+          <input
+            type="radio"
+            name="motiu-incidencia"
+            value="producte_danyat"
+            class="text-[#3BB143]"
+          />
+          <span class="text-sm">Producte danyat</span>
+        </label>
+        <label
+          class="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+        >
+          <input
+            type="radio"
+            name="motiu-incidencia"
+            value="altre"
+            class="text-[#3BB143]"
+          />
+          <span class="text-sm">Altre motiu</span>
+        </label>
+      </div>
+
+      <textarea
+        id="incidencia-notes"
+        placeholder="Notes addicionals (opcional)"
+        class="w-full px-3 py-2 border rounded-lg text-sm resize-none h-20 mb-4"
+      ></textarea>
+
+      <div class="flex gap-3">
+        <button
+          id="btn-cancel-incidencia"
+          class="flex-1 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+        >
+          Cancel·lar
+        </button>
+        <button
+          id="btn-confirm-incidencia"
+          class="flex-1 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+        >
+          Reportar
+        </button>
+      </div>
+    </div>
+  </div>
 </Layout>
 
 <script define:vars={{ repartidorId: repartidor?.id }}>
@@ -626,4 +717,92 @@ try {
       }
     });
   });
+
+  // Reportar incidència - Modal
+  const modalIncidencia = document.getElementById("modal-incidencia");
+  const incidenciaPedidoId = document.getElementById("incidencia-pedido-id");
+
+  document.querySelectorAll(".btn-incidencia").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const pedidoId = btn.getAttribute("data-pedido-id");
+      if (incidenciaPedidoId) {
+        incidenciaPedidoId.value = pedidoId || "";
+      }
+      if (modalIncidencia) {
+        modalIncidencia.style.display = "flex";
+      }
+    });
+  });
+
+  // Tancar modal amb clic fora
+  modalIncidencia?.addEventListener("click", (e) => {
+    if (e.target === modalIncidencia) {
+      modalIncidencia.style.display = "none";
+    }
+  });
+
+  document
+    .getElementById("btn-cancel-incidencia")
+    ?.addEventListener("click", () => {
+      if (modalIncidencia) {
+        modalIncidencia.style.display = "none";
+        // Reset form
+        document
+          .querySelectorAll('input[name="motiu-incidencia"]')
+          .forEach((input) => {
+            input.checked = false;
+          });
+        const notesEl = document.getElementById("incidencia-notes");
+        if (notesEl) notesEl.value = "";
+      }
+    });
+
+  document
+    .getElementById("btn-confirm-incidencia")
+    ?.addEventListener("click", async () => {
+      const id = incidenciaPedidoId?.value;
+      const motiuInput = document.querySelector(
+        'input[name="motiu-incidencia"]:checked'
+      );
+      const motiu = motiuInput?.value;
+      const notesEl = document.getElementById("incidencia-notes");
+      const notes = notesEl?.value || "";
+      const btnConfirm = document.getElementById("btn-confirm-incidencia");
+
+      if (!motiu) {
+        alert("Selecciona un motiu de la incidència");
+        return;
+      }
+
+      if (!id) {
+        alert("Error: No s'ha identificat la comanda");
+        return;
+      }
+
+      btnConfirm.disabled = true;
+      btnConfirm.textContent = "Enviant...";
+
+      try {
+        const res = await fetch(`/api/repartidor/pedido/${id}/problema`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ motiu, notes }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert("Incidència reportada correctament");
+          window.location.reload();
+        } else {
+          alert(data.error || "Error reportant la incidència");
+          btnConfirm.disabled = false;
+          btnConfirm.textContent = "Reportar";
+        }
+      } catch (e) {
+        console.error("Error:", e);
+        alert("Error de connexió");
+        btnConfirm.disabled = false;
+        btnConfirm.textContent = "Reportar";
+      }
+    });
 </script>

@@ -186,42 +186,10 @@ const { user } = Astro.props;
           </svg>
           Sol·licituds
         </a>
-        <a
-          href="/productes"
-          class="text-[#0047AB] hover:text-[#3BB143] transition-colors font-medium"
-        >
-          Productes
-        </a>
       </nav>
 
       <!-- Botons d'Acció -->
       <div class="flex items-center space-x-3">
-        <!-- Icona Cistella -->
-        <a
-          href="/cistella"
-          class="relative p-2 text-[#0047AB] hover:text-[#3BB143] transition-colors"
-          title="La meva cistella"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-            ></path>
-          </svg>
-          <span
-            id="cart-count"
-            class="absolute -top-1 -right-1 w-5 h-5 bg-[#3BB143] text-white text-xs font-bold rounded-full items-center justify-center hidden"
-            >0</span
-          >
-        </a>
-
         <!-- Perfil usuari -->
         <a
           href="/dashboard"
@@ -272,19 +240,9 @@ const { user } = Astro.props;
         <a href="/admin/solicituds" class="text-red-600 font-medium py-2"
           >Sol·licituds Repartidor</a
         >
-        <a
-          href="/productes"
-          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
-          >Productes</a
-        >
-        <a
-          href="/cistella"
-          class="text-[#0047AB] hover:text-[#3BB143] font-medium py-2"
-          >Cistella</a
-        >
         <a href="/dashboard" class="text-[#3BB143] font-medium py-2"
           >El meu compte</a
-        >a >
+        >
       </nav>
     </div>
   </div>
@@ -343,22 +301,6 @@ const { user } = Astro.props;
   document
     .getElementById("mode-client-btn")
     ?.addEventListener("click", () => canviarMode("cliente"));
-
-  // Carregar comptador de la cistella
-  async function loadCartCount() {
-    try {
-      const res = await fetch("/api/cart/count");
-      const data = await res.json();
-      const cartCount = document.getElementById("cart-count");
-      if (cartCount && data.count > 0) {
-        cartCount.textContent = data.count;
-        cartCount.classList.remove("hidden");
-        cartCount.classList.add("flex");
-      }
-    } catch (e) {}
-  }
-
-  loadCartCount();
 </script>
 
 <style>

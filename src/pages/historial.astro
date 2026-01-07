@@ -52,6 +52,7 @@ try {
     id: p.numero_pedido || `FE-${p.id}`,
     pedidoId: p.id,
     data: new Date(p.fecha_pedido).toLocaleDateString("ca-ES"),
+    dataISO: new Date(p.fecha_pedido).toISOString().slice(0, 7), // Format: "2024-12"
     estat: traduirEstat(p.estado),
     estatOriginal: p.estado,
     productes: p.productes || "Comanda sense productes",
@@ -141,18 +142,48 @@ function getEstatColor(estat: string): string {
         <!-- Filtres -->
         <div class="flex flex-wrap gap-4 mb-6">
           <select
+            id="filtre-estat"
             class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143]"
           >
-            <option>Tots els estats</option>
-            <option>Lliurat</option>
-            <option>En trànsit</option>
-            <option>Cancel·lat</option>
+            <option value="tots">Tots els estats</option>
+            <option value="entregado">Lliurat</option>
+            <option value="en_camino">En trànsit</option>
+            <option value="pendiente">Pendent</option>
+            <option value="confirmado">Confirmat</option>
+            <option value="preparando">Preparant</option>
+            <option value="listo">Llest</option>
+            <option value="cancelado">Cancel·lat</option>
           </select>
           <input
+            id="filtre-mes"
             type="month"
             class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143]"
-            value="2024-12"
           />
+          <button
+            id="btn-netejar-filtres"
+            class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Netejar filtres
+          </button>
+        </div>
+
+        <!-- Missatge sense resultats -->
+        <div id="sense-resultats" class="hidden text-center py-8">
+          <svg
+            class="w-12 h-12 mx-auto text-gray-300 mb-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <p class="text-gray-500">
+            No s'han trobat comandes amb aquests filtres
+          </p>
         </div>
 
         <!-- Llista de comandes -->
@@ -183,7 +214,11 @@ function getEstatColor(estat: string): string {
               </div>
             ) : (
               comandes.map((comanda) => (
-                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div
+                  class="comanda-item border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  data-estat={comanda.estatOriginal}
+                  data-data={comanda.dataISO}
+                >
                   <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center">
                       <span class="font-mono font-medium text-gray-900">
@@ -459,6 +494,62 @@ function getEstatColor(estat: string): string {
   </div>
 
   <script is:inline>
+    // === FILTRES ===
+    const filtreEstat = document.getElementById("filtre-estat");
+    const filtreMes = document.getElementById("filtre-mes");
+    const btnNetejar = document.getElementById("btn-netejar-filtres");
+    const senseResultats = document.getElementById("sense-resultats");
+    const comandesItems = document.querySelectorAll(".comanda-item");
+
+    function aplicarFiltres() {
+      const estatSeleccionat = filtreEstat.value;
+      const mesSeleccionat = filtreMes.value; // Format: "2024-12"
+      let comandesVisibles = 0;
+
+      comandesItems.forEach((comanda) => {
+        const comandaEstat = comanda.dataset.estat;
+        const comandaData = comanda.dataset.data; // Format: "2024-12"
+
+        let mostrar = true;
+
+        // Filtrar per estat
+        if (estatSeleccionat !== "tots" && comandaEstat !== estatSeleccionat) {
+          mostrar = false;
+        }
+
+        // Filtrar per mes
+        if (mesSeleccionat && comandaData !== mesSeleccionat) {
+          mostrar = false;
+        }
+
+        // Aplicar visibilitat
+        if (mostrar) {
+          comanda.classList.remove("hidden");
+          comandesVisibles++;
+        } else {
+          comanda.classList.add("hidden");
+        }
+      });
+
+      // Mostrar missatge si no hi ha resultats
+      if (comandesVisibles === 0 && comandesItems.length > 0) {
+        senseResultats.classList.remove("hidden");
+      } else {
+        senseResultats.classList.add("hidden");
+      }
+    }
+
+    // Event listeners pels filtres
+    filtreEstat.addEventListener("change", aplicarFiltres);
+    filtreMes.addEventListener("change", aplicarFiltres);
+
+    // Netejar filtres
+    btnNetejar.addEventListener("click", () => {
+      filtreEstat.value = "tots";
+      filtreMes.value = "";
+      aplicarFiltres();
+    });
+
     // Repetir comanda
     document.querySelectorAll(".btn-repetir").forEach((btn) => {
       btn.addEventListener("click", async function () {
