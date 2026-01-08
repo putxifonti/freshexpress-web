@@ -202,34 +202,21 @@ function generarTimeline(pedido: any) {
     }];
   }
 
+  // Timeline simplificat sense "En preparació" i "Llest per enviar"
   return [
     {
       pas: 'rebut',
       text: 'Comanda rebuda',
       completat: indexActual >= 0,
-      actiu: indexActual === 0,
+      actiu: indexActual === 0 || indexActual === 1,
       data: pedido.fecha_pedido
     },
     {
       pas: 'confirmat',
       text: 'Confirmat',
       completat: indexActual >= 1,
-      actiu: indexActual === 1,
-      data: indexActual >= 1 ? 'Completat' : null
-    },
-    {
-      pas: 'preparant',
-      text: 'En preparació',
-      completat: indexActual >= 2,
-      actiu: indexActual === 2,
-      data: indexActual >= 2 ? 'Completat' : null
-    },
-    {
-      pas: 'llest',
-      text: 'Llest per enviar',
-      completat: indexActual >= 3,
-      actiu: indexActual === 3,
-      data: indexActual >= 3 ? 'Completat' : null
+      actiu: indexActual === 2 || indexActual === 3,
+      data: indexActual >= 1 ? 'Processat' : null
     },
     {
       pas: 'en_cami',
