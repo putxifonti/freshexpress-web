@@ -48,11 +48,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Validar DNI/NIE
-    const dniRegex = /^[0-9XYZ][0-9]{7}[A-Z]$/i;
-    if (!dniRegex.test(dni.replace(/\s/g, ""))) {
+    // Validar DNI/NIE (8 números + 1 lletra, o lletra X/Y/Z + 7 números + 1 lletra)
+    const dniNieRegex = /^[XYZ0-9][0-9]{7}[A-Z]$/i;
+    const dniSenseEspais = dni.replace(/\s/g, '').toUpperCase();
+    
+    if (!dniNieRegex.test(dniSenseEspais) || dniSenseEspais.length !== 9) {
       return new Response(
-        JSON.stringify({ error: "Format de DNI/NIE invàlid" }),
+        JSON.stringify({ error: "Format de DNI/NIE invàlid. Ha de tenir 9 caràcters: 12345678A (DNI) o X1234567A (NIE)" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
