@@ -118,15 +118,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         [solicitud.usuario_id]
       );
 
-      // Assegurar que la columna activo existeix
-      try {
-        await queryOperacional(
-          "ALTER TABLE repartidores ADD COLUMN IF NOT EXISTS activo TINYINT(1) DEFAULT 1"
-        );
-      } catch (e) {
-        // Si ja existeix, continuar
-      }
-
       // Comprovar si ja existeix un registre de repartidor (actiu o inactiu)
       const repartidorExistent = await queryOperacional<any[]>(
         "SELECT id FROM repartidores WHERE usuario_id = ?",
@@ -135,19 +126,40 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
       if (repartidorExistent && repartidorExistent.length > 0) {
         // Reactivar i actualitzar el repartidor existent (overwrite)
-        await queryOperacional(
-          `UPDATE repartidores 
-           SET vehiculo_tipo = ?, zona_preferida = ?, disponible = 0, activo = 1, fecha_alta = NOW()
-           WHERE usuario_id = ?`,
-          [solicitud.vehiculo_tipo, solicitud.zona_preferida, solicitud.usuario_id]
-        );
+        // Primer intentar amb activo, si falla intentar sense
+        try {
+          await queryOperacional(
+            `UPDATE repartidores 
+             SET vehiculo_tipo = ?, zona_preferida = ?, disponible = 0, activo = 1, fecha_alta = NOW()
+             WHERE usuario_id = ?`,
+            [solicitud.vehiculo_tipo, solicitud.zona_preferida, solicitud.usuario_id]
+          );
+        } catch (error) {
+          // Si la columna activo no existeix, actualitzar sense ella
+          await queryOperacional(
+            `UPDATE repartidores 
+             SET vehiculo_tipo = ?, zona_preferida = ?, disponible = 0, fecha_alta = NOW()
+             WHERE usuario_id = ?`,
+            [solicitud.vehiculo_tipo, solicitud.zona_preferida, solicitud.usuario_id]
+          );
+        }
       } else {
         // Crear nova entrada a repartidores (actiu per defecte)
-        await queryOperacional(
-          `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible, activo) 
-           VALUES (?, ?, ?, 0, 1)`,
-          [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
-        );
+        // Primer intentar amb activo, si falla intentar sense
+        try {
+          await queryOperacional(
+            `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible, activo) 
+             VALUES (?, ?, ?, 0, 1)`,
+            [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
+          );
+        } catch (error) {
+          // Si la columna activo no existeix, inserir sense ella
+          await queryOperacional(
+            `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible) 
+             VALUES (?, ?, ?, 0)`,
+            [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
+          );
+        }
       }
 
       // Actualitzar sol·licitud

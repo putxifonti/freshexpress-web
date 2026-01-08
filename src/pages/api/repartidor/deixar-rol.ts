@@ -44,20 +44,20 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Assegurar que la columna activo existeix (per si la BD és antiga)
+    // Marcar com a inactiu en lloc d'eliminar (per mantenir històric)
+    // Primer intentar amb activo, si falla eliminar (BD antiga)
     try {
       await queryOperacional(
-        "ALTER TABLE repartidores ADD COLUMN IF NOT EXISTS activo TINYINT(1) DEFAULT 1"
+        "UPDATE repartidores SET activo = 0, disponible = 0 WHERE usuario_id = ?",
+        [user.id]
       );
-    } catch (e) {
-      // Si ja existeix, continuar
+    } catch (error) {
+      // Si la columna activo no existeix, eliminar el registre (comportament antic)
+      await queryOperacional(
+        "DELETE FROM repartidores WHERE usuario_id = ?",
+        [user.id]
+      );
     }
-
-    // Marcar com a inactiu en lloc d'eliminar (per mantenir històric)
-    await queryOperacional(
-      "UPDATE repartidores SET activo = 0, disponible = 0 WHERE usuario_id = ?",
-      [user.id]
-    );
 
     // Canviar el rol a cliente
     await queryOperacional(
