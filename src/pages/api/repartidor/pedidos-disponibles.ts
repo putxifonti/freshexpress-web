@@ -29,9 +29,9 @@ export const GET: APIRoute = async ({ cookies }) => {
       });
     }
 
-    // Obtenir el repartidor_id
+    // Obtenir el repartidor_id i comprovar si està actiu
     const repartidorData = await queryOperacional<any[]>(
-      'SELECT id FROM repartidores WHERE usuario_id = ?',
+      'SELECT id, disponible FROM repartidores WHERE usuario_id = ?',
       [user.id]
     );
     
@@ -42,7 +42,27 @@ export const GET: APIRoute = async ({ cookies }) => {
       });
     }
 
-    const repartidorId = repartidorData[0].id;
+    const repartidor = repartidorData[0];
+    const repartidorId = repartidor.id;
+
+    // Si el repartidor no està actiu, retornar llista buida
+    if (repartidor.disponible !== 1) {
+      return new Response(JSON.stringify({ 
+        success: true,
+        pedidos: [],
+        pedidoActualId: null,
+        repartidorId: repartidorId,
+        activo: false,
+        mensaje: 'Has de activar el teu estat per veure comandes disponibles',
+        timestamp: Date.now()
+      }), {
+        status: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+    }
 
     // Comandes pendents d'assignar o assignades a mi
     const pendents = await queryOperacional<any[]>(
@@ -70,6 +90,7 @@ export const GET: APIRoute = async ({ cookies }) => {
       pedidos: pendents,
       pedidoActualId: pedidoActual?.id || null,
       repartidorId: repartidorId,
+      activo: true,
       timestamp: Date.now()
     }), {
       status: 200,

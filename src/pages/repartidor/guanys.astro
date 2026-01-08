@@ -41,10 +41,10 @@ let guanys = {
 let entreguesPerDia: any[] = [];
 
 try {
-  // Guanys d'avui (2€ per entrega + propines)
+  // Guanys d'avui (2€ per entrega)
   const avuiData = await queryOperacional<any[]>(
     `
-    SELECT COUNT(*) as entregas, COALESCE(SUM(propina), 0) as propinas
+    SELECT COUNT(*) as entregas
     FROM pedidos 
     WHERE repartidor_id = ? AND DATE(fecha_entrega) = CURDATE() AND estado = 'entregado'
   `,
@@ -52,14 +52,13 @@ try {
   );
 
   if (avuiData[0]) {
-    guanys.avui =
-      Number(avuiData[0].entregas) * 2 + Number(avuiData[0].propinas);
+    guanys.avui = Number(avuiData[0].entregas) * 2;
   }
 
   // Guanys de la setmana
   const setmanaData = await queryOperacional<any[]>(
     `
-    SELECT COUNT(*) as entregas, COALESCE(SUM(propina), 0) as propinas
+    SELECT COUNT(*) as entregas
     FROM pedidos 
     WHERE repartidor_id = ? 
     AND fecha_entrega >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
@@ -69,14 +68,13 @@ try {
   );
 
   if (setmanaData[0]) {
-    guanys.setmana =
-      Number(setmanaData[0].entregas) * 2 + Number(setmanaData[0].propinas);
+    guanys.setmana = Number(setmanaData[0].entregas) * 2;
   }
 
   // Guanys del mes
   const mesData = await queryOperacional<any[]>(
     `
-    SELECT COUNT(*) as entregas, COALESCE(SUM(propina), 0) as propinas
+    SELECT COUNT(*) as entregas
     FROM pedidos 
     WHERE repartidor_id = ? 
     AND MONTH(fecha_entrega) = MONTH(CURDATE()) 
@@ -87,7 +85,7 @@ try {
   );
 
   if (mesData[0]) {
-    guanys.mes = Number(mesData[0].entregas) * 2 + Number(mesData[0].propinas);
+    guanys.mes = Number(mesData[0].entregas) * 2;
   }
 
   // Entregues per dia (últims 7 dies)
@@ -95,8 +93,7 @@ try {
     `
     SELECT 
       DATE(fecha_entrega) as dia,
-      COUNT(*) as entregas,
-      COALESCE(SUM(propina), 0) as propinas
+      COUNT(*) as entregas
     FROM pedidos 
     WHERE repartidor_id = ? 
     AND fecha_entrega >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)

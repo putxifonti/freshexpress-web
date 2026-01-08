@@ -323,6 +323,15 @@ const { user } = Astro.props;
       });
       if (res.ok) {
         actualitzarUI(newState);
+        // Recarregar la pàgina si estem al panell principal del repartidor
+        if (
+          window.location.pathname === "/repartidor" ||
+          window.location.pathname === "/repartidor/"
+        ) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 300);
+        }
       }
     } catch (e) {
       console.error("Error actualitzant disponibilitat:", e);

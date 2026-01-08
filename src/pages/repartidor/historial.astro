@@ -63,7 +63,6 @@ let statsFiltre = {
   entreguesCompletades: 0,
   entreguesCancelades: 0,
   guanysTotal: 0,
-  propinesTotal: 0,
   valoracioMitjana: 0,
 };
 
@@ -73,7 +72,6 @@ try {
       COUNT(*) as total,
       SUM(CASE WHEN p.estado = 'entregado' THEN 1 ELSE 0 END) as completades,
       SUM(CASE WHEN p.estado = 'cancelado' THEN 1 ELSE 0 END) as cancelades,
-      COALESCE(SUM(CASE WHEN p.estado = 'entregado' THEN p.propina ELSE 0 END), 0) as propines,
       AVG(p.valoracion_cliente) as valoracio
     FROM pedidos p
     ${whereClause}`,
@@ -84,9 +82,7 @@ try {
     statsFiltre.totalEntregues = Number(statsRes[0].total) || 0;
     statsFiltre.entreguesCompletades = Number(statsRes[0].completades) || 0;
     statsFiltre.entreguesCancelades = Number(statsRes[0].cancelades) || 0;
-    statsFiltre.propinesTotal = Number(statsRes[0].propines) || 0;
-    statsFiltre.guanysTotal =
-      statsFiltre.entreguesCompletades * 2.5 + statsFiltre.propinesTotal;
+    statsFiltre.guanysTotal = statsFiltre.entreguesCompletades * 2.5;
     statsFiltre.valoracioMitjana = Number(statsRes[0].valoracio) || 0;
   }
 } catch (error) {
@@ -393,11 +389,7 @@ const historialPerData = historial.reduce((acc: any, pedido: any) => {
                               minute: "2-digit",
                             })}
                           </span>
-                          {pedido.propina > 0 && (
-                            <span class="text-xs text-green-600 font-medium">
-                              +{Number(pedido.propina).toFixed(2)} € propina
-                            </span>
-                          )}
+
                           {pedido.valoracion_cliente && (
                             <div class="flex items-center">
                               <svg

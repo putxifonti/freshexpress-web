@@ -42,6 +42,9 @@ try {
   console.error("Error obtenint dades repartidor:", error);
 }
 
+// Comprovar si el repartidor està actiu
+const repartidorActiu = repartidor?.disponible === 1;
+
 // Obtenir estadístiques
 let stats = {
   entreguesAvui: 0,
@@ -54,24 +57,26 @@ let pedidosPendents: any[] = [];
 let pedidoActual: any = null;
 
 try {
-  // Comandes pendents d'assignar o assignades a mi
-  const pendents = await queryOperacional<any[]>(
-    `
-    SELECT p.*, u.nombre as cliente_nombre, u.telefono as cliente_telefono
-    FROM pedidos p
-    JOIN usuarios u ON p.cliente_id = u.id
-    WHERE (p.repartidor_id = ? OR (p.repartidor_id IS NULL AND p.estado IN ('pendiente', 'listo', 'confirmado')))
-    AND p.estado NOT IN ('entregado', 'cancelado')
-    ORDER BY p.fecha_pedido ASC
-    LIMIT 10
-  `,
-    [repartidor?.id || 0]
-  );
+  // Només mostrar comandes si el repartidor està actiu
+  if (repartidorActiu) {
+    // Comandes pendents d'assignar o assignades a mi
+    pedidosPendents = await queryOperacional<any[]>(
+      `
+      SELECT p.*, u.nombre as cliente_nombre, u.telefono as cliente_telefono
+      FROM pedidos p
+      JOIN usuarios u ON p.cliente_id = u.id
+      WHERE (p.repartidor_id = ? OR (p.repartidor_id IS NULL AND p.estado IN ('pendiente', 'listo', 'confirmado')))
+      AND p.estado NOT IN ('entregado', 'cancelado')
+      ORDER BY p.fecha_pedido ASC
+      LIMIT 10
+    `,
+      [repartidor?.id || 0]
+    );
 
-  pedidosPendents = pendents;
-  pedidoActual = pendents.find(
-    (p: any) => p.repartidor_id === repartidor?.id && p.estado === "en_camino"
-  );
+    pedidoActual = pedidosPendents.find(
+      (p: any) => p.repartidor_id === repartidor?.id && p.estado === "en_camino"
+    );
+  }
 
   // Estadístiques d'avui
   const avui = await queryOperacional<any[]>(
@@ -82,7 +87,7 @@ try {
     [repartidor?.id || 0]
   );
   stats.entreguesAvui = avui[0]?.total || 0;
-  stats.entreguesPendents = pendents.filter(
+  stats.entreguesPendents = pedidosPendents.filter(
     (p: any) => p.repartidor_id === repartidor?.id
   ).length;
 } catch (error) {
@@ -232,7 +237,56 @@ try {
         </div>
 
         {
-          pedidosPendents.length === 0 ? (
+          !repartidorActiu ? (
+            <div class="p-8 text-center">
+              <div class="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                <svg
+                  class="w-8 h-8 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                No estàs treballant
+              </h3>
+              <p class="text-gray-600 mb-4">
+                Activa el teu estat per començar a rebre comandes
+              </p>
+              <a
+                href="/repartidor/configuracio"
+                class="inline-flex items-center px-6 py-3 bg-[#3BB143] text-white font-medium rounded-lg hover:bg-[#32a039] transition-colors"
+              >
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                Anar a Configuració
+              </a>
+            </div>
+          ) : pedidosPendents.length === 0 ? (
             <div class="p-8 text-center">
               <svg
                 class="w-16 h-16 mx-auto text-gray-300 mb-4"
