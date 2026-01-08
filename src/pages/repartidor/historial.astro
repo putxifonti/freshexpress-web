@@ -26,8 +26,14 @@ try {
     [user.id]
   );
   repartidor = repartidorData[0] || null;
+
+  if (!repartidor) {
+    console.error("Registre de repartidor no trobat per a l'usuari", user.id);
+    return Astro.redirect("/dashboard");
+  }
 } catch (error) {
   console.error("Error obtenint dades repartidor:", error);
+  return Astro.redirect("/dashboard");
 }
 
 // Obtenir paràmetres de filtre

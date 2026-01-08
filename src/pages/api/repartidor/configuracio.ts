@@ -51,11 +51,13 @@ export const PUT: APIRoute = async ({ cookies, request }) => {
         WHERE usuario_id = ?
       `, [vehiculo_tipo, matricula, zona_preferida, radio_km, licencia_conducir, user.id]);
     } else {
-      // Inserir nou registre
-      await queryOperacional(`
-        INSERT INTO repartidores (usuario_id, vehiculo_tipo, matricula, zona_preferida, radio_km, licencia_conducir)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `, [user.id, vehiculo_tipo, matricula, zona_preferida, radio_km, licencia_conducir]);
+      // Error: No hauria d'arribar aquí si l'usuari té rol repartidor però no té registre
+      return new Response(JSON.stringify({ 
+        error: 'Error de consistència: No es pot trobar el registre de repartidor. Contacta amb l\'administrador.' 
+      }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {

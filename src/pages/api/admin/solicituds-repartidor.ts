@@ -118,16 +118,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         [solicitud.usuario_id]
       );
 
-      // Crear o actualitzar entrada a repartidores (overwrite si ja existia)
-      await queryOperacional(
-        `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible) 
-         VALUES (?, ?, ?, 0)
-         ON DUPLICATE KEY UPDATE 
-         vehiculo_tipo = VALUES(vehiculo_tipo), 
-         zona_preferida = VALUES(zona_preferida), 
-         disponible = 0`,
-        [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
+      // Comprovar si ja existeix un registre de repartidor
+      const repartidorExistent = await queryOperacional<any[]>(
+        "SELECT id FROM repartidores WHERE usuario_id = ?",
+        [solicitud.usuario_id]
       );
+
+      if (repartidorExistent && repartidorExistent.length > 0) {
+        // Actualitzar el repartidor existent (overwrite)
+        await queryOperacional(
+          `UPDATE repartidores 
+           SET vehiculo_tipo = ?, zona_preferida = ?, disponible = 0, fecha_alta = NOW()
+           WHERE usuario_id = ?`,
+          [solicitud.vehiculo_tipo, solicitud.zona_preferida, solicitud.usuario_id]
+        );
+      } else {
+        // Crear nova entrada a repartidores
+        await queryOperacional(
+          `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible) 
+           VALUES (?, ?, ?, 0)`,
+          [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
+        );
+      }
 
       // Actualitzar sol·licitud
       await queryOperacional(

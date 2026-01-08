@@ -26,8 +26,14 @@ try {
     [user.id]
   );
   repartidor = repartidorData[0] || null;
+
+  if (!repartidor) {
+    console.error("Registre de repartidor no trobat per a l'usuari", user.id);
+    return Astro.redirect("/dashboard");
+  }
 } catch (error) {
   console.error("Error obtenint dades repartidor:", error);
+  return Astro.redirect("/dashboard");
 }
 
 const vehiculosTipus = [
@@ -700,7 +706,9 @@ const vehiculosTipus = [
   actualitzarMatricula();
 
   // Deixar de ser repartidor
-  const deixarBtn = document.getElementById("deixar-repartidor-btn");
+  const deixarBtn = document.getElementById(
+    "deixar-repartidor-btn"
+  ) as HTMLButtonElement;
   const deixarError = document.getElementById("deixar-error");
 
   deixarBtn?.addEventListener("click", async () => {

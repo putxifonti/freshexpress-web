@@ -27,19 +27,14 @@ try {
   );
   repartidor = repartidorData[0] || null;
 
-  // Si no existeix, crear registre
+  // Si no existeix el registre, hi ha un problema (hauria d'existir per aprovació admin)
   if (!repartidor) {
-    await queryOperacional("INSERT INTO repartidores (usuario_id) VALUES (?)", [
-      user.id,
-    ]);
-    const newRep = await queryOperacional<any[]>(
-      "SELECT * FROM repartidores WHERE usuario_id = ?",
-      [user.id]
-    );
-    repartidor = newRep[0];
+    console.error("Registre de repartidor no trobat per a l'usuari", user.id);
+    return Astro.redirect("/dashboard");
   }
 } catch (error) {
   console.error("Error obtenint dades repartidor:", error);
+  return Astro.redirect("/dashboard");
 }
 
 // Comprovar si el repartidor està actiu
