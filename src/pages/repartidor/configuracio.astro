@@ -240,6 +240,53 @@ const vehiculosTipus = [
         </form>
       </div>
 
+      <!-- Zona perillosa: Deixar de ser repartidor -->
+      <div class="bg-white rounded-xl shadow p-6 border-2 border-red-200">
+        <h2 class="font-semibold text-red-600 mb-4 flex items-center">
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            ></path>
+          </svg>
+          Zona perillosa
+        </h2>
+
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p class="text-sm text-red-800 mb-2">
+            <strong>Atenció:</strong> Si deixes de ser repartidor, perdràs l'accés
+            al panell de repartidor i:
+          </p>
+          <ul class="text-sm text-red-700 list-disc list-inside space-y-1">
+            <li>No podràs acceptar més comandes</li>
+            <li>Es deuran finalitzar totes les comandes pendents abans</li>
+            <li>L'historial de guanys es mantindrà registrat</li>
+            <li>El teu compte es convertirà en compte de client</li>
+          </ul>
+        </div>
+
+        <div
+          id="deixar-error"
+          class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4"
+        >
+        </div>
+
+        <button
+          type="button"
+          id="deixar-repartidor-btn"
+          class="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Deixar de ser repartidor
+        </button>
+      </div>
+
       <h2 class="text-xl font-bold text-gray-900 mb-4">
         Configuració de repartidor
       </h2>
@@ -651,6 +698,53 @@ const vehiculosTipus = [
 
   // Actualitzar matrícula al carregar
   actualitzarMatricula();
+
+  // Deixar de ser repartidor
+  const deixarBtn = document.getElementById("deixar-repartidor-btn");
+  const deixarError = document.getElementById("deixar-error");
+
+  deixarBtn?.addEventListener("click", async () => {
+    const confirmat = confirm(
+      "Estàs segur que vols deixar de ser repartidor?\n\nAquesta acció convertirà el teu compte en compte de client i no podràs acceptar més comandes.\n\nAssegura't de finalitzar totes les comandes pendents abans de continuar."
+    );
+
+    if (!confirmat) return;
+
+    const dobleConfirmacio = confirm(
+      "Última confirmació: Aquesta acció és irreversible.\n\nVols continuar?"
+    );
+
+    if (!dobleConfirmacio) return;
+
+    try {
+      deixarBtn.disabled = true;
+      deixarBtn.textContent = "Processant...";
+
+      const res = await fetch("/api/repartidor/deixar-rol", {
+        method: "POST",
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        alert(
+          "Has deixat de ser repartidor correctament. Seràs redirigit al dashboard de client."
+        );
+        window.location.href = "/dashboard";
+      } else {
+        deixarError!.textContent =
+          result.error || "Error processant la sol·licitud";
+        deixarError!.classList.remove("hidden");
+        deixarBtn.disabled = false;
+        deixarBtn.textContent = "Deixar de ser repartidor";
+      }
+    } catch (e) {
+      deixarError!.textContent = "Error de connexió";
+      deixarError!.classList.remove("hidden");
+      deixarBtn.disabled = false;
+      deixarBtn.textContent = "Deixar de ser repartidor";
+    }
+  });
 
   // Actualitzar valor del slider
   const radioSlider = document.getElementById(
