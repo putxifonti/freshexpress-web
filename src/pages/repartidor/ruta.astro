@@ -22,7 +22,7 @@ if (!user || user.rol !== 'repartidor') {
 // Obtenir dades del repartidor
 try {
   const repartidorData = await queryOperacional<any[]>(
-    'SELECT * FROM repartidores WHERE usuario_id = ?',
+    'SELECT * FROM repartidores WHERE usuario_id = ? AND (activo IS NULL OR activo = 1)',
     [user.id]
   );
   repartidor = repartidorData[0] || null;

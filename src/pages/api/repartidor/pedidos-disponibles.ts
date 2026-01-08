@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 
     // Obtenir el repartidor_id i comprovar si està actiu
     const repartidorData = await queryOperacional<any[]>(
-      'SELECT id, disponible FROM repartidores WHERE usuario_id = ?',
+      'SELECT id, disponible FROM repartidores WHERE usuario_id = ? AND (activo IS NULL OR activo = 1)',
       [user.id]
     );
     

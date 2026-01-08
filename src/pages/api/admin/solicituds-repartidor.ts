@@ -118,25 +118,34 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         [solicitud.usuario_id]
       );
 
-      // Comprovar si ja existeix un registre de repartidor
+      // Assegurar que la columna activo existeix
+      try {
+        await queryOperacional(
+          "ALTER TABLE repartidores ADD COLUMN IF NOT EXISTS activo TINYINT(1) DEFAULT 1"
+        );
+      } catch (e) {
+        // Si ja existeix, continuar
+      }
+
+      // Comprovar si ja existeix un registre de repartidor (actiu o inactiu)
       const repartidorExistent = await queryOperacional<any[]>(
         "SELECT id FROM repartidores WHERE usuario_id = ?",
         [solicitud.usuario_id]
       );
 
       if (repartidorExistent && repartidorExistent.length > 0) {
-        // Actualitzar el repartidor existent (overwrite)
+        // Reactivar i actualitzar el repartidor existent (overwrite)
         await queryOperacional(
           `UPDATE repartidores 
-           SET vehiculo_tipo = ?, zona_preferida = ?, disponible = 0, fecha_alta = NOW()
+           SET vehiculo_tipo = ?, zona_preferida = ?, disponible = 0, activo = 1, fecha_alta = NOW()
            WHERE usuario_id = ?`,
           [solicitud.vehiculo_tipo, solicitud.zona_preferida, solicitud.usuario_id]
         );
       } else {
-        // Crear nova entrada a repartidores
+        // Crear nova entrada a repartidores (actiu per defecte)
         await queryOperacional(
-          `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible) 
-           VALUES (?, ?, ?, 0)`,
+          `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible, activo) 
+           VALUES (?, ?, ?, 0, 1)`,
           [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
         );
       }

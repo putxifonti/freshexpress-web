@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ cookies }) => {
 
     // Obtenir repartidor_id
     const repartidorData = await queryOperacional<any[]>(
-      'SELECT id FROM repartidores WHERE usuario_id = ?',
+      'SELECT id FROM repartidores WHERE usuario_id = ? AND (activo IS NULL OR activo = 1)',
       [user.id]
     );
     
