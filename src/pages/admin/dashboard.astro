@@ -79,7 +79,7 @@ try {
 
   // Repartidors actius (disponibles)
   const repartidorsActiusRes = await queryOperacional<any[]>(
-    "SELECT COUNT(*) as total FROM repartidores WHERE disponible = 1 AND (activo IS NULL OR activo = 1)"
+    "SELECT COUNT(*) as total FROM repartidores WHERE disponible = 1"
   );
   stats.repartidorsActius = Number(repartidorsActiusRes[0]?.total) || 0;
 

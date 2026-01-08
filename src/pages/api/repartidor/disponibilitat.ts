@@ -91,7 +91,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     }
 
     const repartidor = await queryOperacional<any[]>(
-      'SELECT disponible FROM repartidores WHERE usuario_id = ? AND (activo IS NULL OR activo = 1)',
+      'SELECT disponible FROM repartidores WHERE usuario_id = ?',
       [user.id]
     );
 

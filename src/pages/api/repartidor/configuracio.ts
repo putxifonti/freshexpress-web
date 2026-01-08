@@ -34,7 +34,7 @@ export const PUT: APIRoute = async ({ cookies, request }) => {
 
     // Verificar si ja existeix un registre de repartidor
     const existeix = await queryOperacional<any[]>(
-      'SELECT id FROM repartidores WHERE usuario_id = ? AND (activo IS NULL OR activo = 1)',
+      'SELECT id FROM repartidores WHERE usuario_id = ?',
       [user.id]
     );
 
@@ -102,7 +102,7 @@ export const GET: APIRoute = async ({ cookies }) => {
     }
 
     const repartidor = await queryOperacional<any[]>(
-      'SELECT * FROM repartidores WHERE usuario_id = ? AND (activo IS NULL OR activo = 1)',
+      'SELECT * FROM repartidores WHERE usuario_id = ?',
       [user.id]
     );
 
