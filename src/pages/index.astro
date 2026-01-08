@@ -5,6 +5,26 @@ import Avantatges from "../components/Avantatges.astro";
 import ComFunciona from "../components/ComFunciona.astro";
 import Contacte from "../components/Contacte.astro";
 import Restreo from "../components/Restreo.astro";
+import { verifyToken, getUserById } from "../lib/auth";
+
+// Verificar si l'usuari està loguejat i redirigir segons el rol
+const token = Astro.cookies.get("auth_token")?.value;
+if (token) {
+  const payload = verifyToken(token);
+  if (payload) {
+    const user = await getUserById(payload.userId);
+    if (user) {
+      // Redirigir segons el rol
+      if (user.rol === "repartidor") {
+        return Astro.redirect("/repartidor");
+      } else if (user.rol === "admin") {
+        return Astro.redirect("/admin/dashboard");
+      } else if (user.rol === "cliente") {
+        return Astro.redirect("/dashboard");
+      }
+    }
+  }
+}
 ---
 
 <Layout
