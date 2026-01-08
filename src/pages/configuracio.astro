@@ -445,7 +445,8 @@ const zonesBCN = [
 
           {
             (!solicitudRepartidor ||
-              solicitudRepartidor?.estat === "rebutjada") && (
+              solicitudRepartidor?.estat === "rebutjada" ||
+              solicitudRepartidor?.estat === "aprovada") && (
               <div>
                 <p class="text-gray-600 mb-4">
                   Vols guanyar diners extra fent entregues amb FreshExpress?
