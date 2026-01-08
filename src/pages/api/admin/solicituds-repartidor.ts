@@ -118,10 +118,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         [solicitud.usuario_id]
       );
 
-      // Crear entrada a repartidores
+      // Crear o actualitzar entrada a repartidores (overwrite si ja existia)
       await queryOperacional(
         `INSERT INTO repartidores (usuario_id, vehiculo_tipo, zona_preferida, disponible) 
-         VALUES (?, ?, ?, 0)`,
+         VALUES (?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE 
+         vehiculo_tipo = VALUES(vehiculo_tipo), 
+         zona_preferida = VALUES(zona_preferida), 
+         disponible = 0`,
         [solicitud.usuario_id, solicitud.vehiculo_tipo, solicitud.zona_preferida]
       );
 

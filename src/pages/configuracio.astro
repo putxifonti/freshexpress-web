@@ -20,7 +20,7 @@ if (token) {
     user = await getUserById(payload.userId);
     consents = await getUserConsents(payload.userId);
 
-    // Comprovar si ja ha sol·licitat ser repartidor
+    // Comprovar si ja ha sol·licitat ser repartidor (incloent ex-repartidors)
     if (user && user.rol === "cliente") {
       try {
         const solicituds = await queryOperacional<any[]>(

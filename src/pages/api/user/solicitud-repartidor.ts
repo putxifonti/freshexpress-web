@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    // Només clients poden sol·licitar ser repartidor
+    // Només clients poden sol·licitar ser repartidor (incloent ex-repartidors que ara són clients)
     if (user.rol !== "cliente") {
       return new Response(
         JSON.stringify({ error: "Només els clients poden sol·licitar ser repartidor" }),
