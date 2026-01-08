@@ -171,19 +171,9 @@ import Layout from "../layouts/Layout.astro";
                 > pots gestionar els consentiments
               </li>
               <li>
-                <strong>Bàner de cookies:</strong> Fes clic a "Gestionar preferències"
-                al bàner
+                <strong>Des del navegador:</strong> Consulta la secció de configuració per navegador més avall
               </li>
             </ul>
-
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-              <button
-                id="manage-cookies-btn"
-                class="px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#2d8a33] transition-colors"
-              >
-                Gestionar preferències de cookies
-              </button>
-            </div>
           </section>
 
           <section class="mb-8">
@@ -297,14 +287,3 @@ import Layout from "../layouts/Layout.astro";
     </div>
   </div>
 </Layout>
-
-<script>
-  document
-    .getElementById("manage-cookies-btn")
-    ?.addEventListener("click", () => {
-      // En una implementació real, això obriria un modal de gestió de cookies
-      alert(
-        "Funcionalitat de gestió de cookies pròximament. Mentrestant, pots gestionar les cookies des de la configuració del teu navegador."
-      );
-    });
-</script>
