@@ -47,10 +47,26 @@ let guanys = {
 let entreguesPerDia: any[] = [];
 
 try {
-  // Guanys d'avui (2€ per entrega)
+  // Guanys d'avui (6.7% del total de les comandes + bonuses + propines)
   const avuiData = await queryOperacional<any[]>(
     `
-    SELECT COUNT(*) as entregas
+    SELECT 
+      COALESCE(SUM(total * 0.067), 0) as ganancia_base,
+      COALESCE(SUM(
+        CASE 
+          WHEN TIMESTAMPDIFF(MINUTE, fecha_recogida, fecha_entrega) <= 20 THEN 0.50
+          ELSE 0
+        END
+      ), 0) as bonus_rapidesa,
+      COALESCE(SUM(
+        CASE 
+          WHEN (HOUR(fecha_entrega) >= 13 AND HOUR(fecha_entrega) < 15) OR 
+               (HOUR(fecha_entrega) >= 20 AND HOUR(fecha_entrega) < 22)
+          THEN 1.00
+          ELSE 0
+        END
+      ), 0) as bonus_hora_punta,
+      COALESCE(SUM(propina), 0) as propinas
     FROM pedidos 
     WHERE repartidor_id = ? AND DATE(fecha_entrega) = CURDATE() AND estado = 'entregado'
   `,
@@ -58,13 +74,29 @@ try {
   );
 
   if (avuiData[0]) {
-    guanys.avui = Number(avuiData[0].entregas) * 2;
+    guanys.avui = Number(avuiData[0].ganancia_base) + Number(avuiData[0].bonus_rapidesa) + Number(avuiData[0].bonus_hora_punta) + Number(avuiData[0].propinas);
   }
 
   // Guanys de la setmana
   const setmanaData = await queryOperacional<any[]>(
     `
-    SELECT COUNT(*) as entregas
+    SELECT 
+      COALESCE(SUM(total * 0.067), 0) as ganancia_base,
+      COALESCE(SUM(
+        CASE 
+          WHEN TIMESTAMPDIFF(MINUTE, fecha_recogida, fecha_entrega) <= 20 THEN 0.50
+          ELSE 0
+        END
+      ), 0) as bonus_rapidesa,
+      COALESCE(SUM(
+        CASE 
+          WHEN (HOUR(fecha_entrega) >= 13 AND HOUR(fecha_entrega) < 15) OR 
+               (HOUR(fecha_entrega) >= 20 AND HOUR(fecha_entrega) < 22)
+          THEN 1.00
+          ELSE 0
+        END
+      ), 0) as bonus_hora_punta,
+      COALESCE(SUM(propina), 0) as propinas
     FROM pedidos 
     WHERE repartidor_id = ? 
     AND fecha_entrega >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
@@ -74,13 +106,29 @@ try {
   );
 
   if (setmanaData[0]) {
-    guanys.setmana = Number(setmanaData[0].entregas) * 2;
+    guanys.setmana = Number(setmanaData[0].ganancia_base) + Number(setmanaData[0].bonus_rapidesa) + Number(setmanaData[0].bonus_hora_punta) + Number(setmanaData[0].propinas);
   }
 
   // Guanys del mes
   const mesData = await queryOperacional<any[]>(
     `
-    SELECT COUNT(*) as entregas
+    SELECT 
+      COALESCE(SUM(total * 0.067), 0) as ganancia_base,
+      COALESCE(SUM(
+        CASE 
+          WHEN TIMESTAMPDIFF(MINUTE, fecha_recogida, fecha_entrega) <= 20 THEN 0.50
+          ELSE 0
+        END
+      ), 0) as bonus_rapidesa,
+      COALESCE(SUM(
+        CASE 
+          WHEN (HOUR(fecha_entrega) >= 13 AND HOUR(fecha_entrega) < 15) OR 
+               (HOUR(fecha_entrega) >= 20 AND HOUR(fecha_entrega) < 22)
+          THEN 1.00
+          ELSE 0
+        END
+      ), 0) as bonus_hora_punta,
+      COALESCE(SUM(propina), 0) as propinas
     FROM pedidos 
     WHERE repartidor_id = ? 
     AND MONTH(fecha_entrega) = MONTH(CURDATE()) 
@@ -91,7 +139,7 @@ try {
   );
 
   if (mesData[0]) {
-    guanys.mes = Number(mesData[0].entregas) * 2;
+    guanys.mes = Number(mesData[0].ganancia_base) + Number(mesData[0].bonus_rapidesa) + Number(mesData[0].bonus_hora_punta) + Number(mesData[0].propinas);
   }
 
   // Entregues per dia (últims 7 dies)
@@ -99,7 +147,23 @@ try {
     `
     SELECT 
       DATE(fecha_entrega) as dia,
-      COUNT(*) as entregas
+      COUNT(*) as entregas,
+      COALESCE(SUM(total * 0.067), 0) as ganancia_base,
+      COALESCE(SUM(
+        CASE 
+          WHEN TIMESTAMPDIFF(MINUTE, fecha_recogida, fecha_entrega) <= 20 THEN 0.50
+          ELSE 0
+        END
+      ), 0) as bonus_rapidesa,
+      COALESCE(SUM(
+        CASE 
+          WHEN (HOUR(fecha_entrega) >= 13 AND HOUR(fecha_entrega) < 15) OR 
+               (HOUR(fecha_entrega) >= 20 AND HOUR(fecha_entrega) < 22)
+          THEN 1.00
+          ELSE 0
+        END
+      ), 0) as bonus_hora_punta,
+      COALESCE(SUM(propina), 0) as propinas
     FROM pedidos 
     WHERE repartidor_id = ? 
     AND fecha_entrega >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
@@ -188,7 +252,7 @@ try {
               </svg>
             </div>
             <div>
-              <p class="font-medium text-gray-900">2,00 € per entrega</p>
+              <p class="font-medium text-gray-900">6,7% del total de la comanda</p>
               <p class="text-gray-500">
                 Tarifa base per cada comanda entregada
               </p>
@@ -297,7 +361,8 @@ try {
           ) : (
             <div class="divide-y divide-gray-100">
               {entreguesPerDia.map((dia: any) => {
-                const guanyDia = dia.entregas * 2 + parseFloat(dia.propinas);
+                const guanyDia = Number(dia.ganancia_base) + Number(dia.bonus_rapidesa) + Number(dia.bonus_hora_punta) + Number(dia.propinas);
+                const propinas = Number(dia.propinas);
                 return (
                   <div class="p-4 flex items-center justify-between">
                     <div>
@@ -316,9 +381,9 @@ try {
                       <p class="font-bold text-gray-900">
                         {guanyDia.toFixed(2)} €
                       </p>
-                      {dia.propinas > 0 && (
+                      {propinas > 0 && (
                         <p class="text-xs text-green-600">
-                          +{parseFloat(dia.propinas).toFixed(2)} € propines
+                          +{propinas.toFixed(2)} € propines
                         </p>
                       )}
                     </div>
@@ -335,7 +400,7 @@ try {
         <p class="text-gray-500 text-sm mb-1">Total d'entregues realitzades</p>
         <p class="text-4xl font-bold text-gray-900">{guanys.totalEntregues}</p>
         <p class="text-[#3BB143] text-sm mt-2">
-          ≈ {(guanys.totalEntregues * 2).toFixed(2)} € en tarifes base
+          Guanya un 6,7% per cada comanda + bonuses
         </p>
       </div>
     </div>
