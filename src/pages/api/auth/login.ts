@@ -44,7 +44,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       JSON.stringify({ 
         success: true, 
         message: 'Sessió iniciada correctament',
-        user: result.user
+        user: result.user,
+        trackLogin: true // Indicador per fer tracking al client
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

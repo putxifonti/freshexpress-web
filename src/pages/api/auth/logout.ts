@@ -11,7 +11,8 @@ export const POST: APIRoute = async ({ cookies }) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Sessió tancada correctament' 
+        message: 'Sessió tancada correctament',
+        trackLogout: true // Indicador per fer tracking al client
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

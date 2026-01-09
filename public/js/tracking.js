@@ -212,35 +212,84 @@
         });
       }
 
-      // Tracking de cerca
+      // Tracking de cerca amb text
       if (target.closest('[data-search]') || target.matches('input[type="search"], .search-input')) {
-        trackEvent('search_interaction', target);
+        // Només capturar quan es fa submit o enter
+        return; // Gestionat amb form tracking i event listener específic
       }
 
-      // Tracking de checkout
-      if (target.closest('[data-action="checkout"], .checkout-btn, #checkout-btn')) {
+      // Tracking de checkout_start (botó de cistella)
+      if (target.matches('#checkout-btn, .checkout-btn, [data-action="checkout"]')) {
         trackEvent('checkout_start', target);
       }
 
-      // Tracking de compra completada
-      if (target.closest('[data-action="purchase"], .purchase-btn')) {
-        trackEvent('purchase', target);
+      // Tracking de compra completada (checkout finalitzar)
+      if (target.closest('[data-action="purchase"], .purchase-btn, #finalitzar-btn, button[type="submit"]')) {
+        const form = target.closest('form');
+        if (form && form.action && form.action.includes('finalitzar')) {
+          trackEvent('purchase', target);
+        }
       }
+
+      // Tracking de remove from cart
+      if (target.closest('.remove-btn, [data-action="remove"]')) {
+        const cartItem = target.closest('[data-cart-id]');
+        trackEvent('remove_from_cart', target, {
+          cartId: cartItem?.dataset.cartId || '',
+          productName: cartItem?.querySelector('h4')?.textContent || ''
+        });
+      }
+
+      // Tracking de quantity change
+      if (target.closest('.qty-btn, [data-action="increase"], [data-action="decrease"]')) {
+        const action = target.closest('[data-action]')?.dataset.action;
+        const cartItem = target.closest('[data-cart-id]');
+        const qtyDisplay = cartItem?.querySelector('.qty-display');
+        trackEvent('quantity_change', target, {
+          cartId: cartItem?.dataset.cartId || '',
+          action: action || 'change',
+          currentQty: qtyDisplay?.textContent || '1'
+        });
+      }
+    });
+
+    // Intersection Observer per product impressions (només productes visibles)
+    const impressionObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          const alreadyTracked = card.dataset.impressionTracked;
+          if (!alreadyTracked) {
+            trackEvent('product_impression', card, {
+              productId: card.dataset.productId,
+              productName: card.dataset.productName || '',
+              productPrice: card.dataset.productPrice || ''
+            });
+            card.dataset.impressionTracked = 'true';
+          }
+        }
+      });
+    }, { threshold: 0.5 }); // 50% visible
+
+    // Observar productes existents
+    document.querySelectorAll('[data-product-id]').forEach(function(card) {
+      impressionObserver.observe(card);
     });
 
     // Observer per nous productes afegits dinàmicament
     const productObserver = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === 1) { // Element node
+          if (node.nodeType === 1) {
+            // Observar el node si és un producte
+            if (node.dataset && node.dataset.productId) {
+              impressionObserver.observe(node);
+            }
+            // Buscar productes dins del node
             const productCards = node.querySelectorAll ? 
               node.querySelectorAll('[data-product-id]') : [];
             productCards.forEach(function(card) {
-              trackEvent('product_impression', card, {
-                productId: card.dataset.productId,
-                productName: card.dataset.productName || '',
-                productPrice: card.dataset.productPrice || ''
-              });
+              impressionObserver.observe(card);
             });
           }
         });
@@ -249,15 +298,6 @@
 
     // Observar canvis al DOM per detectar nous productes
     productObserver.observe(document.body, { childList: true, subtree: true });
-
-    // Track inicial de productes visibles
-    document.querySelectorAll('[data-product-id]').forEach(function(card) {
-      trackEvent('product_impression', card, {
-        productId: card.dataset.productId,
-        productName: card.dataset.productName || '',
-        productPrice: card.dataset.productPrice || ''
-      });
-    });
   }
 
   function setupScrollTracking() {
@@ -345,6 +385,42 @@
         fieldName: target.name
       });
     });
+
+    // Tracking d'errors de formulari
+    document.addEventListener('invalid', function(e) {
+      const target = e.target;
+      trackEvent('form_error', target, {
+        fieldName: target.name,
+        fieldType: target.type,
+        validationMessage: target.validationMessage
+      });
+    }, true);
+
+    // Tracking de cerca amb text
+    document.querySelectorAll('input[type="search"], .search-input, [data-search]').forEach(function(input) {
+      let searchTimeout;
+      input.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter' && input.value.trim()) {
+          trackEvent('search_performed', input, {
+            searchTerm: input.value.trim(),
+            searchLength: input.value.trim().length
+          });
+        }
+      });
+
+      // Tracking de cerca després de pausa de 1.5s
+      input.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        if (input.value.trim().length >= 3) {
+          searchTimeout = setTimeout(function() {
+            trackEvent('search_interaction', input, {
+              searchTerm: input.value.trim(),
+              searchLength: input.value.trim().length
+            });
+          }, 1500);
+        }
+      });
+    });
   }
 
   // Inicialització
@@ -369,6 +445,25 @@
     setupTimeTracking();
     setupFormTracking();
 
+    // Tracking global d'errors JavaScript
+    window.addEventListener('error', function(e) {
+      trackEvent('javascript_error', null, {
+        message: e.message,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        stack: e.error?.stack?.substring(0, 200) // Només primers 200 caràcters
+      });
+    });
+
+    // Tracking d'errors de promeses no capturades
+    window.addEventListener('unhandledrejection', function(e) {
+      trackEvent('promise_rejection', null, {
+        reason: e.reason?.toString() || 'Unknown rejection',
+        promise: 'UnhandledPromiseRejection'
+      });
+    });
+
     // Registrar pageview inicial
     trackEvent('pageview', null, {
       title: document.title,
@@ -385,7 +480,28 @@
       revokeConsent,
       isEnabled: () => consentGiven,
       getSessionId: () => sessionId,
-      flush: sendEvents
+      flush: sendEvents,
+      trackLogin: function(userId) {
+        trackEvent('login', null, { userId, timestamp: new Date().toISOString() });
+      },
+      trackLogout: function() {
+        trackEvent('logout', null, { timestamp: new Date().toISOString() });
+      },
+      trackCheckoutComplete: function(orderData) {
+        trackEvent('checkout_complete', null, {
+          orderId: orderData.orderId,
+          total: orderData.total,
+          items: orderData.items || [],
+          timestamp: new Date().toISOString()
+        });
+      },
+      trackError: function(errorType, errorData) {
+        trackEvent('application_error', null, {
+          errorType,
+          ...errorData,
+          timestamp: new Date().toISOString()
+        });
+      }
     };
 
     log('Sistema de tracking inicialitzat');

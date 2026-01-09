@@ -262,11 +262,24 @@
           localStorage.setItem("freshexpress_tracking_consent", "true");
         }
 
+        // Tracking de login
+        if (result.trackLogin && window.FreshExpressTracking) {
+          window.FreshExpressTracking.trackLogin(result.user?.id);
+        }
+
         // Redirigir al dashboard
         setTimeout(() => {
           window.location.href = "/dashboard";
         }, 1000);
       } else {
+        // Tracking d'error de login
+        if (window.FreshExpressTracking) {
+          window.FreshExpressTracking.trackError("login_error", {
+            errorMessage: result.error || "Credencials incorrectes",
+            email: email,
+          });
+        }
+
         errorMessage!.textContent =
           result.error || "Email o contrasenya incorrectes.";
         errorMessage!.classList.remove("hidden");
@@ -274,6 +287,13 @@
         submitBtn.innerHTML = originalText;
       }
     } catch (error) {
+      // Tracking d'error de connexió
+      if (window.FreshExpressTracking) {
+        window.FreshExpressTracking.trackError("login_connection_error", {
+          message: error.message || "Error de connexió",
+        });
+      }
+
       errorMessage!.textContent =
         "Error de connexió. Si us plau, torna-ho a provar.";
       errorMessage!.classList.remove("hidden");

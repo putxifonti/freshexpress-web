@@ -292,8 +292,18 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
             display.textContent = String(qty);
           }
           await refreshCart();
+        } else {
+          throw new Error('Error actualitzant quantitat');
         }
-      } catch {
+      } catch (error) {
+        // Tracking d'error
+        if (window.FreshExpressTracking) {
+          window.FreshExpressTracking.trackError('cart_update_error', {
+            cartId,
+            action,
+            message: error.message || 'Error desconegut'
+          });
+        }
         alert('Error actualitzant la cistella');
       }
       btnEl.disabled = false;
@@ -327,8 +337,17 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
             });
           }
           await refreshCart();
+        } else {
+          throw new Error('Error eliminant producte');
         }
-      } catch {
+      } catch (error) {
+        // Tracking d'error
+        if (window.FreshExpressTracking) {
+          window.FreshExpressTracking.trackError('cart_remove_error', {
+            cartId,
+            message: error.message || 'Error desconegut'
+          });
+        }
         alert('Error eliminant el producte');
       }
       btnEl.disabled = false;

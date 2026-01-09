@@ -619,11 +619,21 @@ function getEstatClass(estat: string): string {
   // Gestió del logout
   document.getElementById("logout-btn")?.addEventListener("click", async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      const result = await response.json();
+
+      // Tracking de logout
+      if (result.trackLogout && window.FreshExpressTracking) {
+        window.FreshExpressTracking.trackLogout();
+        // Esperar a que s'enviï l'event
+        await window.FreshExpressTracking.flush();
+      }
+
       localStorage.removeItem("freshexpress_tracking_consent");
       window.location.href = "/";
     } catch (error) {
       console.error("Error tancant sessió:", error);
+      window.location.href = "/";
     }
   });
 </script>
