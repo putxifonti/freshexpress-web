@@ -766,17 +766,17 @@ const zonesBCN = [
         });
 
         const result = await response.json();
-        console.log('Resposta API consentiments:', result);
-        
+        console.log("Resposta API consentiments:", result);
+
         if (result.success) {
           alert("✅ Consentiments actualitzats correctament!");
           window.location.reload(); // Recarregar per veure els canvis
         } else {
-          console.error('Error del servidor:', result.error);
+          console.error("Error del servidor:", result.error);
           alert("❌ " + (result.error || "Error actualitzant consentiments"));
         }
       } catch (error) {
-        console.error('Error de connexió:', error);
+        console.error("Error de connexió:", error);
         alert("❌ Error de connexió amb el servidor");
       }
     });

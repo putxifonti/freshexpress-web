@@ -437,9 +437,11 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ direccion: direccio }),
             });
-            
+
             if (!addressRes.ok) {
-              console.warn("No s'ha pogut guardar la direcció, però continuem amb la comanda");
+              console.warn(
+                "No s'ha pogut guardar la direcció, però continuem amb la comanda"
+              );
             }
           } catch (addressError) {
             console.warn("Error guardant direcció:", addressError);
@@ -458,8 +460,12 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
         });
 
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: "Error de connexió" }));
-          throw new Error(errorData.error || `Error del servidor (${res.status})`);
+          const errorData = await res
+            .json()
+            .catch(() => ({ error: "Error de connexió" }));
+          throw new Error(
+            errorData.error || `Error del servidor (${res.status})`
+          );
         }
 
         const data = await res.json();
@@ -491,7 +497,7 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
         }
       } catch (error) {
         console.error("Error en checkout:", error);
-        
+
         // Tracking d'error en checkout
         if (window.FreshExpressTracking) {
           try {
