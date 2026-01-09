@@ -48,7 +48,7 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     );
 
     const [totalClicks] = await queryBroker<any[]>(
-      `SELECT COUNT(*) as count FROM eventos_web WHERE tipo_evento = 'click' ${dateFilter}`
+      `SELECT COUNT(*) as count FROM eventos_web WHERE tipo_evento IN ('click', 'button_click') ${dateFilter}`
     );
 
     const [totalPageviews] = await queryBroker<any[]>(
@@ -75,7 +75,7 @@ export const GET: APIRoute = async ({ cookies, url }) => {
         categoria_evento as categoria,
         COUNT(*) as clics
       FROM eventos_web 
-      WHERE tipo_evento = 'click' AND elemento IS NOT NULL ${dateFilter}
+      WHERE tipo_evento IN ('click', 'button_click') AND elemento IS NOT NULL ${dateFilter}
       GROUP BY elemento, categoria_evento
       ORDER BY clics DESC
       LIMIT 15`

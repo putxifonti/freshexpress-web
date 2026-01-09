@@ -431,11 +431,20 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
       try {
         // Primer guardar direcció si cal
         if (saveAddress && selectedOption === "new") {
-          await fetch("/api/user/update-address", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ direccion: direccio }),
-          });
+          try {
+            const addressRes = await fetch("/api/user/update-address", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ direccion: direccio }),
+            });
+            
+            if (!addressRes.ok) {
+              console.warn("No s'ha pogut guardar la direcció, però continuem amb la comanda");
+            }
+          } catch (addressError) {
+            console.warn("Error guardant direcció:", addressError);
+            // Continuem igualment amb la comanda
+          }
         }
 
         // Finalitzar comanda
@@ -448,18 +457,29 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
           }),
         });
 
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: "Error de connexió" }));
+          throw new Error(errorData.error || `Error del servidor (${res.status})`);
+        }
+
         const data = await res.json();
 
         if (data.success) {
           // Tracking de compra completada
           if (window.FreshExpressTracking) {
-            window.FreshExpressTracking.trackCheckoutComplete({
-              orderId: data.numeroPedido,
-              total: data.total,
-              items: data.items || [],
-            });
-            // Flush immediat abans de redirigir
-            await window.FreshExpressTracking.flush();
+            try {
+              window.FreshExpressTracking.trackCheckoutComplete({
+                orderId: data.numeroPedido,
+                total: data.total,
+                items: data.items || [],
+              });
+              // Flush immediat abans de redirigir (sense await per no bloquejar)
+              if (window.FreshExpressTracking.flush) {
+                window.FreshExpressTracking.flush();
+              }
+            } catch (trackError) {
+              console.warn("Error en tracking:", trackError);
+            }
           }
 
           alert(
@@ -470,12 +490,18 @@ const total = Math.round((subtotal + costEnviament) * 100) / 100;
           throw new Error(data.error || "Error desconegut");
         }
       } catch (error) {
+        console.error("Error en checkout:", error);
+        
         // Tracking d'error en checkout
         if (window.FreshExpressTracking) {
-          window.FreshExpressTracking.trackError("checkout_error", {
-            message: error.message || "Error desconegut",
-            step: "finalitzar_comanda",
-          });
+          try {
+            window.FreshExpressTracking.trackError("checkout_error", {
+              message: error.message || "Error desconegut",
+              step: "finalitzar_comanda",
+            });
+          } catch (trackError) {
+            console.warn("Error en tracking d'error:", trackError);
+          }
         }
 
         alert(

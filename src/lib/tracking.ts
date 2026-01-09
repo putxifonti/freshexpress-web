@@ -108,7 +108,7 @@ export async function processTrackingEvent(event: TrackingEvent): Promise<boolea
     // Actualitzar o crear sessió - usant les columnes correctes de sesiones_web
     const isProductEvent = event.tipo_evento === 'product_click' || event.tipo_evento === 'product_impression';
     const isCartEvent = event.tipo_evento === 'add_to_cart';
-    const isClickEvent = event.tipo_evento === 'click';
+    const isClickEvent = event.tipo_evento === 'click' || event.tipo_evento === 'button_click';
     const isScrollEvent = event.tipo_evento === 'scroll';
     
     await queryBroker(

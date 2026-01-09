@@ -140,6 +140,8 @@ function getEstatClass(estat: string): string {
           <div class="flex items-center space-x-4">
             <a
               href="/configuracio"
+              data-tracking-id="dashboard-btn-configuracio"
+              data-tracking-category="dashboard-navigation"
               class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
             >
               <svg
@@ -164,6 +166,8 @@ function getEstatClass(estat: string): string {
             </a>
             <button
               id="logout-btn"
+              data-tracking-id="dashboard-btn-logout"
+              data-tracking-category="dashboard-auth"
               class="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center"
             >
               <svg
@@ -307,6 +311,8 @@ function getEstatClass(estat: string): string {
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <a
                 href="/productes"
+                data-tracking-id="dashboard-btn-nova-comanda"
+                data-tracking-category="dashboard-action"
                 class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-green-50 hover:border-[#3BB143] border border-transparent transition-all group"
               >
                 <div
@@ -333,6 +339,8 @@ function getEstatClass(estat: string): string {
 
               <a
                 href="/seguiment"
+                data-tracking-id="dashboard-btn-seguiment"
+                data-tracking-category="dashboard-action"
                 class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-blue-50 hover:border-[#0047AB] border border-transparent transition-all group"
               >
                 <div
@@ -362,6 +370,8 @@ function getEstatClass(estat: string): string {
 
               <a
                 href="/historial"
+                data-tracking-id="dashboard-btn-historial"
+                data-tracking-category="dashboard-action"
                 class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-yellow-50 hover:border-yellow-500 border border-transparent transition-all group"
               >
                 <div
@@ -386,6 +396,8 @@ function getEstatClass(estat: string): string {
 
               <a
                 href="/suport"
+                data-tracking-id="dashboard-btn-suport"
+                data-tracking-category="dashboard-action"
                 class="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-purple-50 hover:border-purple-500 border border-transparent transition-all group"
               >
                 <div
@@ -416,6 +428,8 @@ function getEstatClass(estat: string): string {
               <h2 class="text-xl font-bold text-gray-900">Últimes comandes</h2>
               <a
                 href="/historial"
+                data-tracking-id="dashboard-link-veure-totes-comandes"
+                data-tracking-category="dashboard-navigation"
                 class="text-[#3BB143] hover:text-[#32a039] text-sm font-medium"
                 >Veure totes →</a
               >
@@ -442,6 +456,8 @@ function getEstatClass(estat: string): string {
                   </p>
                   <a
                     href="/productes"
+                    data-tracking-id="dashboard-btn-explorar-productes-empty"
+                    data-tracking-category="dashboard-action"
                     class="inline-block mt-4 px-6 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors"
                   >
                     Explorar productes
@@ -452,6 +468,8 @@ function getEstatClass(estat: string): string {
                   {ultimesComandes.map((comanda) => (
                     <a
                       href={`/seguiment?code=${comanda.id}`}
+                      data-tracking-id="dashboard-link-comanda-detall"
+                      data-tracking-category="dashboard-order"
                       class="block p-4 border border-gray-200 rounded-lg hover:border-[#3BB143] hover:shadow-md transition-all"
                     >
                       <div class="flex items-center justify-between">
@@ -493,6 +511,8 @@ function getEstatClass(estat: string): string {
                   ))}
                   <a
                     href="/historial"
+                    data-tracking-id="dashboard-link-veure-tot-historial"
+                    data-tracking-category="dashboard-navigation"
                     class="block text-center text-sm text-[#3BB143] hover:underline mt-2"
                   >
                     Veure tot l'historial →
@@ -546,6 +566,8 @@ function getEstatClass(estat: string): string {
                 </div>
                 <a
                   href="/politica-dades"
+                  data-tracking-id="dashboard-link-info-databroker"
+                  data-tracking-category="dashboard-info"
                   class="block text-center text-sm text-[#3BB143] hover:underline mt-3"
                 >
                   Més informació →
@@ -562,6 +584,8 @@ function getEstatClass(estat: string): string {
                 </p>
                 <a
                   href="/configuracio#consentiments"
+                  data-tracking-id="dashboard-btn-activar-databroker"
+                  data-tracking-category="dashboard-conversion"
                   class="block text-center py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039] transition-colors"
                 >
                   Activar ara
@@ -604,6 +628,8 @@ function getEstatClass(estat: string): string {
             </div>
             <a
               href="/configuracio"
+              data-tracking-id="dashboard-link-editar-perfil"
+              data-tracking-category="dashboard-navigation"
               class="block text-center text-sm text-[#0047AB] hover:underline mt-4"
             >
               Editar perfil →
@@ -616,6 +642,16 @@ function getEstatClass(estat: string): string {
 </Layout>
 
 <script>
+  // Declaració de tipus per al tracking
+  declare global {
+    interface Window {
+      FreshExpressTracking?: {
+        trackLogout: () => void;
+        flush: () => Promise<void>;
+      };
+    }
+  }
+
   // Gestió del logout
   document.getElementById("logout-btn")?.addEventListener("click", async () => {
     try {

@@ -52,8 +52,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const consents = {
       acepta_comunicaciones: consentimientos?.acepta_comunicaciones || false,
       analytics: consentimientos?.analytics || false,
-      compartir_datos: consentimientos?.compartir_datos || false,
-      recibir_ofertas: consentimientos?.recibir_ofertas || false
+      compartir_datos: consentimientos?.compartir_datos || false
     };
 
     // Registrar usuari

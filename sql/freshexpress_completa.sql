@@ -49,7 +49,6 @@ CREATE TABLE consentimientos (
     acepta_cookies TINYINT(1) DEFAULT 0,
     acepta_comunicaciones TINYINT(1) DEFAULT 0,
     compartir_datos TINYINT(1) DEFAULT 0,
-    recibir_ofertas TINYINT(1) DEFAULT 0,
     analytics TINYINT(1) DEFAULT 0,
     fecha_consentimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ip_consentimiento VARCHAR(45),

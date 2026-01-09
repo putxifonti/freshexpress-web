@@ -46,7 +46,6 @@ export interface RegisterData {
   compartir_datos?: boolean;
   analytics?: boolean;
   acepta_comunicaciones?: boolean;
-  recibir_ofertas?: boolean;
 }
 
 // Hash de contrasenya
@@ -186,13 +185,12 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
       await queryOperacional(
         `INSERT INTO consentimientos (
           usuario_id, acepta_terminos, acepta_privacidad, acepta_cookies,
-          acepta_comunicaciones, compartir_datos, recibir_ofertas, analytics
-        ) VALUES (?, 1, 1, 1, ?, ?, ?, ?)`,
+          acepta_comunicaciones, compartir_datos, analytics
+        ) VALUES (?, 1, 1, 1, ?, ?, ?)`,
         [
           userId,
           data.acepta_comunicaciones || false ? 1 : 0,
           data.compartir_datos || false ? 1 : 0,
-          data.recibir_ofertas || false ? 1 : 0,
           data.analytics !== false ? 1 : 0
         ]
       );
@@ -292,29 +290,68 @@ export async function getUserConsents(userId: number) {
 // Actualitzar consentiments
 export async function updateUserConsents(userId: number, consents: {
   compartir_datos?: boolean;
-  recibir_ofertas?: boolean;
   acepta_comunicaciones?: boolean;
   analytics?: boolean;
 }) {
   try {
-    await queryOperacional(
-      `UPDATE consentimientos SET 
-        compartir_datos = COALESCE(?, compartir_datos),
-        recibir_ofertas = COALESCE(?, recibir_ofertas),
-        acepta_comunicaciones = COALESCE(?, acepta_comunicaciones),
-        analytics = COALESCE(?, analytics),
-        fecha_actualizacion = NOW()
-       WHERE usuario_id = ?`,
-      [
-        consents.compartir_datos,
-        consents.recibir_ofertas,
-        consents.acepta_comunicaciones,
-        consents.analytics,
-        userId
-      ]
+    // Primer verificar si existeix un registre
+    const existing = await queryOperacional<any[]>(
+      'SELECT id FROM consentimientos WHERE usuario_id = ?',
+      [userId]
     );
+    
+    // Si no existeix, crear-lo
+    if (existing.length === 0) {
+      console.log('Creant registre de consentiments per usuari:', userId);
+      await queryOperacional(
+        `INSERT INTO consentimientos (
+          usuario_id, acepta_terminos, acepta_privacidad, acepta_cookies,
+          acepta_comunicaciones, compartir_datos, analytics
+        ) VALUES (?, 1, 1, 1, ?, ?, ?)`,
+        [
+          userId,
+          consents.acepta_comunicaciones ? 1 : 0,
+          consents.compartir_datos ? 1 : 0,
+          consents.analytics ? 1 : 0
+        ]
+      );
+    } else {
+      // Construir la query dinàmicament per evitar problemes amb COALESCE i false
+      const updates: string[] = [];
+      const values: any[] = [];
+      
+      if (consents.compartir_datos !== undefined) {
+        updates.push('compartir_datos = ?');
+        values.push(consents.compartir_datos ? 1 : 0);
+      }
+      if (consents.acepta_comunicaciones !== undefined) {
+        updates.push('acepta_comunicaciones = ?');
+        values.push(consents.acepta_comunicaciones ? 1 : 0);
+      }
+      if (consents.analytics !== undefined) {
+        updates.push('analytics = ?');
+        values.push(consents.analytics ? 1 : 0);
+      }
+      
+      if (updates.length === 0) {
+        return true; // No hi ha res per actualitzar
+      }
+      
+      updates.push('fecha_actualizacion = NOW()');
+      values.push(userId);
+      
+      console.log('Actualitzant consentiments:', updates.join(', '), values);
+      
+      await queryOperacional(
+        `UPDATE consentimientos SET ${updates.join(', ')} WHERE usuario_id = ?`,
+        values
+      );
+    }
+    
+    console.log('Consentiments actualitzats correctament per usuari:', userId);
     return true;
-  } catch {
+  } catch (error) {
+    console.error('Error updateUserConsents:', error);
     return false;
   }
 }

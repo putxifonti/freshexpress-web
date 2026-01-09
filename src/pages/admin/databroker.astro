@@ -1217,10 +1217,6 @@ if (!user || user.rol !== "admin") {
                   <span class="text-gray-700">Analytics</span>
                   <span class="text-lg font-bold text-purple-600">${c.analytics || 0}</span>
                 </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-700">Rebre Ofertes</span>
-                  <span class="text-lg font-bold text-orange-600">${c.recibir_ofertas || 0}</span>
-                </div>
                 <div class="pt-4 border-t">
                   <div class="flex items-center justify-between">
                     <span class="text-gray-700 font-medium">Total Usuaris amb Consentiment</span>
@@ -1259,15 +1255,7 @@ if (!user || user.rol !== "admin") {
               backgroundColor: "rgba(59, 177, 67, 0.1)",
               fill: true,
               tension: 0.4,
-            },
-            {
-              label: "Sessions",
-              data: data.map((d) => d.sessions),
-              borderColor: "#6366f1",
-              backgroundColor: "rgba(99, 102, 241, 0.1)",
-              fill: true,
-              tension: 0.4,
-            },
+            }
           ],
         },
         options: {

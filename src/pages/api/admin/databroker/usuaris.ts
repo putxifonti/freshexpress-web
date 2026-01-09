@@ -65,7 +65,6 @@ export const GET: APIRoute = async ({ cookies, url }) => {
         SUM(CASE WHEN compartir_datos = 1 THEN 1 ELSE 0 END) as compartir_datos,
         SUM(CASE WHEN acepta_comunicaciones = 1 THEN 1 ELSE 0 END) as acepta_comunicaciones,
         SUM(CASE WHEN analytics = 1 THEN 1 ELSE 0 END) as analytics,
-        SUM(CASE WHEN recibir_ofertas = 1 THEN 1 ELSE 0 END) as recibir_ofertas,
         COUNT(*) as total
       FROM consentimientos`
     );

@@ -60,8 +60,8 @@ export const GET: APIRoute = async ({ cookies, url }) => {
       LEFT JOIN pedidos p ON dp.pedido_id = p.id ${dateFilterPedidos}
       LEFT JOIN empresas e ON pr.empresa_id = e.id
       GROUP BY pr.id, pr.nombre, pr.categoria, pr.precio, pr.imagen, e.nombre
-      HAVING vegades_demanat > 0
-      ORDER BY vegades_demanat DESC
+      HAVING unitats_venudes > 0
+      ORDER BY unitats_venudes DESC
       LIMIT 20`
     );
 
@@ -81,8 +81,8 @@ export const GET: APIRoute = async ({ cookies, url }) => {
       LEFT JOIN pedidos p ON dp.pedido_id = p.id ${dateFilterPedidos}
       LEFT JOIN empresas e ON pr.empresa_id = e.id
       GROUP BY pr.id, pr.nombre, pr.categoria, pr.precio, pr.imagen, e.nombre
-      HAVING vegades_demanat > 0
-      ORDER BY vegades_demanat ASC
+      HAVING unitats_venudes > 0
+      ORDER BY unitats_venudes ASC
       LIMIT 10`
     );
 

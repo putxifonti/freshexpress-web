@@ -17,7 +17,7 @@
     enableScrollTracking: true,
     enableTimeTracking: true,
     enableFormTracking: true,
-    debug: false
+    debug: true // Activar debug per veure els events
   };
 
   // Estat
@@ -25,7 +25,7 @@
   let sessionId = null;
   let pageLoadTime = Date.now();
   let lastActivity = Date.now();
-  let consentGiven = false;
+  let consentGiven = true; // Activat per defecte per capturar tots els events
 
   // Utilitats
   function log(...args) {
@@ -71,15 +71,20 @@
 
   // Gestió de consentiment
   function checkConsent() {
-    // Verificar si l'usuari ha donat consentiment
+    // Per Data Broker, activem el tracking automàticament
+    // L'usuari pot desactivar-ho a la configuració
     const consent = localStorage.getItem('freshexpress_tracking_consent');
-    if (consent === 'true') {
-      consentGiven = true;
-      return true;
+    if (consent === 'false') {
+      consentGiven = false;
+      return false;
     }
     
-    // Si no hi ha consentiment explícit, no recollim dades
-    return false;
+    // Activar automàticament si no s'ha desactivat
+    if (!consent) {
+      localStorage.setItem('freshexpress_tracking_consent', 'true');
+    }
+    consentGiven = true;
+    return true;
   }
 
   function giveConsent() {
@@ -98,11 +103,7 @@
 
   // Tracking d'events
   function trackEvent(type, element = null, data = {}) {
-    if (!consentGiven) {
-      log('Event ignorat (sense consentiment):', type);
-      return;
-    }
-
+    // Sempre registrar events (el tracking està activat per defecte)
     const event = {
       type,
       element: element ? getElementIdentifier(element) : null,
@@ -166,17 +167,35 @@
     if (!CONFIG.enableClickTracking) return;
 
     document.addEventListener('click', function(e) {
-      const target = e.target;
+      const target = e.target.closest('a, button, [data-tracking-id]') || e.target;
       const clickX = (e.clientX / window.innerWidth) * 100;
       const clickY = (e.clientY / window.innerHeight) * 100;
 
+      // Detectar identificador personalitzat
+      const trackingId = target.dataset?.trackingId || target.closest('[data-tracking-id]')?.dataset?.trackingId;
+      const trackingCategory = target.dataset?.trackingCategory || target.closest('[data-tracking-category]')?.dataset?.trackingCategory;
+      
+      // Event bàsic de click
       trackEvent('click', target, {
         x: Math.round(clickX),
         y: Math.round(clickY),
         button: e.button,
         ctrlKey: e.ctrlKey,
-        shiftKey: e.shiftKey
+        shiftKey: e.shiftKey,
+        trackingId: trackingId || null,
+        trackingCategory: trackingCategory || null,
+        elementType: target.tagName?.toLowerCase(),
+        elementText: target.textContent?.trim().substring(0, 50) || ''
       });
+
+      // Si té tracking-id específic, enviar event addicional
+      if (trackingId) {
+        trackEvent('button_click', target, {
+          buttonId: trackingId,
+          category: trackingCategory || 'unknown',
+          page: window.location.pathname
+        });
+      }
 
       // Tracking específic per elements importants
       if (target.closest('[data-product-id]')) {
@@ -427,17 +446,10 @@
   function init() {
     log('Iniciant sistema de tracking');
 
-    // Verificar consentiment
-    if (!checkConsent()) {
-      log('No hi ha consentiment, tracking desactivat');
-      // Exposar funció per donar consentiment
-      window.FreshExpressTracking = {
-        giveConsent,
-        revokeConsent,
-        isEnabled: () => consentGiven
-      };
-      return;
-    }
+    // Activar consentiment automàticament
+    checkConsent();
+    
+    log('Tracking activat, consentGiven:', consentGiven);
 
     // Configurar listeners
     setupClickTracking();
@@ -467,7 +479,10 @@
     // Registrar pageview inicial
     trackEvent('pageview', null, {
       title: document.title,
-      referrer: document.referrer
+      referrer: document.referrer,
+      path: window.location.pathname,
+      fullUrl: window.location.href,
+      timestamp: new Date().toISOString()
     });
 
     // Interval d'enviament de lots
