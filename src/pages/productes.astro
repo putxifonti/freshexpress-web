@@ -28,9 +28,8 @@ let errorCarregant = false;
 try {
   // ⭐ CARREGAR EMPRESES
   // En producció (Vercel HTTPS), fem consulta directa a MySQL
-  // En desenvolupament local, podríem usar l'API REST
   empreses = await queryOperacional<any[]>(
-    'SELECT id, nombre, logoUrl, descripcion, categoria FROM empresas WHERE activo = 1 ORDER BY nombre ASC'
+    'SELECT id, nombre, logo, descripcion, categoria FROM empresas WHERE activo = 1 ORDER BY nombre ASC'
   );
   console.log(`✅ ${empreses.length} empreses carregades`);
 
@@ -96,11 +95,11 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                     <a 
                       href={`/productes?empresa=${empresa.id}`}
                       class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-                    >Si us plau, torna-ho a intentar més tard
+                    >
                       <div class="h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
-                        {empresa.logoUrl ? (
+                        {empresa.logo ? (
                           <img 
-                            src={empresa.logoUrl} 
+                            src={empresa.logo} 
                             alt={`Logo ${empresa.nombre}`}
                             class="w-20 h-20 object-contain group-hover:scale-110 transition-transform"
                           />
