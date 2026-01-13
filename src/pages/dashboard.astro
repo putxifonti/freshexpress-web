@@ -35,7 +35,6 @@ if (user.rol === "admin" && !isClientMode) {
 
 // Obtenir últimes comandes i estadístiques
 let ultimesComandes: any[] = [];
-// ⭐ Les estadístiques es carregaran des de la REST API (client-side)
 let stats = {
   totalComandes: 0,
   puntsAcumulats: 0,
@@ -43,7 +42,7 @@ let stats = {
 };
 
 try {
-  // Últimes 5 comandes (aquestes es mantenen en SSR)
+  // Últimes 5 comandes
   const comandes = await queryOperacional<any[]>(
     `
     SELECT 
@@ -67,8 +66,26 @@ try {
     total: Number(c.total) || 0,
   }));
 
-  // ⭐ Les estadístiques ara es carregaran des de la REST API
-  // No fem més consultes SQL aquí
+  // ⭐ ESTADÍSTIQUES (Server-Side per evitar Mixed Content)
+  const statsQuery = await queryOperacional<any[]>(
+    `
+    SELECT 
+      COUNT(*) as total_comandes,
+      COALESCE(SUM(puntos_ganados), 0) as punts_acumulats,
+      COALESCE(SUM(total), 0) as total_gastat
+    FROM pedidos
+    WHERE cliente_id = ? AND estado != 'cancelado'
+  `,
+    [user.id]
+  );
+
+  if (statsQuery && statsQuery.length > 0) {
+    const data = statsQuery[0];
+    stats.totalComandes = Number(data.total_comandes) || 0;
+    stats.puntsAcumulats = Number(data.punts_acumulats) || 0;
+    // Impacte ecològic: 0.5kg CO2 estalviats per comanda
+    stats.impacteEco = Math.round(stats.totalComandes * 0.5 * 10) / 10;
+  }
 } catch (error) {
   console.error("Error obtenint dades dashboard:", error);
 }
@@ -102,7 +119,7 @@ function getEstatClass(estat: string): string {
 ---
 
 <Layout title="El meu compte - FreshExpress">
-  <div class="min-h-screen bg-gray-50 py-8" data-user-id={user.id}>
+  <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Capçalera del Dashboard -->
       <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
@@ -184,7 +201,7 @@ function getEstatClass(estat: string): string {
                 id="stat-total-comandes"
                 class="text-3xl font-bold text-gray-900"
               >
-                <span class="loading-pulse">--</span>
+                {stats.totalComandes}
               </p>
             </div>
             <div
@@ -211,7 +228,7 @@ function getEstatClass(estat: string): string {
             <div>
               <p class="text-gray-500 text-sm">Punts acumulats</p>
               <p id="stat-punts" class="text-3xl font-bold text-gray-900">
-                <span class="loading-pulse">--</span>
+                {stats.puntsAcumulats}
               </p>
             </div>
             <div
@@ -239,7 +256,7 @@ function getEstatClass(estat: string): string {
             <div>
               <p class="text-gray-500 text-sm">Impacte ECO</p>
               <p id="stat-impacte" class="text-3xl font-bold text-[#3BB143]">
-                <span class="loading-pulse">--</span>
+                {stats.impacteEco} kg
               </p>
             </div>
             <div
@@ -655,54 +672,6 @@ function getEstatClass(estat: string): string {
       };
     }
   }
-
-  // ⭐ !!! CARREGAR ESTADÍSTIQUES DES DE LA REST API ⭐
-  async function loadStats() {
-    try {
-      const userId = document
-        .querySelector("[data-user-id]")
-        ?.getAttribute("data-user-id");
-      if (!userId) {
-        console.error("No s'ha trobat l'ID d'usuari");
-        return;
-      }
-
-      console.log("📊 Carregant estadístiques des de l'API externa...");
-      const response = await fetch(`http://143.47.36.36:3000/stats/${userId}`);
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.stats) {
-        // Actualitzar els elements amb les dades de l'API
-        const totalEl = document.getElementById("stat-total-comandes");
-        const puntsEl = document.getElementById("stat-punts");
-        const impacteEl = document.getElementById("stat-impacte");
-
-        if (totalEl) totalEl.textContent = data.stats.totalComandes.toString();
-        if (puntsEl) puntsEl.textContent = data.stats.puntsAcumulats.toString();
-        if (impacteEl) impacteEl.textContent = `${data.stats.impacteEco} kg`;
-
-        console.log("✅ Estadístiques carregades des de l'API externa");
-      }
-    } catch (error) {
-      console.error("❌ Error carregant estadístiques des de l'API:", error);
-      // Mostrar 0 en cas d'error
-      const totalEl = document.getElementById("stat-total-comandes");
-      const puntsEl = document.getElementById("stat-punts");
-      const impacteEl = document.getElementById("stat-impacte");
-
-      if (totalEl) totalEl.textContent = "0";
-      if (puntsEl) puntsEl.textContent = "0";
-      if (impacteEl) impacteEl.textContent = "0.0 kg";
-    }
-  }
-
-  // Carregar estadístiques quan la pàgina estigui llesta
-  document.addEventListener("DOMContentLoaded", loadStats);
 
   // Gestió del logout
   document.getElementById("logout-btn")?.addEventListener("click", async () => {
