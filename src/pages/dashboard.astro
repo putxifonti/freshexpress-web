@@ -35,6 +35,7 @@ if (user.rol === "admin" && !isClientMode) {
 
 // Obtenir últimes comandes i estadístiques
 let ultimesComandes: any[] = [];
+// ⭐ Les estadístiques es carregaran des de la REST API (client-side)
 let stats = {
   totalComandes: 0,
   puntsAcumulats: 0,
@@ -42,7 +43,7 @@ let stats = {
 };
 
 try {
-  // Últimes 5 comandes
+  // Últimes 5 comandes (aquestes es mantenen en SSR)
   const comandes = await queryOperacional<any[]>(
     `
     SELECT 
@@ -66,24 +67,8 @@ try {
     total: Number(c.total) || 0,
   }));
 
-  // Estadístiques
-  const totalRes = await queryOperacional<any[]>(
-    "SELECT COUNT(*) as total FROM pedidos WHERE cliente_id = ?",
-    [user.id]
-  );
-  stats.totalComandes = Number(totalRes[0]?.total) || 0;
-
-  // Punts (10 punts per cada euro gastat)
-  const puntosRes = await queryOperacional<any[]>(
-    'SELECT COALESCE(SUM(total), 0) as totalGastat FROM pedidos WHERE cliente_id = ? AND estado = "entregado"',
-    [user.id]
-  );
-  stats.puntsAcumulats = Math.floor(
-    Number(puntosRes[0]?.totalGastat || 0) * 10
-  );
-
-  // Impacte ECO (0.5kg CO2 estalviat per comanda)
-  stats.impacteEco = stats.totalComandes * 0.5;
+  // ⭐ Les estadístiques ara es carregaran des de la REST API
+  // No fem més consultes SQL aquí
 } catch (error) {
   console.error("Error obtenint dades dashboard:", error);
 }
@@ -117,7 +102,7 @@ function getEstatClass(estat: string): string {
 ---
 
 <Layout title="El meu compte - FreshExpress">
-  <div class="min-h-screen bg-gray-50 py-8">
+  <div class="min-h-screen bg-gray-50 py-8" data-user-id={user.id}>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Capçalera del Dashboard -->
       <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
@@ -195,8 +180,11 @@ function getEstatClass(estat: string): string {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Comandes totals</p>
-              <p class="text-3xl font-bold text-gray-900">
-                {stats.totalComandes}
+              <p
+                id="stat-total-comandes"
+                class="text-3xl font-bold text-gray-900"
+              >
+                <span class="loading-pulse">--</span>
               </p>
             </div>
             <div
@@ -222,8 +210,8 @@ function getEstatClass(estat: string): string {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Punts acumulats</p>
-              <p class="text-3xl font-bold text-gray-900">
-                {stats.puntsAcumulats}
+              <p id="stat-punts" class="text-3xl font-bold text-gray-900">
+                <span class="loading-pulse">--</span>
               </p>
             </div>
             <div
@@ -250,8 +238,8 @@ function getEstatClass(estat: string): string {
           <div class="flex items-center justify-between">
             <div>
               <p class="text-gray-500 text-sm">Impacte ECO</p>
-              <p class="text-3xl font-bold text-[#3BB143]">
-                {stats.impacteEco.toFixed(1)} kg
+              <p id="stat-impacte" class="text-3xl font-bold text-[#3BB143]">
+                <span class="loading-pulse">--</span>
               </p>
             </div>
             <div
@@ -641,6 +629,22 @@ function getEstatClass(estat: string): string {
   </div>
 </Layout>
 
+<style>
+  .loading-pulse {
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>
+
 <script>
   // Declaració de tipus per al tracking
   declare global {
@@ -651,6 +655,54 @@ function getEstatClass(estat: string): string {
       };
     }
   }
+
+  // ⭐ !!! CARREGAR ESTADÍSTIQUES DES DE LA REST API ⭐
+  async function loadStats() {
+    try {
+      const userId = document
+        .querySelector("[data-user-id]")
+        ?.getAttribute("data-user-id");
+      if (!userId) {
+        console.error("No s'ha trobat l'ID d'usuari");
+        return;
+      }
+
+      console.log("📊 Carregant estadístiques des de l'API externa...");
+      const response = await fetch(`http://143.47.36.36:3000/stats/${userId}`);
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.stats) {
+        // Actualitzar els elements amb les dades de l'API
+        const totalEl = document.getElementById("stat-total-comandes");
+        const puntsEl = document.getElementById("stat-punts");
+        const impacteEl = document.getElementById("stat-impacte");
+
+        if (totalEl) totalEl.textContent = data.stats.totalComandes.toString();
+        if (puntsEl) puntsEl.textContent = data.stats.puntsAcumulats.toString();
+        if (impacteEl) impacteEl.textContent = `${data.stats.impacteEco} kg`;
+
+        console.log("✅ Estadístiques carregades des de l'API externa");
+      }
+    } catch (error) {
+      console.error("❌ Error carregant estadístiques des de l'API:", error);
+      // Mostrar 0 en cas d'error
+      const totalEl = document.getElementById("stat-total-comandes");
+      const puntsEl = document.getElementById("stat-punts");
+      const impacteEl = document.getElementById("stat-impacte");
+
+      if (totalEl) totalEl.textContent = "0";
+      if (puntsEl) puntsEl.textContent = "0";
+      if (impacteEl) impacteEl.textContent = "0.0 kg";
+    }
+  }
+
+  // Carregar estadístiques quan la pàgina estigui llesta
+  document.addEventListener("DOMContentLoaded", loadStats);
 
   // Gestió del logout
   document.getElementById("logout-btn")?.addEventListener("click", async () => {

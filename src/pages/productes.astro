@@ -26,13 +26,8 @@ let empreses: any[] = [];
 let errorCarregant = false;
 
 try {
-  // Obtenir totes les empreses
-  empreses = await queryOperacional<any[]>(`
-    SELECT id, nombre, descripcion, categoria, logo
-    FROM empresas 
-    WHERE activo = 1 
-    ORDER BY nombre ASC
-  `);
+  // ⭐ Les empreses es carregaran amb JavaScript client-side des de la REST API
+  // empreses es mantindrà buit ([]) fins que es carregui des de l'API
 
   // Si hi ha empresa seleccionada, obtenir els seus productes
   if (empresaId) {
@@ -76,6 +71,20 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
             <p class="text-gray-600 mt-2">Descobreix les millors empreses de Catalunya i fes la teva comanda</p>
           </div>
 
+          <div id="empresas-container">
+            <div class="loading-state">
+              <span class="loading-pulse">🏢 Carregant empreses...</span>
+            </div>
+          </div>
+
+          {/* Aquesta part es mantindrà com a fallback si no funciona JS
+          <div id="empresas-container">
+            <div class="loading-state">
+              <span class="loading-pulse">🏢 Carregant empreses...</span>
+            </div>
+          </div>
+
+          {/* Aquest codi ja no es fa servir, les empreses es carreguen amb JavaScript
           {Object.keys(empresesPerCategoria).length === 0 ? (
             <div class="bg-white rounded-xl shadow p-12 text-center">
               <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,6 +144,7 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
               </div>
             ))
           )}
+          */}
         </div>
       ) : (
         <!-- Vista de productes d'una empresa -->
@@ -359,3 +369,141 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
     });
   });
 </script>
+</script>
+
+<script>
+  // ⭐ CARREGAR EMPRESES DES DE LA REST API !!!! ⭐
+  async function loadEmpresas() {
+    try {
+      console.log('��� Carregant empreses des de l\'API REST...');
+      
+      const response = await fetch('http://143.47.36.36:3000/empresas');
+      
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.empresas) {
+        const container = document.getElementById('empresas-container');
+        if (!container) return;
+
+        // Agrupar empreses per categoria
+        const empresesPerCategoria = data.empresas.reduce((acc: any, emp: any) => {
+          const cat = emp.categoria || 'General';
+          if (!acc[cat]) acc[cat] = [];
+          acc[cat].push(emp);
+          return acc;
+        }, {});
+
+        // Generar HTML amb les empreses agrupades per categoria
+        container.innerHTML = Object.entries(empresesPerCategoria).map(([categoria, emps]: [string, any]) => `
+          <div class="mb-10">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <span class="w-2 h-6 bg-[#3BB143] rounded mr-3"></span>
+              ${categoria}
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${(emps as any[]).map((empresa: any) => `
+                <a 
+                  href="/productes?empresa=${empresa.id}"
+                  class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                >
+                  <div class="h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
+                    ${empresa.logoUrl ? `
+                      <img 
+                        src="${empresa.logoUrl}" 
+                        alt="Logo ${empresa.nombre}"
+                        class="w-20 h-20 object-contain group-hover:scale-110 transition-transform"
+                      />
+                    ` : `
+                      <div class="w-20 h-20 bg-white rounded-xl shadow flex items-center justify-center text-2xl font-bold text-[#0047AB] group-hover:scale-110 transition-transform">
+                        ${empresa.nombre.charAt(0)}
+                      </div>
+                    `}
+                  </div>
+                  <div class="p-5">
+                    <h3 class="font-semibold text-lg text-gray-900 group-hover:text-[#3BB143] transition-colors">
+                      ${empresa.nombre}
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1 line-clamp-2">
+                      ${empresa.descripcion || 'Sense descripció'}
+                    </p>
+                    <div class="mt-3 flex items-center justify-between">
+                      <div class="flex items-center">
+                        <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        <span class="text-sm text-gray-600 ml-1">5.0</span>
+                      </div>
+                      <span class="text-[#3BB143] text-sm font-medium group-hover:translate-x-1 transition-transform">
+                        Veure productes →
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+        
+        console.log(`✅ ${data.total} empreses carregades des de l'API REST`);
+      }
+    } catch (error) {
+      console.error('❌ Error carregant empreses des de l\'API:', error);
+      const container = document.getElementById('empresas-container');
+      if (container) {
+        container.innerHTML = `
+          <div class="bg-white rounded-xl shadow p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-red-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-red-600 font-medium">Error carregant empreses</p>
+            <p class="text-gray-500 text-sm mt-2">Si us plau, torna-ho a intentar més tard</p>
+            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-[#32a039]">
+              Recarregar pàgina
+            </button>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Carregar empreses només si estem a la vista d'empreses (no hi ha empresa seleccionada)
+  if (document.getElementById('empresas-container')) {
+    document.addEventListener('DOMContentLoaded', loadEmpresas);
+  }
+</script>
+
+<style>
+  .loading-state {
+    text-align: center;
+    padding: 4rem 0;
+  }
+
+  .loading-pulse {
+    display: inline-block;
+    font-size: 1.25rem;
+    color: #6b7280;
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+</Layout>
