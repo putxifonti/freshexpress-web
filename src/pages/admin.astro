@@ -108,6 +108,25 @@ try {
             </p>
           </div>
           <div class="flex items-center space-x-3">
+            <button
+              id="ml-predictor-btn"
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+            >
+              <svg
+                class="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+              <span id="ml-btn-text">Predictor Vendes (ML)</span>
+            </button>
             <a
               href="/admin/databroker"
               class="px-4 py-2 bg-[#3BB143] text-white rounded-lg hover:bg-green-600 transition-colors flex items-center"
@@ -609,6 +628,19 @@ try {
   const cancelEditBtn = document.getElementById("cancel-edit");
   const editForm = document.getElementById("edit-user-form") as HTMLFormElement;
 
+  // Iniciar Python ML automàticament quan es carrega la pàgina d'admin
+  (async function initMLServer() {
+    try {
+      await fetch("/api/admin/ml-launch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      console.log("Servidor ML iniciat de fons");
+    } catch (error) {
+      console.log("No s'ha pogut iniciar el servidor ML:", error);
+    }
+  })();
+
   function openModal() {
     if (modal) {
       modal.style.display = "flex";
@@ -684,5 +716,14 @@ try {
       errorDiv?.classList.remove("hidden");
       if (errorDiv) errorDiv.textContent = "Error de connexió";
     }
+  });
+
+  // Botó per obrir l'aplicació ML (Python ja està executant-se de fons)
+  const mlBtn = document.getElementById("ml-predictor-btn");
+  const mlBtnText = document.getElementById("ml-btn-text");
+
+  mlBtn?.addEventListener("click", async () => {
+    // Obrir directament la pàgina (Python ja està executant-se)
+    window.open("http://localhost:5000", "_blank");
   });
 </script>

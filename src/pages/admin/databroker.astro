@@ -55,7 +55,7 @@ if (!user || user.rol !== "admin") {
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   ></path>
                 </svg>
-                Data Broker Ètic
+                Data Broker
               </h1>
               <p class="text-sm text-gray-500">
                 Analítiques i estadístiques de la plataforma
@@ -1063,7 +1063,7 @@ if (!user || user.rol !== "admin") {
               .map(
                 (p) => `
               <tr>
-                <td class="px-6 py-3 text-sm text-gray-900">${p.product_name || p.product_id || "-"}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">${p.product_name || `Producte #${p.product_id}` || "-"}</td>
                 <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(p.clics)}</td>
               </tr>
             `
@@ -1080,7 +1080,7 @@ if (!user || user.rol !== "admin") {
               .map(
                 (p) => `
               <tr>
-                <td class="px-6 py-3 text-sm text-gray-900">${p.product_name || p.product_id || "-"}</td>
+                <td class="px-6 py-3 text-sm text-gray-900">${p.product_name || `Producte #${p.product_id}` || "-"}</td>
                 <td class="px-6 py-3 text-sm text-gray-600 text-right">${formatNumber(p.vegades_afegit)}</td>
               </tr>
             `
