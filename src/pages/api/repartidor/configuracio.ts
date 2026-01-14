@@ -32,6 +32,15 @@ export const PUT: APIRoute = async ({ cookies, request }) => {
     const body = await request.json();
     const { vehiculo_tipo, matricula, zona_preferida, radio_km, licencia_conducir } = body;
 
+    // Convertir undefined a null per evitar errors SQL
+    const values = {
+      vehiculo_tipo: vehiculo_tipo ?? null,
+      matricula: matricula ?? null,
+      zona_preferida: zona_preferida ?? null,
+      radio_km: radio_km ?? null,
+      licencia_conducir: licencia_conducir ?? null
+    };
+
     // Verificar si ja existeix un registre de repartidor
     const existeix = await queryOperacional<any[]>(
       'SELECT id FROM repartidores WHERE usuario_id = ?',
@@ -49,7 +58,7 @@ export const PUT: APIRoute = async ({ cookies, request }) => {
           licencia_conducir = ?,
           fecha_actualizacion = NOW()
         WHERE usuario_id = ?
-      `, [vehiculo_tipo, matricula, zona_preferida, radio_km, licencia_conducir, user.id]);
+      `, [values.vehiculo_tipo, values.matricula, values.zona_preferida, values.radio_km, values.licencia_conducir, user.id]);
     } else {
       // Error: No hauria d'arribar aquí si l'usuari té rol repartidor però no té registre
       return new Response(JSON.stringify({ 

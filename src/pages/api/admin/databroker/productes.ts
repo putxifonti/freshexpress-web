@@ -124,12 +124,18 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     try {
       productesCarret = await queryBroker<any[]>(
         `SELECT 
-          JSON_UNQUOTE(JSON_EXTRACT(datos_evento, '$.productId')) as product_id,
-          JSON_UNQUOTE(JSON_EXTRACT(datos_evento, '$.productName')) as product_name,
+          JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productId')) as product_id,
+          COALESCE(
+            p.nombre,
+            JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productName')),
+            CONCAT('Producte #', JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productId')))
+          ) as product_name,
           COUNT(*) as vegades_afegit
         FROM eventos_web ew
-        WHERE tipo_evento IN ('add_to_cart', 'product_click') 
-          AND datos_evento IS NOT NULL ${dateFilter}
+        LEFT JOIN freshexpress_operacional.productos p 
+          ON p.id = JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productId'))
+        WHERE ew.tipo_evento = 'add_to_cart'
+          AND ew.datos_evento IS NOT NULL ${dateFilter}
         GROUP BY product_id, product_name
         HAVING product_id IS NOT NULL
         ORDER BY vegades_afegit DESC
@@ -144,12 +150,18 @@ export const GET: APIRoute = async ({ cookies, url }) => {
     try {
       clicksProductes = await queryBroker<any[]>(
         `SELECT 
-          JSON_UNQUOTE(JSON_EXTRACT(datos_evento, '$.productId')) as product_id,
-          JSON_UNQUOTE(JSON_EXTRACT(datos_evento, '$.productName')) as product_name,
+          JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productId')) as product_id,
+          COALESCE(
+            p.nombre,
+            JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productName')),
+            CONCAT('Producte #', JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productId')))
+          ) as product_name,
           COUNT(*) as clics
         FROM eventos_web ew
-        WHERE tipo_evento = 'product_click' 
-          AND datos_evento IS NOT NULL ${dateFilter}
+        LEFT JOIN freshexpress_operacional.productos p 
+          ON p.id = JSON_UNQUOTE(JSON_EXTRACT(ew.datos_evento, '$.productId'))
+        WHERE ew.tipo_evento = 'product_click' 
+          AND ew.datos_evento IS NOT NULL ${dateFilter}
         GROUP BY product_id, product_name
         HAVING product_id IS NOT NULL
         ORDER BY clics DESC

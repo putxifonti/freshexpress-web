@@ -26,13 +26,21 @@ let empreses: any[] = [];
 let errorCarregant = false;
 
 try {
-  // ⭐ CARREGAR EMPRESES
-  // En producció (Vercel HTTPS), fem consulta directa a MySQL
-  // En desenvolupament local, podríem usar l'API REST
-  empreses = await queryOperacional<any[]>(
-    'SELECT id, nombre, logoUrl, descripcion, categoria FROM empresas WHERE activo = 1 ORDER BY nombre ASC'
-  );
-  console.log(`✅ ${empreses.length} empreses carregades`);
+  // ⭐ CARREGAR EMPRESES DESDE L'API REST (Oracle Server)
+  const response = await fetch('http://143.47.36.36:3000/empresas');
+  
+  if (!response.ok) {
+    throw new Error(`Error carregant empreses: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  
+  if (data.success && data.empresas) {
+    empreses = data.empresas;
+    console.log(`✅ ${empreses.length} empreses carregades des de l'API REST`);
+  } else {
+    throw new Error('Format de resposta incorrecte de l\'API');
+  }
 
   // Si hi ha empresa seleccionada, obtenir els seus productes
   if (empresaId) {
@@ -96,11 +104,11 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                     <a 
                       href={`/productes?empresa=${empresa.id}`}
                       class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-                    >Si us plau, torna-ho a intentar més tard
+                    >
                       <div class="h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-6">
-                        {empresa.logoUrl ? (
+                        {empresa.logo ? (
                           <img 
-                            src={empresa.logoUrl} 
+                            src={empresa.logo} 
                             alt={`Logo ${empresa.nombre}`}
                             class="w-20 h-20 object-contain group-hover:scale-110 transition-transform"
                           />
@@ -248,10 +256,11 @@ const empresesPerCategoria = empreses.reduce((acc: any, emp: any) => {
                           </button>
                         </div>
                         <button 
-                          class="add-to-cart-btn flex-1 h-8 bg-[#3BB143] text-white text-sm font-medium rounded-lg hover:bg-[#32a039] transition-colors flex items-center justify-center gap-1"
+                          class="add-to-cart add-to-cart-btn flex-1 h-8 bg-[#3BB143] text-white text-sm font-medium rounded-lg hover:bg-[#32a039] transition-colors flex items-center justify-center gap-1"
                           data-product-id={producte.id}
                           data-product-name={producte.nombre}
                           data-product-price={producte.precio_oferta || producte.precio}
+                          data-action="add-to-cart"
                         >
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
