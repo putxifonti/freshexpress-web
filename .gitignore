@@ -66,8 +66,4 @@ coverage/
 *.tmp
 *.temp
 .cache/
-
-
-
-
-ML
+ML/
