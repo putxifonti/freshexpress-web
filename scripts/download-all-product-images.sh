@@ -6,8 +6,15 @@
 OUTPUT_DIR="../public/img/productos"
 mkdir -p "$OUTPUT_DIR"
 
-# API Key de Pixabay (pública)
-API_KEY="45665705-aadde42b166a4edfba7d46476"
+# API Key de Pixabay - Utilitza variable d'entorn
+# Obté la teva API key gratuïta a: https://pixabay.com/api/docs/
+API_KEY="${PIXABAY_API_KEY:-YOUR_API_KEY_HERE}"
+
+if [ "$API_KEY" = "YOUR_API_KEY_HERE" ]; then
+    echo "⚠️  ERROR: Configura la variable d'entorn PIXABAY_API_KEY"
+    echo "Obté una API key gratuïta a: https://pixabay.com/api/docs/"
+    exit 1
+fi
 
 # Funció per descarregar imatge amb cerca específica
 download_image() {

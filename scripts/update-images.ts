@@ -1,12 +1,17 @@
 // Script per actualitzar les imatges dels productes
 import mysql from 'mysql2/promise';
+import * as dotenv from 'dotenv';
 
-// Connexió directa sense dependre d'Astro
+// Carregar variables d'entorn
+dotenv.config();
+
+// Connexió utilitzant variables d'entorn
 const pool = mysql.createPool({
-  host: '143.47.36.36',
-  user: 'api',
-  password: 'api',
-  database: 'freshexpress_operacional',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME_OPERACIONAL || 'freshexpress_operacional',
   waitForConnections: true,
   connectionLimit: 5,
 });

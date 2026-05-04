@@ -7,7 +7,15 @@ OUTPUT_DIR="../public/img/productos"
 mkdir -p "$OUTPUT_DIR"
 
 # API Key de Pexels (gratuïta - registra't a https://www.pexels.com/api/)
-PEXELS_API_KEY="YOUR_API_KEY_HERE"
+# API Key de Pexels - Utilitza variable d'entorn
+# Obté la teva API key gratuïta a: https://www.pexels.com/api/
+PEXELS_API_KEY="${PEXELS_API_KEY:-YOUR_API_KEY_HERE}"
+
+if [ "$PEXELS_API_KEY" = "YOUR_API_KEY_HERE" ]; then
+    echo "⚠️  ERROR: Configura la variable d'entorn PEXELS_API_KEY"
+    echo "Obté una API key gratuïta a: https://www.pexels.com/api/"
+    exit 1
+fi
 
 echo "======================================"
 echo "  Descarregant imatges de productes"

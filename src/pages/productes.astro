@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { verifyToken, getUserById } from '../lib/auth';
-import { queryOperacional } from '../lib/db';
+import { queryOperacional, getEmpreses } from '../lib/db';
 
 // Verificar autenticació
 const token = Astro.cookies.get('auth_token')?.value;
@@ -26,26 +26,14 @@ let empreses: any[] = [];
 let errorCarregant = false;
 
 try {
-  // ⭐ CARREGAR EMPRESES DESDE L'API REST (Oracle Server)
-  const response = await fetch('http://143.47.36.36:3000/empresas');
-  
-  if (!response.ok) {
-    throw new Error(`Error carregant empreses: ${response.status}`);
-  }
-  
-  const data = await response.json();
-  
-  if (data.success && data.empresas) {
-    empreses = data.empresas;
-    console.log(`✅ ${empreses.length} empreses carregades des de l'API REST`);
-  } else {
-    throw new Error('Format de resposta incorrecte de l\'API');
-  }
+  // ⭐ CARREGAR EMPRESES DIRECTAMENT DES DE LA BD
+  empreses = await getEmpreses();
+  console.log(`✅ ${empreses.length} empreses carregades des de la BD`);
 
   // Si hi ha empresa seleccionada, obtenir els seus productes
   if (empresaId) {
     const empresaData = await queryOperacional<any[]>(
-      'SELECT id, nombre, descripcion, categoria, logo, direccion, telefono, email FROM empresas WHERE id = ? AND activo = 1',
+      'SELECT id, nombre, descripcion, categoria, logo, direccion, telefono, email, valoracion_media FROM empresas WHERE id = ? AND activo = 1',
       [empresaId]
     );
     empresaActual = empresaData[0] || null;
