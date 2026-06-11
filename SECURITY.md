@@ -1,74 +1,74 @@
-# ⚠️ Informació Sensible - NO PUJAR A GITHUB
+# ⚠️ Sensitive Information - DO NOT PUSH TO GITHUB
 
-Aquest fitxer conté notes sobre dades sensibles que **MAI** s'han de pujar al repositori públic.
+This file contains notes about sensitive data that should **NEVER** be pushed to the public repository.
 
-## 🚫 Què NO Pujar Mai
+## 🚫 What to NEVER Push
 
-### 1. Fitxers de configuració amb secrets
+### 1. Configuration files with secrets
 
-- ❌ `.env` (fitxer real amb credencials)
-- ❌ `ecosystem.config.js` amb secrets
-- ❌ Fitxers de backup de MySQL (`.sql` amb dades reals)
-- ❌ Claus SSH o certificats SSL
+- ❌ `.env` (real file with credentials)
+- ❌ `ecosystem.config.js` with secrets
+- ❌ MySQL backup files (`.sql` with real data)
+- ❌ SSH keys or SSL certificates
 
-### 2. Dades de producció
+### 2. Production data
 
-- ❌ Bases de dades amb informació real d'usuaris
-- ❌ Imatges o fitxers pujats per usuaris
-- ❌ Logs amb informació personal
-- ❌ Sessions o tokens actius
+- ❌ Databases with real user information
+- ❌ Images or files uploaded by users
+- ❌ Logs with personal information
+- ❌ Active sessions or tokens
 
-### 3. API Keys i secrets
+### 3. API keys and secrets
 
 - ❌ Google Maps API Key
 - ❌ JWT_SECRET
-- ❌ Credencials de bases de dades
-- ❌ Credencials SMTP
-- ❌ Tokens de serveis externs
+- ❌ Database credentials
+- ❌ SMTP credentials
+- ❌ Tokens from external services
 
-## ✅ Què SÍ Pujar
+## ✅ What CAN be pushed
 
-- ✅ `.env.example` (plantilla sense valors reals)
-- ✅ Codi font
-- ✅ Scripts de configuració (sense secrets)
-- ✅ Documentació
-- ✅ Fitxers SQL d'estructura (sense dades sensibles)
+- ✅ `.env.example` (template without real values)
+- ✅ Source code
+- ✅ Configuration scripts (without secrets)
+- ✅ Documentation
+- ✅ SQL structure files (without sensitive data)
 
-## 🔍 Abans de fer commit
+## 🔍 Before committing
 
-Revisa sempre que:
+Always check that:
 
-1. El fitxer `.gitignore` està actualitzat
-2. No hi ha secrets en el codi
-3. Les variables sensibles usen `process.env` o `import.meta.env`
-4. No hi ha IP addresses o URLs de producció hardcoded
-5. Les contrasenyes de test són genèriques
+1. The `.gitignore` file is up to date
+2. There are no secrets in the code
+3. Sensitive variables use `process.env` or `import.meta.env`
+4. There are no hardcoded IP addresses or production URLs
+5. Test passwords are generic
 
-## 🛡️ Millors Pràctiques
+## 🛡️ Best Practices
 
-### Variables d'entorn
+### Environment variables
 
 ```typescript
-// ✅ CORRECTE - Usa variables d'entorn
+// ✅ CORRECT - Use environment variables
 const dbHost = import.meta.env.DB_HOST;
 const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
-// ❌ INCORRECTE - Hardcoded
+// ❌ INCORRECT - Hardcoded
 const dbHost = "143.47.36.36";
 const apiKey = "YOUR_API_KEY_HERE";
 ```
 
-### Configuració de serveis
+### Service configuration
 
 ```typescript
-// ✅ CORRECTE
+// ✅ CORRECT
 const config = {
   host: import.meta.env.DB_HOST || "localhost",
   user: import.meta.env.DB_USER || "root",
   password: import.meta.env.DB_PASSWORD || "",
 };
 
-// ❌ INCORRECTE
+// ❌ INCORRECT
 const config = {
   host: "143.47.36.36",
   user: "api",
@@ -76,55 +76,55 @@ const config = {
 };
 ```
 
-## 🔐 Generar secrets segurs
+## 🔐 Generating secure secrets
 
 ### JWT Secret
 
 ```bash
-# Opció 1: OpenSSL
+# Option 1: OpenSSL
 openssl rand -base64 32
 
-# Opció 2: Node.js
+# Option 2: Node.js
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-### Salt per anonimització
+### Salt for anonymisation
 
 ```bash
 openssl rand -hex 16
 ```
 
-## 📝 Checklist abans de publicar
+## 📝 Checklist before publishing
 
-- [ ] Revisar tot el codi per secrets hardcoded
-- [ ] Verificar que `.env` està al `.gitignore`
-- [ ] Comprovar que només `.env.example` té valors genèrics
-- [ ] Eliminar comentaris amb informació sensible
-- [ ] Revisar l'històric de Git per si s'ha pujat alguna cosa sensible
-- [ ] Verificar que les IPs i URLs són variables d'entorn
-- [ ] Comprovar que no hi ha credencials en scripts
+- [ ] Review all code for hardcoded secrets
+- [ ] Verify that `.env` is in `.gitignore`
+- [ ] Check that only `.env.example` has generic values
+- [ ] Remove comments with sensitive information
+- [ ] Review Git history in case something sensitive was pushed
+- [ ] Verify that IPs and URLs are environment variables
+- [ ] Check that there are no credentials in scripts
 
-## 🚨 Si has pujat secrets per error
+## 🚨 If you accidentally pushed secrets
 
-1. **NO eliminar només el commit** - l'històric de Git mantindrà els secrets
-2. **Regenerar TOTS els secrets exposats** (API keys, contrasenyes, etc.)
-3. **Neteja l'històric de Git** amb eines com:
+1. **DO NOT just delete the commit** - Git history will retain the secrets
+2. **Regenerate ALL exposed secrets** (API keys, passwords, etc.)
+3. **Clean the Git history** with tools like:
    ```bash
    git filter-branch --force --index-filter \
      "git rm --cached --ignore-unmatch path/to/file" \
      --prune-empty --tag-name-filter cat -- --all
    ```
-4. **Força push** després de netejar (només si és el teu repositori)
-5. **Informa el servei** si has exposat API keys (Google, etc.)
+4. **Force push** after cleaning (only if it's your repository)
+5. **Notify the service** if you have exposed API keys (Google, etc.)
 
-## 📧 Contacte Segur
+## 📧 Secure Contact
 
-Per compartir secrets amb l'equip, utilitza:
+To share secrets with the team, use:
 
-- **1Password** / **Bitwarden** (gestors de contrasenyes)
-- **Canals xifrats** (Signal, Wire)
-- **MAI per email o Slack sense xifratge**
+- **1Password** / **Bitwarden** (password managers)
+- **Encrypted channels** (Signal, Wire)
+- **NEVER by email or Slack without encryption**
 
 ---
 
-**Recorda**: Un secret exposat és un secret compromès. Quan tinguis dubtes, regenera-ho.
+**Remember**: An exposed secret is a compromised secret. When in doubt, regenerate it.

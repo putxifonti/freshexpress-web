@@ -1,183 +1,183 @@
-# 💼 FreshExpress - Projecte de Portafoli
+# 💼 FreshExpress - Portfolio Project
 
-## 📖 Sobre aquest projecte
+## 📖 About this project
 
-FreshExpress és una aplicació web completa desenvolupada com a projecte de portafoli que simula una plataforma real de lliurament ecològic d'última milla amb vehicles elèctrics.
+FreshExpress is a complete web application developed as a portfolio project that simulates a real last-mile eco-friendly delivery platform using electric vehicles.
 
-## 🎯 Objectius del Projecte
+## 🎯 Project Goals
 
-Aquest projecte demostra competències en:
+This project demonstrates competencies in:
 
-### Backend & Base de Dades
+### Backend & Database
 
-- ✅ **Arquitectura de bases de dades** - Disseny de dues BD (operacional + data broker ètic)
-- ✅ **MySQL avançat** - Consultes complexes, joins, transaccions
-- ✅ **Connection pooling** - Gestió eficient de connexions a BD
-- ✅ **APIs RESTful** - Endpoints ben estructurats i documentats
-- ✅ **Autenticació JWT** - Sistema segur amb bcrypt i tokens
+- ✅ **Database architecture** - Design of two DBs (operational + ethical data broker)
+- ✅ **Advanced MySQL** - Complex queries, joins, transactions
+- ✅ **Connection pooling** - Efficient database connection management
+- ✅ **RESTful APIs** - Well-structured and documented endpoints
+- ✅ **JWT Authentication** - Secure system with bcrypt and tokens
 
 ### Frontend & UX
 
-- ✅ **Astro SSR** - Server-Side Rendering per millor SEO i rendiment
-- ✅ **TypeScript** - Codi type-safe i mantenible
-- ✅ **Tailwind CSS** - Disseny modern i responsive
-- ✅ **Components reutilitzables** - Arquitectura modular
-- ✅ **UX multi-rol** - Interfícies diferents per clients, repartidors i admins
+- ✅ **Astro SSR** - Server-Side Rendering for better SEO and performance
+- ✅ **TypeScript** - Type-safe and maintainable code
+- ✅ **Tailwind CSS** - Modern and responsive design
+- ✅ **Reusable components** - Modular architecture
+- ✅ **Multi-role UX** - Different interfaces for clients, delivery drivers, and admins
 
-### Funcionalitats Avançades
+### Advanced Features
 
-- ✅ **Sistema de tracking en temps real** - Seguiment de comandes
-- ✅ **Gestió de rols** - RBAC (Role-Based Access Control)
-- ✅ **Cistella de compra** - Amb persistència i gestió d'estat
-- ✅ **Sistema de valoracions** - Puntuació de repartidors
-- ✅ **Data broker ètic** - Anonimització amb consentiment explícit
-- ✅ **Càlcul d'impacte ecològic** - Emissions de CO₂ estalviades
+- ✅ **Real-time tracking system** - Order tracking
+- ✅ **Role management** - RBAC (Role-Based Access Control)
+- ✅ **Shopping cart** - With persistence and state management
+- ✅ **Rating system** - Delivery driver scoring
+- ✅ **Ethical data broker** - Anonymisation with explicit consent
+- ✅ **Ecological impact calculation** - CO₂ emissions saved
 
 ### DevOps & Deployment
 
-- ✅ **Variables d'entorn** - Configuració per entorns
-- ✅ **Git workflow** - Control de versions professional
-- ✅ **Documentació completa** - README, guies de desplegament
-- ✅ **Seguretat** - Bones pràctiques i gestió de secrets
-- ✅ **Escalabilitat** - Arquitectura preparada per producció
+- ✅ **Environment variables** - Configuration per environment
+- ✅ **Git workflow** - Professional version control
+- ✅ **Complete documentation** - README, deployment guides
+- ✅ **Security** - Best practices and secrets management
+- ✅ **Scalability** - Production-ready architecture
 
-## 🏗️ Arquitectura Tècnica
+## 🏗️ Technical Architecture
 
-### Stack Principal
+### Main Stack
 
 ```
 ┌─────────────────────────────────────────┐
 │         Frontend (Astro + TS)           │
 │  ┌──────────┐ ┌──────────┐ ┌─────────┐ │
-│  │ Client   │ │Repartidor│ │  Admin  │ │
+│  │  Client  │ │ Delivery │ │  Admin  │ │
 │  └────┬─────┘ └────┬─────┘ └────┬────┘ │
 └───────┼────────────┼────────────┼───────┘
         │            │            │
         ▼            ▼            ▼
 ┌─────────────────────────────────────────┐
-│           API REST (Astro)              │
+│           REST API (Astro)              │
 │   /api/auth  /api/cart  /api/user       │
 │   /api/repartidor  /api/admin           │
 └───────────────────┬─────────────────────┘
                     │
                     ▼
 ┌─────────────────────────────────────────┐
-│     Connexió MySQL (Pool)               │
+│     MySQL Connection (Pool)             │
 └───────┬─────────────────────┬───────────┘
         │                     │
         ▼                     ▼
 ┌──────────────┐     ┌─────────────────┐
-│  BD Operac.  │     │  BD Data Broker │
-│  (Principal) │     │  (Anonimitzada) │
+│ Operational  │     │   Data Broker   │
+│     DB       │     │  (Anonymised)   │
 └──────────────┘     └─────────────────┘
 ```
 
-### Flux d'Autenticació
+### Authentication Flow
 
 ```
-1. Login → 2. Verificar credencials → 3. Generar JWT
+1. Login → 2. Verify credentials → 3. Generate JWT
    ↓              ↓                        ↓
-4. Guardar token en cookie → 5. Middleware verifica token
+4. Store token in cookie → 5. Middleware verifies token
    ↓                              ↓
-6. Accés a rutes protegides ← Token vàlid
+6. Access to protected routes ← Valid token
 ```
 
-### Sistema de Rols
+### Role System
 
-| Rol          | Accés                               |
-| ------------ | ----------------------------------- |
-| `cliente`    | Dashboard client, compres, tracking |
-| `repartidor` | Panel repartidor, gestió entregues  |
-| `admin`      | Tots els panels + gestió d'usuaris  |
+| Role         | Access                                    |
+| ------------ | ----------------------------------------- |
+| `cliente`    | Client dashboard, purchases, tracking     |
+| `repartidor` | Delivery driver panel, delivery management|
+| `admin`      | All panels + user management              |
 
-## 📊 Funcionalitats Destacades
+## 📊 Key Features
 
-### 1. Sistema de Tracking en Temps Real
+### 1. Real-Time Tracking System
 
 ```typescript
-// Polling automàtic cada 30 segons
+// Automatic polling every 30 seconds
 setInterval(async () => {
   const data = await fetch("/api/rastreig?codigo=" + codigo);
   updateMap(data.ubicacion);
 }, 30000);
 ```
 
-### 2. Data Broker Ètic
+### 2. Ethical Data Broker
 
-- **Anonimització**: SHA-256 amb salt
-- **Consentiment**: Opt-in explícit
-- **Transparència**: Documentació del què es recull
-- **Beneficis**: Descomptes per participants
+- **Anonymisation**: SHA-256 with salt
+- **Consent**: Explicit opt-in
+- **Transparency**: Documentation of what is collected
+- **Benefits**: Discounts for participants
 
-### 3. Càlcul d'Emissions
+### 3. Emissions Calculation
 
 ```typescript
 const co2Saved = distanciaKm * 0.12; // kg CO₂ per km
-const arbresEquivalents = co2Saved / 21; // 1 arbre = 21kg CO₂/any
+const treesEquivalent = co2Saved / 21; // 1 tree = 21kg CO₂/year
 ```
 
-## 🎨 Disseny UI/UX
+## 🎨 UI/UX Design
 
-### Paleta de Colors
+### Colour Palette
 
-- **Verd Principal**: `#3BB143` (Sostenibilitat)
-- **Blau Corporatiu**: `#0047AB` (Confiança)
-- **Groc Accent**: `#FFD700` (Valoracions)
+- **Primary Green**: `#3BB143` (Sustainability)
+- **Corporate Blue**: `#0047AB` (Trust)
+- **Accent Yellow**: `#FFD700` (Ratings)
 
-### Components Destacats
+### Key Components
 
-- **Headers dinàmics** per cada rol
-- **Cards de productes** amb hover effects
-- **Formularis accessibles** amb validació
-- **Mapes interactius** amb Google Maps
-- **Loading states** i feedback visual
+- **Dynamic headers** for each role
+- **Product cards** with hover effects
+- **Accessible forms** with validation
+- **Interactive maps** with Google Maps
+- **Loading states** and visual feedback
 
-## 📈 Mètriques del Projecte
+## 📈 Project Metrics
 
-- **Línies de codi**: ~5,000+
+- **Lines of code**: ~5,000+
 - **Components**: 15+
-- **Pàgines**: 25+
-- **Endpoints API**: 20+
-- **Taules BD**: 12+
-- **Temps desenvolupament**: ~X setmanes
+- **Pages**: 25+
+- **API endpoints**: 20+
+- **DB tables**: 12+
+- **Development time**: ~X weeks
 
-## 🔮 Roadmap Future (Possibles millores)
+## 🔮 Future Roadmap (Possible improvements)
 
-- [ ] WebSockets per tracking en temps real
-- [ ] App mòbil amb React Native
-- [ ] Sistema de pagament amb Stripe
-- [ ] Xat entre client i repartidor
-- [ ] Notificacions push
-- [ ] Dashboard d'analytics amb gràfiques
-- [ ] Sistema de cupons i promocions
-- [ ] API pública per tercers
-- [ ] Integració amb altres plataformes
+- [ ] WebSockets for real-time tracking
+- [ ] Mobile app with React Native
+- [ ] Payment system with Stripe
+- [ ] Chat between client and delivery driver
+- [ ] Push notifications
+- [ ] Analytics dashboard with charts
+- [ ] Coupon and promotions system
+- [ ] Public API for third parties
+- [ ] Integration with other platforms
 
-## 🎓 Aprenentatges Clau
+## 🎓 Key Learnings
 
-Aquest projecte m'ha permès:
+This project allowed me to:
 
-1. **Arquitectura de software** - Dissenyar una aplicació escalable des de zero
-2. **Gestió de bases de dades** - Disseny relacional i optimització de queries
-3. **Seguretat web** - Autenticació, autorització, protecció de dades
-4. **UX multi-rol** - Diferents interfícies segons l'usuari
-5. **APIs RESTful** - Disseny i documentació d'endpoints
-6. **TypeScript avançat** - Types, interfaces, genèrics
-7. **DevOps bàsic** - Desplegament, monitorització, backups
+1. **Software architecture** - Design a scalable application from scratch
+2. **Database management** - Relational design and query optimisation
+3. **Web security** - Authentication, authorisation, data protection
+4. **Multi-role UX** - Different interfaces depending on the user
+5. **RESTful APIs** - Endpoint design and documentation
+6. **Advanced TypeScript** - Types, interfaces, generics
+7. **Basic DevOps** - Deployment, monitoring, backups
 
-## 📞 Contacte Professional
+## 📞 Professional Contact
 
-Aquest projecte forma part del meu portafoli professional. Si t'interessa col·laborar o tens preguntes:
+This project is part of my professional portfolio. If you are interested in collaborating or have questions:
 
-- **LinkedIn**: [El teu perfil]
-- **GitHub**: [El teu GitHub]
-- **Portfolio**: [La teva web]
-- **Email**: [El teu email professional]
+- **LinkedIn**: [Your profile]
+- **GitHub**: [Your GitHub]
+- **Portfolio**: [Your website]
+- **Email**: [Your professional email]
 
-## 📄 Llicència
+## 📄 Licence
 
-Aquest projecte està sota llicència MIT i és lliure per estudiar, modificar i utilitzar amb fins educatius.
+This project is under the MIT licence and is free to study, modify, and use for educational purposes.
 
 ---
 
-**Desenvolupat amb** ❤️ **i** ☕ **per demostrar competències en desenvolupament web full-stack**
+**Developed with** ❤️ **and** ☕ **to demonstrate full-stack web development competencies**

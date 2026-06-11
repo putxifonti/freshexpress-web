@@ -1,200 +1,200 @@
-# ✅ Checklist: Preparar per publicar a GitHub
+# ✅ Checklist: Prepare for publishing on GitHub
 
-Abans de fer el primer `git push` al repositori públic, assegura't de completar tots aquests passos:
+Before making the first `git push` to the public repository, make sure to complete all these steps:
 
-## 🔒 1. Seguretat i Secrets
+## 🔒 1. Security and Secrets
 
-- [x] ✅ Eliminar API REST externa (http://143.47.36.36:3000)
-- [x] ✅ Substituir per consultes directes a la base de dades
-- [x] ✅ Convertir secrets hardcoded a variables d'entorn
-- [x] ✅ Actualitzar `.gitignore` per excloure fitxers sensibles
-- [x] ✅ Verificar que `.env` està al `.gitignore`
-- [x] ✅ Crear `.env.example` amb valors genèrics
-- [ ] 🔄 Revisar tot el codi per secrets restants
+- [x] ✅ Remove external REST API (http://143.47.36.36:3000)
+- [x] ✅ Replace with direct database queries
+- [x] ✅ Convert hardcoded secrets to environment variables
+- [x] ✅ Update `.gitignore` to exclude sensitive files
+- [x] ✅ Verify that `.env` is in `.gitignore`
+- [x] ✅ Create `.env.example` with generic values
+- [ ] 🔄 Review all code for remaining secrets
 
-## 📝 2. Documentació
+## 📝 2. Documentation
 
-- [x] ✅ README.md actualitzat amb informació del projecte
-- [x] ✅ DEPLOYMENT.md amb instruccions de desplegament
-- [x] ✅ SECURITY.md amb bones pràctiques de seguretat
-- [x] ✅ PORTFOLIO.md amb informació del portafoli
-- [x] ✅ CONTRIBUTING.md (si existeix)
-- [x] ✅ LICENSE amb llicència MIT
-- [ ] 🔄 Actualitzar informació de contacte al README
+- [x] ✅ README.md updated with project information
+- [x] ✅ DEPLOYMENT.md with deployment instructions
+- [x] ✅ SECURITY.md with security best practices
+- [x] ✅ PORTFOLIO.md with portfolio information
+- [x] ✅ CONTRIBUTING.md (if it exists)
+- [x] ✅ LICENSE with MIT licence
+- [ ] 🔄 Update contact information in README
 
-## 🗑️ 3. Neteja de Fitxers
+## 🗑️ 3. File Cleanup
 
-- [x] ✅ Carpeta ML/ exclosa del repositori (.gitignore)
-- [x] ✅ Fitxers .csv amb dades sensibles exclosos
-- [ ] 🔄 Eliminar fitxers de backup (.sql, .zip, etc.)
-- [ ] 🔄 Eliminar logs amb informació personal
-- [ ] 🔄 Eliminar node_modules (ja al .gitignore)
-- [ ] 🔄 Eliminar carpeta dist/ (ja al .gitignore)
+- [x] ✅ ML/ folder excluded from repository (.gitignore)
+- [x] ✅ .csv files with sensitive data excluded
+- [ ] 🔄 Remove backup files (.sql, .zip, etc.)
+- [ ] 🔄 Remove logs with personal information
+- [ ] 🔄 Remove node_modules (already in .gitignore)
+- [ ] 🔄 Remove dist/ folder (already in .gitignore)
 
-## 🔍 4. Revisió de Codi
+## 🔍 4. Code Review
 
-- [x] ✅ No hi ha IPs hardcoded
-- [x] ✅ No hi ha contrasenyes en el codi
-- [x] ✅ No hi ha API keys en el codi
-- [x] ✅ Totes les URLs són variables d'entorn
-- [ ] 🔄 Eliminar console.log() innecessaris
-- [ ] 🔄 Comentaris en català/anglès consistents
-- [ ] 🔄 Format del codi consistent
+- [x] ✅ No hardcoded IPs
+- [x] ✅ No passwords in code
+- [x] ✅ No API keys in code
+- [x] ✅ All URLs are environment variables
+- [ ] 🔄 Remove unnecessary console.log()
+- [ ] 🔄 Consistent English comments
+- [ ] 🔄 Consistent code formatting
 
-## 📦 5. Configuració del Repositori
+## 📦 5. Repository Configuration
 
 ```bash
-# Inicialitzar Git (si no està fet)
+# Initialise Git (if not done)
 git init
 
-# Afegir .gitignore
+# Add .gitignore
 git add .gitignore
 
-# Afegir fitxers
+# Add files
 git add .
 
-# Primer commit
-git commit -m "Initial commit: FreshExpress - Plataforma de lliurament ecològic"
+# First commit
+git commit -m "Initial commit: FreshExpress - Eco-friendly delivery platform"
 
-# Connectar amb GitHub
-git remote add origin https://github.com/EL-TEU-USUARI/FreshExpress.git
+# Connect to GitHub
+git remote add origin https://github.com/YOUR-USERNAME/FreshExpress.git
 
-# Pujar al repositori
+# Push to repository
 git branch -M main
 git push -u origin main
 ```
 
 ## 🎨 6. GitHub Repository Settings
 
-Després de pujar el repositori a GitHub:
+After pushing the repository to GitHub:
 
-- [ ] Afegir descripció al repositori
-- [ ] Afegir topics/tags: `astro`, `typescript`, `mysql`, `tailwindcss`, `ecommerce`, `sustainability`
-- [ ] Configurar GitHub Pages (si aplica)
-- [ ] Afegir imatge de previsualització (screenshot)
-- [ ] Configurar protecció de la branca `main`
-- [ ] Habilitar Issues i Discussions
-- [ ] Crear README badges (build status, license, etc.)
+- [ ] Add repository description
+- [ ] Add topics/tags: `astro`, `typescript`, `mysql`, `tailwindcss`, `ecommerce`, `sustainability`
+- [ ] Configure GitHub Pages (if applicable)
+- [ ] Add preview image (screenshot)
+- [ ] Configure `main` branch protection
+- [ ] Enable Issues and Discussions
+- [ ] Create README badges (build status, license, etc.)
 
-## 📸 7. Screenshots i Demo
+## 📸 7. Screenshots and Demo
 
-- [ ] Capturar screenshots de:
-  - [ ] Pàgina principal
-  - [ ] Dashboard client
-  - [ ] Panel repartidor
+- [ ] Capture screenshots of:
+  - [ ] Home page
+  - [ ] Client dashboard
+  - [ ] Delivery driver panel
   - [ ] Admin panel
-  - [ ] Tracking en temps real
-  - [ ] Cistella i checkout
-- [ ] Crear carpeta `/docs/screenshots/`
-- [ ] Afegir screenshots al README
-- [ ] (Opcional) Crear GIF animat de la demo
-- [ ] (Opcional) Desplegar a producció per demo en viu
+  - [ ] Real-time tracking
+  - [ ] Cart and checkout
+- [ ] Create `/docs/screenshots/` folder
+- [ ] Add screenshots to README
+- [ ] (Optional) Create animated GIF of the demo
+- [ ] (Optional) Deploy to production for live demo
 
-## 🌐 8. Dades de Demo
+## 🌐 8. Demo Data
 
-- [ ] Crear base de dades de demo amb dades fictícies
-- [ ] Script SQL amb usuaris de prova:
+- [ ] Create demo database with fictitious data
+- [ ] SQL script with test users:
 
   ```sql
-  -- Client de prova
+  -- Test client
   usuario: demo@freshexpress.cat
   password: demo123
 
-  -- Repartidor de prova
+  -- Test delivery driver
   usuario: repartidor@freshexpress.cat
   password: demo123
 
-  -- Admin de prova
+  -- Test admin
   usuario: admin@freshexpress.cat
   password: admin123
   ```
 
-- [ ] Documenta les credencials de demo al README
+- [ ] Document demo credentials in README
 
-## 📄 9. Llicència
+## 📄 9. Licence
 
-- [x] ✅ Afegir fitxer LICENSE (MIT)
-- [ ] 🔄 Verificar que el teu nom/any és correcte
-- [ ] 🔄 Afegir badge de llicència al README
+- [x] ✅ Add LICENSE file (MIT)
+- [ ] 🔄 Verify your name/year is correct
+- [ ] 🔄 Add licence badge to README
 
-## 🔗 10. Links i Informació de Contacte
+## 🔗 10. Links and Contact Information
 
-Actualitzar als fitxers README i PORTFOLIO:
+Update in README and PORTFOLIO files:
 
-- [ ] El teu LinkedIn
-- [ ] El teu GitHub profile
-- [ ] La teva web/portfolio
-- [ ] El teu email professional
-- [ ] (Opcional) Link a demo en viu
+- [ ] Your LinkedIn
+- [ ] Your GitHub profile
+- [ ] Your website/portfolio
+- [ ] Your professional email
+- [ ] (Optional) Link to live demo
 
-## ✨ 11. Tocs Finals
+## ✨ 11. Final Touches
 
-- [ ] Revisar ortografia i gramàtica
-- [ ] Verificar que tots els links funcionen
-- [ ] Provar les instruccions d'instal·lació
-- [ ] Executar `npm install` en un directori net
-- [ ] Verificar que `npm run dev` funciona
-- [ ] Verificar que `npm run build` funciona
+- [ ] Check spelling and grammar
+- [ ] Verify all links work
+- [ ] Test the installation instructions
+- [ ] Run `npm install` in a clean directory
+- [ ] Verify that `npm run dev` works
+- [ ] Verify that `npm run build` works
 
-## 🚀 12. Publicació
+## 🚀 12. Publishing
 
 ```bash
-# Últimes comprovacions
+# Final checks
 git status
 git log --oneline
 
-# Si tot està bé, fer push
+# If everything is fine, push
 git push origin main
 
-# Crear release (opcional)
-git tag -a v1.0.0 -m "Primera versió pública"
+# Create release (optional)
+git tag -a v1.0.0 -m "First public version"
 git push origin v1.0.0
 ```
 
-## 📢 13. Promoció
+## 📢 13. Promotion
 
-- [ ] Compartir a LinkedIn
-- [ ] Afegir al CV i portfolio
-- [ ] (Opcional) Escriure article explicant el projecte
-- [ ] (Opcional) Crear vídeo demo
-- [ ] (Opcional) Participar en ShowHN / ProductHunt
+- [ ] Share on LinkedIn
+- [ ] Add to CV and portfolio
+- [ ] (Optional) Write an article explaining the project
+- [ ] (Optional) Create a demo video
+- [ ] (Optional) Participate in ShowHN / ProductHunt
 
-## 🔄 Comandes Finals de Verificació
+## 🔄 Final Verification Commands
 
 ```bash
-# Verificar que .env no està al repositori
+# Verify that .env is not in the repository
 git ls-files | grep .env
-# (només hauria de mostrar .env.example)
+# (should only show .env.example)
 
-# Buscar secrets potencials
+# Search for potential secrets
 git grep -i "password.*=" -- "*.ts" "*.astro" "*.js"
 git grep -i "api.*key.*=" -- "*.ts" "*.astro" "*.js"
 
-# Verificar mida del repositori
+# Verify repository size
 du -sh .git/
 
-# Verificar què es pujarà
+# Verify what will be uploaded
 git ls-files
 ```
 
 ---
 
-## ✅ Quan completis tot això
+## ✅ When you complete all this
 
-El teu projecte estarà llest per:
+Your project will be ready to:
 
-- ✨ Publicar a GitHub
-- 💼 Afegir al teu portafoli
-- 🎯 Utilitzar en sol·licituds de feina
-- 🌟 Rebre contribucions de la comunitat
-- 🚀 Desplegar a producció
+- ✨ Publish on GitHub
+- 💼 Add to your portfolio
+- 🎯 Use in job applications
+- 🌟 Receive contributions from the community
+- 🚀 Deploy to production
 
-**Bones pràctiques recordatori:**
+**Best practices reminder:**
 
-> Un repositori públic és la teva carta de presentació professional.
-> Assegura't que està net, ben documentat i sense secrets.
+> A public repository is your professional calling card.
+> Make sure it is clean, well documented, and free of secrets.
 
 ---
 
-📅 **Data de preparació**: ${new Date().toLocaleDateString('ca-ES')}
-✍️ **Revisat per**: [El teu nom]
+📅 **Preparation date**: ${new Date().toLocaleDateString('en-US')}
+✍️ **Reviewed by**: [Your name]

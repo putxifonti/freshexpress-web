@@ -1,145 +1,145 @@
-# Contribuir a FreshExpress
+# Contributing to FreshExpress
 
-Gràcies pel teu interès en contribuir a FreshExpress! 🌱
+Thank you for your interest in contributing to FreshExpress! 🌱
 
-## Com contribuir
+## How to contribute
 
-### Reportar bugs
+### Reporting bugs
 
-Si trobes un bug, si us plau obre una issue amb:
+If you find a bug, please open an issue with:
 
-- Descripció clara del problema
-- Passos per reproduir-lo
-- Comportament esperat vs comportament actual
-- Captures de pantalla si és aplicable
-- Informació del sistema (navegador, SO, etc.)
+- A clear description of the problem
+- Steps to reproduce it
+- Expected behaviour vs actual behaviour
+- Screenshots if applicable
+- System information (browser, OS, etc.)
 
-### Suggerir funcionalitats
+### Suggesting features
 
-Les idees noves són benvingudes! Obre una issue amb:
+New ideas are welcome! Open an issue with:
 
-- Descripció de la funcionalitat
-- Cas d'ús / problema que resol
-- Possibles implementacions (opcional)
+- Description of the feature
+- Use case / problem it solves
+- Possible implementations (optional)
 
-### Enviar Pull Requests
+### Submitting Pull Requests
 
-1. **Fork** el repositori
-2. **Clona** el teu fork:
+1. **Fork** the repository
+2. **Clone** your fork:
    ```bash
    git clone https://github.com/putxifonti/freshexpress-web-publicado
    ```
-3. **Crea una branca** per la teva feature:
+3. **Create a branch** for your feature:
    ```bash
-   git checkout -b feature/la-meva-funcionalitat
+   git checkout -b feature/my-new-feature
    ```
-4. **Fes els canvis** i assegura't que:
-   - El codi segueix l'estil del projecte
-   - Has afegit tests si és necessari
-   - La documentació està actualitzada
-5. **Commit** els canvis:
+4. **Make your changes** and make sure that:
+   - The code follows the project style
+   - You have added tests if necessary
+   - The documentation is up to date
+5. **Commit** your changes:
    ```bash
-   git commit -m "feat: afegeix nova funcionalitat X"
+   git commit -m "feat: add new feature X"
    ```
-6. **Push** a la teva branca:
+6. **Push** to your branch:
    ```bash
-   git push origin feature/la-meva-funcionalitat
+   git push origin feature/my-new-feature
    ```
-7. **Obre una Pull Request** amb una descripció clara dels canvis
+7. **Open a Pull Request** with a clear description of the changes
 
-## Estil de codi
+## Code style
 
-### Convencions generals
+### General conventions
 
-- Utilitza TypeScript sempre que sigui possible
-- Segueix les convencions d'Astro per als components
-- Utilitza Tailwind CSS per als estils
-- Els noms de variables i funcions en anglès
-- Els comentaris i UI en català
+- Use TypeScript whenever possible
+- Follow Astro conventions for components
+- Use Tailwind CSS for styles
+- Variable and function names in English
+- Comments and UI in English
 
-### Format de commits
+### Commit format
 
-Seguim [Conventional Commits](https://www.conventionalcommits.org/):
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` - Nova funcionalitat
-- `fix:` - Correcció de bugs
-- `docs:` - Canvis en documentació
-- `style:` - Format (no afecta el codi)
-- `refactor:` - Refactorització de codi
-- `test:` - Afegir o modificar tests
-- `chore:` - Manteniment general
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `style:` - Formatting (does not affect code)
+- `refactor:` - Code refactoring
+- `test:` - Add or modify tests
+- `chore:` - General maintenance
 
-### Exemples:
+### Examples:
 
 ```
-feat: afegeix sistema de valoracions per repartidors
-fix: corregeix error en el càlcul del total de la cistella
-docs: actualitza README amb noves instruccions
+feat: add rating system for delivery drivers
+fix: correct error in cart total calculation
+docs: update README with new instructions
 ```
 
-## Estructura del projecte
+## Project structure
 
 ```
 src/
-├── components/     # Components reutilitzables
-├── layouts/        # Layouts de pàgina
-├── lib/            # Utilitats i helpers
-├── pages/          # Pàgines i API routes
-│   ├── api/        # Endpoints REST
-│   ├── admin/      # Pàgines d'administrador
-│   └── repartidor/ # Pàgines de repartidor
-└── styles/         # Estils globals
+├── components/     # Reusable components
+├── layouts/        # Page layouts
+├── lib/            # Utilities and helpers
+├── pages/          # Pages and API routes
+│   ├── api/        # REST endpoints
+│   ├── admin/      # Admin pages
+│   └── repartidor/ # Delivery driver pages
+└── styles/         # Global styles
 ```
 
-## Desenvolupament local
+## Local development
 
-1. Instal·la dependències:
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Configura les variables d'entorn:
+2. Configure environment variables:
 
    ```bash
    cp .env.example .env
    ```
 
-3. Executa el servidor de desenvolupament:
+3. Run the development server:
 
    ```bash
    npm run dev
    ```
 
-4. Obre http://localhost:4321
+4. Open http://localhost:4321
 
 ## Tests
 
 ```bash
-# Executar tots els tests
+# Run all tests
 npm run test
 
-# Tests amb watch mode
+# Tests in watch mode
 npm run test:watch
 
 # Coverage
 npm run test:coverage
 ```
 
-## Base de dades
+## Database
 
-Per a desenvolupament local, necessites MySQL 8.0+:
+For local development, you need MySQL 8.0+:
 
 ```bash
-# Crear la base de dades
+# Create the database
 mysql -u root -p < sql/freshexpress_completa.sql
 ```
 
-## Preguntes?
+## Questions?
 
-Si tens dubtes, pots:
+If you have questions, you can:
 
-- Obrir una issue amb l'etiqueta `question`
-- Contactar amb l'equip a info@freshexpress.cat
+- Open an issue with the `question` label
+- Contact the team at info@freshexpress.cat
 
-Gràcies per contribuir! 💚
+Thank you for contributing! 💚

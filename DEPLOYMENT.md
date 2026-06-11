@@ -1,41 +1,41 @@
-# 🚀 Guia de Desplegament - FreshExpress
+# 🚀 Deployment Guide - FreshExpress
 
-## Desplegament en VPS Oracle Cloud
+## Deployment on Oracle Cloud VPS
 
-Aquesta guia explica com desplegar FreshExpress en un servidor Oracle Cloud VPS.
+This guide explains how to deploy FreshExpress on an Oracle Cloud VPS server.
 
-## 📋 Requisits del Servidor
+## 📋 Server Requirements
 
-- **OS**: Ubuntu 20.04 LTS o superior
-- **RAM**: Mínim 2GB (recomanat 4GB)
-- **CPU**: Mínim 2 cores
-- **Disc**: 20GB lliures
+- **OS**: Ubuntu 20.04 LTS or higher
+- **RAM**: Minimum 2 GB (4 GB recommended)
+- **CPU**: Minimum 2 cores
+- **Disk**: 20 GB free
 - **Ports**: 80, 443, 3306 (MySQL)
 
-## 🔧 Configuració Inicial del Servidor
+## 🔧 Initial Server Setup
 
-### 1. Actualitzar el sistema
+### 1. Update the system
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
-### 2. Instal·lar Node.js 20
+### 2. Install Node.js 20
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
-node --version  # Verificar versió
+node --version  # Verify version
 ```
 
-### 3. Instal·lar MySQL 8.0
+### 3. Install MySQL 8.0
 
 ```bash
 sudo apt install -y mysql-server
 sudo mysql_secure_installation
 ```
 
-### 4. Instal·lar Nginx
+### 4. Install Nginx
 
 ```bash
 sudo apt install -y nginx
@@ -43,103 +43,103 @@ sudo systemctl enable nginx
 sudo systemctl start nginx
 ```
 
-### 5. Instal·lar PM2 (Process Manager)
+### 5. Install PM2 (Process Manager)
 
 ```bash
 sudo npm install -g pm2
 pm2 startup
 ```
 
-## 📦 Desplegament de l'Aplicació
+## 📦 Application Deployment
 
-### 1. Clonar el repositori
+### 1. Clone the repository
 
 ```bash
 cd /var/www
-sudo git clone https://github.com/el-teu-usuari/FreshExpress.git
+sudo git clone https://github.com/your-username/FreshExpress.git
 cd FreshExpress
 ```
 
-### 2. Instal·lar dependències
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configurar variables d'entorn
+### 3. Configure environment variables
 
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-Edita amb les credencials de producció:
+Edit with production credentials:
 
 ```env
-# Base de dades
+# Database
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=freshexpress_user
-DB_PASSWORD=contrasenya_segura_aqui
+DB_PASSWORD=your_secure_password_here
 DB_NAME_OPERACIONAL=freshexpress_operacional
 DB_NAME_BROKER=freshexpress_databroker
 
-# Autenticació JWT
-JWT_SECRET=genera_un_secret_amb_openssl_rand_base64_32
+# JWT Authentication
+JWT_SECRET=generate_a_secret_with_openssl_rand_base64_32
 
-# Entorn
+# Environment
 NODE_ENV=production
 
 # Google Maps
-GOOGLE_MAPS_API_KEY=la_teva_api_key_de_google
+GOOGLE_MAPS_API_KEY=your_google_api_key
 ```
 
-### 4. Configurar MySQL
+### 4. Configure MySQL
 
 ```bash
-# Crear usuari i bases de dades
+# Create user and databases
 sudo mysql -u root -p
 ```
 
-Dins de MySQL:
+Inside MySQL:
 
 ```sql
--- Crear usuari
-CREATE USER 'freshexpress_user'@'localhost' IDENTIFIED BY 'contrasenya_segura_aqui';
+-- Create user
+CREATE USER 'freshexpress_user'@'localhost' IDENTIFIED BY 'your_secure_password_here';
 
--- Crear bases de dades
+-- Create databases
 CREATE DATABASE freshexpress_operacional CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE freshexpress_databroker CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- Donar permisos
+-- Grant permissions
 GRANT ALL PRIVILEGES ON freshexpress_operacional.* TO 'freshexpress_user'@'localhost';
 GRANT ALL PRIVILEGES ON freshexpress_databroker.* TO 'freshexpress_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
 
-Importar dades:
+Import data:
 
 ```bash
 mysql -u freshexpress_user -p freshexpress_operacional < sql/freshexpress_completa.sql
 mysql -u freshexpress_user -p freshexpress_operacional < sql/repartidors.sql
 ```
 
-### 5. Compilar l'aplicació
+### 5. Build the application
 
 ```bash
 npm run build
 ```
 
-### 6. Configurar PM2
+### 6. Configure PM2
 
-Crear fitxer `ecosystem.config.js`:
+Create file `ecosystem.config.js`:
 
 ```bash
 nano ecosystem.config.js
 ```
 
-Contingut:
+Content:
 
 ```javascript
 module.exports = {
@@ -159,25 +159,25 @@ module.exports = {
 };
 ```
 
-Iniciar amb PM2:
+Start with PM2:
 
 ```bash
 pm2 start ecosystem.config.js
 pm2 save
 ```
 
-### 7. Configurar Nginx
+### 7. Configure Nginx
 
 ```bash
 sudo nano /etc/nginx/sites-available/freshexpress
 ```
 
-Contingut:
+Content:
 
 ```nginx
 server {
     listen 80;
-    server_name el-teu-domini.com www.el-teu-domini.com;
+    server_name your-domain.com www.your-domain.com;
 
     location / {
         proxy_pass http://localhost:4321;
@@ -193,7 +193,7 @@ server {
 }
 ```
 
-Activar configuració:
+Enable configuration:
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/freshexpress /etc/nginx/sites-enabled/
@@ -201,68 +201,68 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### 8. Configurar SSL amb Let's Encrypt
+### 8. Configure SSL with Let's Encrypt
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d el-teu-domini.com -d www.el-teu-domini.com
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 ```
 
-## 🔄 Actualitzar l'Aplicació
+## 🔄 Updating the Application
 
-Script d'actualització `deploy.sh`:
+Update script `deploy.sh`:
 
 ```bash
 #!/bin/bash
 
-echo "🚀 Actualitzant FreshExpress..."
+echo "🚀 Updating FreshExpress..."
 
-# Pull últims canvis
+# Pull latest changes
 git pull origin main
 
-# Instal·lar noves dependències
+# Install new dependencies
 npm install
 
-# Compilar
+# Build
 npm run build
 
-# Reiniciar PM2
+# Restart PM2
 pm2 reload ecosystem.config.js
 
-echo "✅ Desplegament completat!"
+echo "✅ Deployment complete!"
 ```
 
-Fer-lo executable i executar:
+Make it executable and run:
 
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-## 📊 Monitorització
+## 📊 Monitoring
 
-### Veure logs amb PM2
+### View logs with PM2
 
 ```bash
 pm2 logs freshexpress
 pm2 monit
 ```
 
-### Status de l'aplicació
+### Application status
 
 ```bash
 pm2 status
 ```
 
-### Reiniciar l'aplicació
+### Restart the application
 
 ```bash
 pm2 restart freshexpress
 ```
 
-## 🔒 Seguretat
+## 🔒 Security
 
-### Configurar firewall
+### Configure firewall
 
 ```bash
 sudo ufw allow 22      # SSH
@@ -271,9 +271,9 @@ sudo ufw allow 443     # HTTPS
 sudo ufw enable
 ```
 
-### Backups automàtics de MySQL
+### Automatic MySQL backups
 
-Crear script `backup.sh`:
+Create script `backup.sh`:
 
 ```bash
 #!/bin/bash
@@ -281,14 +281,14 @@ DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="/var/backups/mysql"
 mkdir -p $BACKUP_DIR
 
-mysqldump -u freshexpress_user -p'contrasenya' freshexpress_operacional > $BACKUP_DIR/operacional_$DATE.sql
-mysqldump -u freshexpress_user -p'contrasenya' freshexpress_databroker > $BACKUP_DIR/databroker_$DATE.sql
+mysqldump -u freshexpress_user -p'password' freshexpress_operacional > $BACKUP_DIR/operacional_$DATE.sql
+mysqldump -u freshexpress_user -p'password' freshexpress_databroker > $BACKUP_DIR/databroker_$DATE.sql
 
-# Mantenir només els últims 7 dies
+# Keep only the last 7 days
 find $BACKUP_DIR -type f -mtime +7 -delete
 ```
 
-Afegir a crontab (diari a les 2 AM):
+Add to crontab (daily at 2 AM):
 
 ```bash
 crontab -e
@@ -297,55 +297,55 @@ crontab -e
 
 ## 🐛 Troubleshooting
 
-### L'aplicació no arrenca
+### Application won't start
 
 ```bash
-# Comprovar logs
+# Check logs
 pm2 logs freshexpress --lines 100
 
-# Verificar variables d'entorn
+# Verify environment variables
 cat .env
 
-# Provar manualment
+# Test manually
 npm run preview
 ```
 
-### Error de connexió a MySQL
+### MySQL connection error
 
 ```bash
-# Verificar que MySQL està actiu
+# Verify MySQL is running
 sudo systemctl status mysql
 
-# Provar connexió
+# Test connection
 mysql -u freshexpress_user -p -h localhost
 ```
 
-### Nginx retorna 502
+### Nginx returns 502
 
 ```bash
-# Verificar que l'app està executant-se
+# Verify the app is running
 pm2 status
 
-# Comprovar logs de Nginx
+# Check Nginx logs
 sudo tail -f /var/log/nginx/error.log
 ```
 
-## 📝 Notes Importants
+## 📝 Important Notes
 
-1. **Canvia tots els secrets** en `.env` per producció
-2. **Configura backups automàtics** de la base de dades
-3. **Monitoritza l'aplicació** amb PM2 i logs
-4. **Actualitza regularment** el sistema i dependències
-5. **Configura un domini propi** abans del desplegament
-6. **No exposar** el fitxer `.env` al repositori Git
+1. **Change all secrets** in `.env` for production
+2. **Set up automatic backups** of the database
+3. **Monitor the application** with PM2 and logs
+4. **Regularly update** the system and dependencies
+5. **Configure your own domain** before deployment
+6. **Do not expose** the `.env` file in the Git repository
 
-## 🔗 Recursos Addicionals
+## 🔗 Additional Resources
 
-- [Documentació d'Astro](https://docs.astro.build)
+- [Astro Documentation](https://docs.astro.build)
 - [PM2 Docs](https://pm2.keymetrics.io/)
 - [Nginx Docs](https://nginx.org/en/docs/)
 - [Oracle Cloud Docs](https://docs.oracle.com/en-us/iaas/Content/home.htm)
 
 ---
 
-✅ Ara FreshExpress està en producció i llest per utilitzar!
+✅ FreshExpress is now in production and ready to use!
