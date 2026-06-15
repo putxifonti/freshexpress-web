@@ -17,13 +17,13 @@ This project started as a class assignment and has been lightly adapted so it ca
 - Admin dashboard to manage products, orders and configuration.
 - Order tracking for clients and delivery personnel.
 - Image processing and bulk image update scripts in `scripts/`.
-
+<!--
 ## Deployment
 
 The application is deployed on a single Oracle VPS. The backend connects to a MySQL database hosted on the same VPS. SQL queries are executed from the backend code (see `src/lib/db.ts` for the connection helper). The production site is reachable at:
 
 - https://www.fresh-express.tompuig.com
-
+-->
 ## Database configuration (example)
 
 Do not commit real credentials. Put your real config in a file that is ignored (for example `.env`) and keep the repository one safe. Example configuration values (invented):
@@ -37,13 +37,13 @@ DB_NAME=freshexpress_db
 ```
 
 The project includes a database helper at `src/lib/db.ts` that reads these environment variables. In the repo the actual credentials file is ignored by `.gitignore`.
-
+<!-->
 ## Accounts for testing
 
 - Client user: Yusleidy@gmail.com
 - Delivery user: Wilmer@gmail.com
 - Password for both accounts: QWer123$
-
+-->
 ## Notes
 
 - The AI/ML features are present under `ML/` but are disabled in production by default.
