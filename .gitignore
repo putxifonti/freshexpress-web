@@ -1,1 +1,24 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+PORTFOLIO.md
+
+# Dependencies and generated output
+node_modules/
+dist/
+.astro/
+.vercel/
+*.tsbuildinfo
+
+# Backups and logs (keep curated SQL schema/seed scripts under sql/)
+backups/
+/*.sql
+*.sql.gz
+*.dump
+*.zip
+*.log
+
+# Optional ML component and operating system files
 ML/
+.DS_Store

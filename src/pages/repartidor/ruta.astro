@@ -881,12 +881,6 @@ function formatTemps(fechaPedido: string) {
             if (tabBtn) {
               tabBtn.textContent = `Disponibles (${nouCount})`;
             }
-            // Si hi ha noves comandes, mostrar notificació
-            const currentCount = document.querySelectorAll('.btn-acceptar').length;
-            if (nouCount > currentCount) {
-              // Mostrar badge o notificació
-              console.log(`Noves comandes disponibles: ${nouCount - currentCount}`);
-            }
           }
         } catch (e) {
           console.error('Error actualitzant comandes:', e);

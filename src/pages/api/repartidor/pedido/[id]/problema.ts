@@ -94,25 +94,13 @@ export const POST: APIRoute = async ({ cookies, params, request }) => {
 
     // Crear registre d'incidència (opcional - si la taula existeix)
     try {
-      await queryOperacional(`
-        CREATE TABLE IF NOT EXISTS incidencias_entrega (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          pedido_id INT NOT NULL,
-          repartidor_id INT NOT NULL,
-          motiu VARCHAR(100) NOT NULL,
-          notes TEXT,
-          fecha_incidencia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
-        )
-      `);
-      
       await queryOperacional(
         `INSERT INTO incidencias_entrega (pedido_id, repartidor_id, motiu, notes) VALUES (?, ?, ?, ?)`,
         [pedidoId, repartidorId, motiu, notes || '']
       );
     } catch (e) {
       // Si falla la taula d'incidències, no és crític
-      console.log('Nota: Taula incidencias_entrega no creada');
+      console.error('Error desant la incidència:', e);
     }
 
     return new Response(JSON.stringify({ 

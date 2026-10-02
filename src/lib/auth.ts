@@ -19,6 +19,7 @@
  */
 
 import bcrypt from 'bcryptjs';
+import { createHash } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { queryOperacional, queryBroker } from './db';
@@ -28,7 +29,10 @@ import { queryOperacional, queryBroker } from './db';
 // ═══════════════════════════════════════════════════════════════════
 
 /** Secret per signar tokens JWT (carregat des de .env) */
-const JWT_SECRET = import.meta.env.JWT_SECRET || 'development_only_change_me';
+const JWT_SECRET = import.meta.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be configured (at least 32 characters)');
+}
 
 /** Temps d'expiració dels tokens JWT (7 dies) */
 const JWT_EXPIRES_IN = '7d';
@@ -170,8 +174,7 @@ export function generateAnonymousHash(userId: number): string {
   const data = `${userId}_FRESHEXPRESS_ECO_2024_${randomPart}_${timestamp}`;
   
   // SHA-256 irreversible
-  const crypto = require('crypto');
-  return crypto.createHash('sha256').update(data).digest('hex');
+  return createHash('sha256').update(data).digest('hex');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -185,8 +188,7 @@ export function generateAnonymousHash(userId: number): string {
  * 1. Verifica que l'email no existeixi
  * 2. Hash de la contrasenya amb bcrypt
  * 3. Insereix l'usuari a la BD
- * 4. Si és el primer usuari, el fa admin
- * 5. Si ha donat consentiment, genera hash d'anonimització
+ * 4. Si ha donat consentiment, genera hash d'anonimització
  * 6. Registra els consentiments RGPD
  * 7. Genera token JWT i retorna l'usuari
  * 
@@ -204,12 +206,6 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
     if (existingUsers.length > 0) {
       return { success: false, error: 'Aquest email ja està registrat' };
     }
-
-    // 2. Verificar si és el primer usuari (serà admin automàticament)
-    const userCount = await queryOperacional<any[]>(
-      'SELECT COUNT(*) as count FROM usuarios'
-    );
-    const isFirstUser = userCount[0]?.count === 0;
 
     // 3. Hash de la contrasenya amb bcrypt (cost 12)
     const passwordHash = await hashPassword(data.password);
@@ -233,15 +229,6 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
 
     const userId = result.insertId;
     
-    // 5. Si és el primer usuari, fer-lo administrador
-    if (isFirstUser) {
-      try {
-        await queryOperacional('UPDATE usuarios SET rol = ? WHERE id = ?', ['admin', userId]);
-      } catch {
-        // La columna rol pot no existir en totes les versions de la BD
-      }
-    }
-
     // 6. Generar hash d'anonimització si ha donat consentiment per al data broker
     let hashAnonimizacion = null;
     if (data.compartir_datos) {
@@ -380,7 +367,7 @@ export async function getUserById(userId: number): Promise<User | null> {
               c.acepta_comunicaciones as consentimiento_marketing
        FROM usuarios u
        LEFT JOIN consentimientos c ON u.id = c.usuario_id
-       WHERE u.id = ?`,
+       WHERE u.id = ? AND u.estado = 'activo'`,
       [userId]
     );
     return users.length > 0 ? users[0] : null;

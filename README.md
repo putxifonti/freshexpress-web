@@ -9,7 +9,7 @@ This project started as a class assignment and has been lightly adapted so it ca
 - A full-stack web application for ordering and delivering groceries.
 - A REST API that serves product, cart, order, and user data.
 - A data-broker layer that handles syncing product images, stats and updates between services and the database.
-- A small AI/ML component (kept disabled in production) for sales predictions and product suggestions (see the `ML/` folder).
+- An optional AI/ML component that is not part of the website deployment.
 
 ## Main features
 
@@ -36,9 +36,12 @@ DB_NAME_BROKER=freshexpress_databroker
 JWT_SECRET=<private-signing-secret>
 ```
 
-Never commit actual passwords or secrets. **Important:** the upstream repository currently tracks a `.env` file; do not use it for production credentials. The server's private `.env` is outside the Git checkout. Initial catalogue data and local product images are supplied by the SQL seeds and `public/img/`.
+Never commit actual passwords or secrets. The server's private `.env` is outside the Git checkout; the repository only provides `.env.example`. **Previously committed `.env` values remain in Git history and must be treated as exposed until rotated.**
+
+For a **new, empty** database, the curated initialization scripts are `sql/freshexpress_completa.sql` (two schemas, six companies and 58 products), `sql/02-local-images.sql` (images from `public/img/`), and `sql/03-runtime-tables.sql` (auxiliary tables and restricted application privileges). The scripts are applied once by the Docker MySQL initialization process. Do not re-run them against existing data.
 
 ## Notes
 
-- The AI/ML features are present under `ML/` but are disabled in production by default.
-- If you need to run the ML scripts or models, follow the `ML/README.md` and install the dependencies listed in `ML/requirements.txt`.
+- The ML component is not installed or required for the website.
+- Password recovery by email is not implemented yet; the site does not pretend to send reset emails.
+- Deployment notes: [DEPLOYMENT.md](DEPLOYMENT.md).

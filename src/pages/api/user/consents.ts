@@ -6,7 +6,6 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
   try {
     const token = cookies.get('auth_token')?.value;
     if (!token) {
-      console.error('No auth token');
       return new Response(JSON.stringify({ success: false, error: 'No autenticat' }), { 
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -15,7 +14,6 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 
     const payload = verifyToken(token);
     if (!payload) {
-      console.error('Token invàlid');
       return new Response(JSON.stringify({ success: false, error: 'Token invàlid' }), { 
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -25,15 +23,6 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     const body = await request.json();
     const { acepta_comunicaciones, analytics, compartir_datos } = body;
 
-    console.log('=== API CONSENTIMENTS ===');
-    console.log('Usuario ID:', payload.userId);
-    console.log('Body rebut:', body);
-    console.log('Consentiments a actualitzar:', {
-      acepta_comunicaciones,
-      analytics,
-      compartir_datos
-    });
-
     const success = await updateUserConsents(payload.userId, {
       acepta_comunicaciones,
       analytics,
@@ -41,7 +30,6 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     });
 
     if (success) {
-      console.log('✅ Consentiments actualitzats correctament');
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Consentiments actualitzats correctament' 
@@ -50,7 +38,6 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
         headers: { 'Content-Type': 'application/json' }
       });
     } else {
-      console.error('❌ updateUserConsents ha retornat false');
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Error actualitzant consentiments a la base de dades' 
@@ -59,12 +46,11 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  } catch (error: any) {
-    console.error('❌ EXCEPCIÓ a API consentiments:', error);
-    console.error('Stack trace:', error.stack);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: 'Error del servidor: ' + (error.message || 'Unknown error')
+  } catch (error) {
+    console.error('Error actualitzant consentiments:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Error intern del servidor'
     }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

@@ -26,9 +26,8 @@ let empreses: any[] = [];
 let errorCarregant = false;
 
 try {
-  // ⭐ CARREGAR EMPRESES DIRECTAMENT DES DE LA BD
+  // Carregar les empreses des de la base de dades.
   empreses = await getEmpreses();
-  console.log(`✅ ${empreses.length} empreses carregades des de la BD`);
 
   // Si hi ha empresa seleccionada, obtenir els seus productes
   if (empresaId) {

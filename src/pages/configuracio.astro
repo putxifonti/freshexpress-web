@@ -30,7 +30,7 @@ if (token) {
         solicitudRepartidor = solicituds?.[0] || null;
       } catch (error) {
         // La taula pot no existir encara
-        console.log("Taula solicitudes_repartidor no existeix o error:", error);
+        console.error("Error obtenint la sol·licitud de repartidor:", error);
       }
     }
   }
@@ -776,7 +776,6 @@ const zonesBCN = [
         });
 
         const result = await response.json();
-        console.log("Resposta API consentiments:", result);
 
         if (result.success) {
           alert("✅ Consentiments actualitzats correctament!");

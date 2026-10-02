@@ -44,7 +44,7 @@ else
 fi
 
 # Verificar .env NO està al repositori
-if git ls-files | grep -q "^.env$"; then
+if git ls-files | grep -Fqx '.env'; then
     error ".env està al repositori! Elimina'l immediatament"
 else
     success ".env NO està al repositori"
@@ -79,9 +79,11 @@ if git grep -i "api.*key.*=.*['\"][^'\"]*['\"]" -- "*.ts" "*.astro" "*.js" "*.mj
 fi
 
 # Buscar IPs
-if git grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" -- "*.ts" "*.astro" "*.js" "*.mjs" | grep -v "0.0.0.0" | grep -v "127.0.0.1" | grep -v "localhost" | grep -v ".md" > /dev/null 2>&1; then
+# Excloure coordenades SVG i l'exemple documental d'IPv4.
+ips=$(git grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' -- '*.ts' '*.astro' '*.js' '*.mjs' | grep -v -E 'd="|// IPv4:|0\.0\.0\.0|127\.0\.0\.1|localhost' || true)
+if [ -n "$ips" ]; then
     warning "Possibles IPs hardcoded trobades"
-    git grep -E "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" -- "*.ts" "*.astro" "*.js" "*.mjs" | grep -v "0.0.0.0" | grep -v "127.0.0.1" | grep -v "localhost" | grep -v ".md"
+    printf '%s\n' "$ips"
     ((secrets_found++))
 fi
 
@@ -97,7 +99,7 @@ if [ -f "package.json" ]; then
     success "package.json existeix"
     
     # Verificar node_modules no està al repositori
-    if git ls-files | grep -q "node_modules/"; then
+    if git ls-files | grep -q '^node_modules/'; then
         error "node_modules està al repositori!"
     else
         success "node_modules NO està al repositori"
@@ -110,7 +112,7 @@ echo ""
 echo "4️⃣  Verificant documentació..."
 echo "----------------------------------------"
 
-docs=("README.md" "LICENSE" "DEPLOYMENT.md" "SECURITY.md" "PORTFOLIO.md")
+docs=("README.md" "LICENSE" "DEPLOYMENT.md" "SECURITY.md")
 for doc in "${docs[@]}"; do
     if [ -f "$doc" ]; then
         success "$doc existeix"
@@ -130,6 +132,14 @@ for folder in "${folders[@]}"; do
         success "Carpeta $folder/ existeix"
     else
         error "Carpeta $folder/ no trobada"
+    fi
+done
+
+for script in sql/freshexpress_completa.sql sql/02-local-images.sql sql/03-runtime-tables.sql; do
+    if [ -f "$script" ]; then
+        success "$script existeix"
+    else
+        error "$script no trobat"
     fi
 done
 

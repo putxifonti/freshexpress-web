@@ -59,26 +59,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Crear taula si no existeix
-    await queryOperacional(`
-      CREATE TABLE IF NOT EXISTS solicitudes_repartidor (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        usuario_id INT NOT NULL,
-        vehiculo_tipo VARCHAR(50) NOT NULL,
-        zona_preferida VARCHAR(100) NOT NULL,
-        dni VARCHAR(20) NOT NULL,
-        telefono VARCHAR(20) NOT NULL,
-        disponibilitat VARCHAR(200),
-        motivacio TEXT,
-        estat ENUM('pendent', 'aprovada', 'rebutjada') DEFAULT 'pendent',
-        motiu_rebuig TEXT,
-        fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        fecha_resposta TIMESTAMP NULL,
-        admin_id INT,
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-      )
-    `);
-
     // Comprovar si ja té una sol·licitud pendent
     const solicitudsPendents = await queryOperacional<any[]>(
       "SELECT id FROM solicitudes_repartidor WHERE usuario_id = ? AND estat = 'pendent'",

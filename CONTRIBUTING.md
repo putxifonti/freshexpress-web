@@ -27,7 +27,7 @@ New ideas are welcome! Open an issue with:
 1. **Fork** the repository
 2. **Clone** your fork:
    ```bash
-   git clone https://github.com/putxifonti/freshexpress-web-publicado
+   git clone https://github.com/putxifonti/freshexpress-web.git
    ```
 3. **Create a branch** for your feature:
    ```bash
@@ -54,8 +54,8 @@ New ideas are welcome! Open an issue with:
 - Use TypeScript whenever possible
 - Follow Astro conventions for components
 - Use Tailwind CSS for styles
-- Variable and function names in English
-- Comments and UI in English
+- Keep variable and function names consistent with the surrounding code
+- Write user-facing UI in Catalan; keep comments clear and consistent
 
 ### Commit format
 
@@ -113,27 +113,18 @@ src/
 
 4. Open http://localhost:4321
 
-## Tests
+## Verification
 
 ```bash
-# Run all tests
-npm run test
-
-# Tests in watch mode
-npm run test:watch
-
-# Coverage
-npm run test:coverage
+npm ci
+npm run build
 ```
+
+There is no automated `npm run test` script yet. For UI changes, manually check affected routes and links; for database changes, test against a disposable database, never production.
 
 ## Database
 
-For local development, you need MySQL 8.0+:
-
-```bash
-# Create the database
-mysql -u root -p < sql/freshexpress_completa.sql
-```
+The schema, six companies and 58 products are initialized only for a **new, empty** MySQL instance using the three curated scripts described in [DEPLOYMENT.md](DEPLOYMENT.md). Do not run them against existing data. They assume the Docker MySQL entrypoint has created the application DB user.
 
 ## Questions?
 

@@ -3,14 +3,12 @@
 -- Executar amb: mysql -u root -p < freshexpress_completa.sql
 -- =====================================================
 
--- Eliminar bases de dades si existeixen
-DROP DATABASE IF EXISTS freshexpress_operacional;
-DROP DATABASE IF EXISTS freshexpress_databroker;
+-- Inicialització exclusiva per a una instància MySQL nova (sense esborrar dades).
 
 -- =====================================================
 -- BASE DE DADES OPERACIONAL
 -- =====================================================
-CREATE DATABASE freshexpress_operacional CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS freshexpress_operacional CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE freshexpress_operacional;
 
 -- =====================================================
@@ -21,6 +19,7 @@ CREATE TABLE usuarios (
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    session_version INT NOT NULL DEFAULT 0,
     telefono VARCHAR(20),
     direccion TEXT,
     codigo_postal VARCHAR(10),
@@ -326,7 +325,9 @@ CREATE TABLE incidencias (
 -- =====================================================
 -- BASE DE DADES DATA BROKER
 -- =====================================================
-CREATE DATABASE freshexpress_databroker CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS freshexpress_databroker CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON freshexpress_databroker.* TO 'freshexpress'@'%';
+ALTER USER 'freshexpress'@'%' REQUIRE SSL;
 USE freshexpress_databroker;
 
 -- =====================================================
@@ -789,22 +790,15 @@ DELIMITER ;
 USE freshexpress_operacional;
 
 -- =====================================================
--- DADES DE PROVA: Usuari Admin
--- =====================================================
-INSERT INTO usuarios (nombre, email, password, rol) VALUES 
-('Admin FreshExpress', 'admin@freshexpress.cat', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
--- Password: password
-
--- =====================================================
 -- DADES DE PROVA: Empreses
 -- =====================================================
 INSERT INTO empresas (nombre, descripcion, categoria) VALUES 
 ('Fruites Can Pep', 'Les millors fruites fresques de la comarca', 'frutas'),
-('Verdures La Masia', 'Verdures ecologiques i de proximitat', 'verduras'),
+('Verdures La Masia', 'Verdures ecològiques i de proximitat', 'verduras'),
 ('Carnisseria El Bou', 'Carns de primera qualitat', 'carnes'),
 ('Peixateria Mar Blau', 'Peix fresc del dia', 'pescados'),
 ('Lactis La Granja', 'Productes lactis artesanals', 'lacteos'),
-('Forn de Pa El Moli', 'Pa artesa i pastisseria tradicional', 'panaderia');
+('Forn de Pa El Molí', 'Pa artesà i pastisseria tradicional', 'panaderia');
 
 -- =====================================================
 -- DADES DE PROVA: Productes (58 productes)
@@ -812,82 +806,73 @@ INSERT INTO empresas (nombre, descripcion, categoria) VALUES
 INSERT INTO productos (empresa_id, nombre, descripcion, precio, unidad, categoria, destacado) VALUES 
 -- Fruites Can Pep (empresa_id = 1)
 (1, 'Pomes Golden', 'Pomes dolces i cruixents', 2.50, 'kg', 'fruites', 1),
-(1, 'Taronges de Valencia', 'Taronges fresques i sucoses', 1.80, 'kg', 'fruites', 1),
-(1, 'Platans de Canaries', 'Platans madurs i dolcos', 2.20, 'kg', 'fruites', 0),
+(1, 'Taronges de València', 'Taronges fresques i sucoses', 1.80, 'kg', 'fruites', 1),
+(1, 'Plàtans de Canàries', 'Plàtans madurs i dolços', 2.20, 'kg', 'fruites', 0),
 (1, 'Maduixes', 'Maduixes fresques de temporada', 4.50, 'safata', 'fruites', 1),
 (1, 'Kiwis', 'Kiwis verds i madurs', 3.80, 'kg', 'fruites', 0),
-(1, 'Peres Conference', 'Peres dolces i aromatiques', 2.90, 'kg', 'fruites', 0),
-(1, 'Raim negre', 'Raim negre sense llavors', 3.50, 'kg', 'fruites', 0),
-(1, 'Melo', 'Melo dolc de temporada', 1.90, 'unitat', 'fruites', 1),
-(1, 'Sindria', 'Sindria fresca i dolca', 0.90, 'kg', 'fruites', 1),
+(1, 'Peres Conference', 'Peres dolces i aromàtiques', 2.90, 'kg', 'fruites', 0),
+(1, 'Raïm negre', 'Raïm negre sense llavors', 3.50, 'kg', 'fruites', 0),
+(1, 'Meló', 'Meló dolç de temporada', 1.90, 'unitat', 'fruites', 1),
+(1, 'Síndria', 'Síndria fresca i dolça', 0.90, 'kg', 'fruites', 1),
 (1, 'Mangos', 'Mangos madurs importats', 3.20, 'unitat', 'fruites', 0),
 
 -- Verdures La Masia (empresa_id = 2)
-(2, 'Tomates de penjar', 'Tomates ecologics de proximitat', 3.20, 'kg', 'verdures', 1),
+(2, 'Tomàquets de penjar', 'Tomàquets ecològics de proximitat', 3.20, 'kg', 'verdures', 1),
 (2, 'Enciams', 'Enciams frescos i cruixents', 1.20, 'unitat', 'verdures', 0),
 (2, 'Cebes', 'Cebes dolces de Figueres', 1.50, 'kg', 'verdures', 0),
-(2, 'Alls', 'Alls de la terra', 0.80, 'cabeca', 'verdures', 0),
+(2, 'Alls', 'Alls de la terra', 0.80, 'cabeça', 'verdures', 0),
 (2, 'Patates', 'Patates per fregir o bullir', 1.30, 'kg', 'verdures', 1),
-(2, 'Pastanagues', 'Pastanagues ecologiques', 1.80, 'kg', 'verdures', 0),
+(2, 'Pastanagues', 'Pastanagues ecològiques', 1.80, 'kg', 'verdures', 0),
 (2, 'Carabasses', 'Carabasses fresques', 1.60, 'kg', 'verdures', 0),
-(2, 'Alberginies', 'Alberginies brillants', 2.40, 'kg', 'verdures', 0),
+(2, 'Albergínies', 'Albergínies fresques', 2.40, 'kg', 'verdures', 0),
 (2, 'Pebrots vermells', 'Pebrots vermells carnosos', 3.50, 'kg', 'verdures', 1),
 (2, 'Carbassons', 'Carbassons tendres', 2.10, 'kg', 'verdures', 0),
 (2, 'Espinacs frescos', 'Espinacs de fulla gran', 2.80, 'manat', 'verdures', 0),
-(2, 'Broquil', 'Broquil fresc i verd', 2.20, 'unitat', 'verdures', 1),
+(2, 'Bròquil', 'Bròquil fresc i verd', 2.20, 'unitat', 'verdures', 1),
 
 -- Carnisseria El Bou (empresa_id = 3)
 (3, 'Filet de vedella', 'Filet de vedella tendre', 24.90, 'kg', 'carns', 1),
-(3, 'Costelles de porc', 'Costelles de porc iberic', 8.90, 'kg', 'carns', 0),
-(3, 'Pit de pollastre', 'Pit de pollastre de pages', 7.50, 'kg', 'carns', 1),
+(3, 'Costelles de porc', 'Costelles de porc ibèric', 8.90, 'kg', 'carns', 0),
+(3, 'Pit de pollastre', 'Pit de pollastre de pagès', 7.50, 'kg', 'carns', 1),
 (3, 'Cuixes de pollastre', 'Cuixes de pollastre fresques', 5.90, 'kg', 'carns', 0),
-(3, 'Hamburgueses cassolanes', 'Hamburgueses fetes a ma', 9.90, 'safata', 'carns', 1),
-(3, 'Llom de porc', 'Llom de porc per filetear', 10.50, 'kg', 'carns', 0),
+(3, 'Hamburgueses casolanes', 'Hamburgueses fetes a mà', 9.90, 'safata', 'carns', 1),
+(3, 'Llom de porc', 'Llom de porc per fer a filets', 10.50, 'kg', 'carns', 0),
 (3, 'Botifarra fresca', 'Botifarra tradicional catalana', 8.20, 'kg', 'carns', 1),
-(3, 'Xorico iberic', 'Xorico iberic curat', 18.90, 'kg', 'carns', 0),
-(3, 'Pernil dolc', 'Pernil dolc en llesques', 15.90, 'kg', 'carns', 0),
+(3, 'Xoriço ibèric', 'Xoriço ibèric curat', 18.90, 'kg', 'carns', 0),
+(3, 'Pernil dolç', 'Pernil dolç en llesques', 15.90, 'kg', 'carns', 0),
 (3, 'Carn picada mixta', 'Barreja vedella i porc', 9.50, 'kg', 'carns', 1),
 
 -- Peixateria Mar Blau (empresa_id = 4)
-(4, 'Salmo fresc', 'Filets de salmo noruec', 18.90, 'kg', 'peixos', 1),
+(4, 'Salmó fresc', 'Filets de salmó noruec', 18.90, 'kg', 'peixos', 1),
 (4, 'Gambes blanques', 'Gambes blanques de Huelva', 22.50, 'kg', 'peixos', 1),
 (4, 'Llobarro', 'Llobarro salvatge', 16.90, 'kg', 'peixos', 0),
 (4, 'Musclos', 'Musclos del Delta', 4.50, 'kg', 'peixos', 0),
-(4, 'Cloisses', 'Cloisses fresques', 12.90, 'kg', 'peixos', 0),
-(4, 'Tonyina fresca', 'Tonyina de aleta groga', 24.90, 'kg', 'peixos', 1),
+(4, 'Cloïsses', 'Cloïsses fresques', 12.90, 'kg', 'peixos', 0),
+(4, 'Tonyina fresca', 'Tonyina d’aleta groga', 24.90, 'kg', 'peixos', 1),
 (4, 'Sardines', 'Sardines del Mediterrani', 6.90, 'kg', 'peixos', 0),
 (4, 'Calamars', 'Calamars petits i tendres', 14.50, 'kg', 'peixos', 1),
 (4, 'Rap', 'Cua de rap', 19.90, 'kg', 'peixos', 0),
-(4, 'Bacalla dessalat', 'Bacalla dessalat en llom', 16.50, 'kg', 'peixos', 0),
+(4, 'Bacallà dessalat', 'Bacallà dessalat en lloms', 16.50, 'kg', 'peixos', 0),
 
 -- Lactis La Granja (empresa_id = 5)
 (5, 'Llet fresca', 'Llet fresca sencera', 1.40, 'litre', 'lactis', 1),
-(5, 'Iogurt natural', 'Iogurt natural artesa', 0.80, 'unitat', 'lactis', 0),
+(5, 'Iogurt natural', 'Iogurt natural artesà', 0.80, 'unitat', 'lactis', 0),
 (5, 'Formatge fresc', 'Formatge fresc de cabra', 6.90, 'unitat', 'lactis', 1),
-(5, 'Formatge curat', 'Formatge curat de ovella', 14.90, 'kg', 'lactis', 1),
+(5, 'Formatge curat', 'Formatge curat d’ovella', 14.90, 'kg', 'lactis', 1),
 (5, 'Mantega', 'Mantega de vaca', 3.50, 'unitat', 'lactis', 0),
 (5, 'Nata per cuinar', 'Nata fresca 35% MG', 2.20, 'brick', 'lactis', 0),
-(5, 'Mato', 'Mato tradicional catala', 4.50, 'unitat', 'lactis', 1),
-(5, 'Ous de pages', 'Ous de gallines felices', 3.20, 'dotzena', 'lactis', 1),
+(5, 'Mató', 'Mató tradicional català', 4.50, 'unitat', 'lactis', 1),
+(5, 'Ous de pagès', 'Ous de gallines criades en llibertat', 3.20, 'dotzena', 'lactis', 1),
 
 -- Forn de Pa El Moli (empresa_id = 6)
-(6, 'Pa de pages', 'Pa artesa de massa mare', 2.80, 'unitat', 'pa', 1),
+(6, 'Pa de pagès', 'Pa artesà de massa mare', 2.80, 'unitat', 'pa', 1),
 (6, 'Baguette', 'Baguette cruixent', 1.20, 'unitat', 'pa', 0),
 (6, 'Pa integral', 'Pa integral amb llavors', 3.20, 'unitat', 'pa', 1),
 (6, 'Croissants', 'Croissants de mantega', 1.50, 'unitat', 'pa', 1),
 (6, 'Ensaimades', 'Ensaimades mallorquines', 2.50, 'unitat', 'pa', 0),
 (6, 'Coca de vidre', 'Coca tradicional amb sucre', 3.80, 'unitat', 'pa', 1),
-(6, 'Pa de motlle', 'Pa de motlle sense escorca', 2.40, 'unitat', 'pa', 0),
-(6, 'Magdalenes', 'Magdalenes cassolanes', 0.60, 'unitat', 'pa', 0);
-
--- =====================================================
--- DADES DE PROVA: Entregues
--- =====================================================
-INSERT INTO entregues (nombre_cliente, telefono_cliente, direccion_entrega, codigo_postal, notas_entrega, hora_estimada_entrega, estado) VALUES 
-('Maria Garcia', '666111222', 'Carrer Major 15, 2n 1a', '08001', 'Trucar abans d arribar', DATE_ADD(NOW(), INTERVAL 30 MINUTE), 'sin_asignar'),
-('Joan Puig', '666333444', 'Avinguda Diagonal 250, 5e', '08037', 'Portar consergeria', DATE_ADD(NOW(), INTERVAL 45 MINUTE), 'sin_asignar'),
-('Anna Lopez', '666555666', 'Rambla Catalunya 89, atic', '08008', NULL, DATE_ADD(NOW(), INTERVAL 60 MINUTE), 'sin_asignar'),
-('Pere Marti', '666777888', 'Carrer Arago 320, 3r 2a', '08009', 'Timbre no funciona, trucar', DATE_ADD(NOW(), INTERVAL 90 MINUTE), 'sin_asignar');
+(6, 'Pa de motlle', 'Pa de motlle sense crosta', 2.40, 'unitat', 'pa', 0),
+(6, 'Magdalenes', 'Magdalenes casolanes', 0.60, 'unitat', 'pa', 0);
 
 -- =====================================================
 -- FI DE L'SCRIPT

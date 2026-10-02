@@ -41,7 +41,7 @@ Always check that:
 1. The `.gitignore` file is up to date
 2. There are no secrets in the code
 3. Sensitive variables use `process.env` or `import.meta.env`
-4. There are no hardcoded IP addresses or production URLs
+4. There are no hardcoded credentials or obsolete service URLs
 5. Test passwords are generic
 
 ## 🛡️ Best Practices
@@ -54,7 +54,7 @@ const dbHost = import.meta.env.DB_HOST;
 const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
 // ❌ INCORRECT - Hardcoded
-const dbHost = "143.47.36.36";
+const dbHost = "example.invalid";
 const apiKey = "YOUR_API_KEY_HERE";
 ```
 
@@ -70,7 +70,7 @@ const config = {
 
 // ❌ INCORRECT
 const config = {
-  host: "143.47.36.36",
+  host: "example.invalid",
   user: "api",
   password: "api123",
 };
@@ -97,8 +97,8 @@ openssl rand -hex 16
 ## 📝 Checklist before publishing
 
 - [ ] Review all code for hardcoded secrets
-- [ ] Verify that `.env` is in `.gitignore`
-- [ ] Check that only `.env.example` has generic values
+- [ ] Verify that `.env` is in `.gitignore` **and not tracked** (`git ls-files --error-unmatch .env` must fail)
+- [ ] Check that only `.env.example` has generic values; rotate any credentials previously committed in Git history
 - [ ] Remove comments with sensitive information
 - [ ] Review Git history in case something sensitive was pushed
 - [ ] Verify that IPs and URLs are environment variables
