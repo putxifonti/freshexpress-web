@@ -1,5 +1,7 @@
 # Fresh Express
 
+**Try the live app:** [freshexpress.tompuig.com](https://freshexpress.tompuig.com)
+
 This project started as a class assignment and has been lightly adapted so it can be published and run publicly.
 
 ## What this project is
@@ -17,36 +19,26 @@ This project started as a class assignment and has been lightly adapted so it ca
 - Admin dashboard to manage products, orders and configuration.
 - Order tracking for clients and delivery personnel.
 - Image processing and bulk image update scripts in `scripts/`.
-<!--
-## Deployment
 
-The application is deployed on a single Oracle VPS. The backend connects to a MySQL database hosted on the same VPS. SQL queries are executed from the backend code (see `src/lib/db.ts` for the connection helper). The production site is reachable at:
+## Database configuration
 
-- https://www.fresh-express.tompuig.com
--->
-## Database configuration (example)
+The deployed app runs with a private MySQL container and two databases: `freshexpress_operacional` for users, companies, products and orders, and `freshexpress_databroker` for analytics. The web app connects through `src/lib/db.ts` using CA-verified TLS; the database port is not exposed publicly.
 
-Do not commit real credentials. Put your real config in a file that is ignored (for example `.env`) and keep the repository one safe. Example configuration values (invented):
+For the Docker deployment, runtime variables are loaded from `/root/freshexpress-web/.env` (permissions `600`):
 
-```
-DB_HOST=db.fresh-express.internal
+```dotenv
+DB_HOST=db
 DB_PORT=3306
-DB_USER=freshexpress_user
-DB_PASSWORD=ExamplePass!234
-DB_NAME=freshexpress_db
+DB_USER=freshexpress
+DB_PASSWORD=<private-password>
+DB_NAME_OPERACIONAL=freshexpress_operacional
+DB_NAME_BROKER=freshexpress_databroker
+JWT_SECRET=<private-signing-secret>
 ```
 
-The project includes a database helper at `src/lib/db.ts` that reads these environment variables. In the repo the actual credentials file is ignored by `.gitignore`.
-<!-->
-## Accounts for testing
+Never commit actual passwords or secrets. **Important:** the upstream repository currently tracks a `.env` file; do not use it for production credentials. The server's private `.env` is outside the Git checkout. Initial catalogue data and local product images are supplied by the SQL seeds and `public/img/`.
 
-- Client user: Yusleidy@gmail.com
-- Delivery user: Wilmer@gmail.com
-- Password for both accounts: QWer123$
--->
 ## Notes
 
 - The AI/ML features are present under `ML/` but are disabled in production by default.
 - If you need to run the ML scripts or models, follow the `ML/README.md` and install the dependencies listed in `ML/requirements.txt`.
-
-If you want, I can add setup steps, deployment scripts or a `.env.example` next.
