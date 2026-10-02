@@ -221,6 +221,8 @@ const vehiculosTipus = [
               <input
                 type="password"
                 name="new_password"
+                minlength="8"
+                maxlength="72"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent"
               />
             </div>
@@ -235,6 +237,7 @@ const vehiculosTipus = [
               />
             </div>
           </div>
+          <p class="text-sm text-gray-600">8 caràcters o més, amb majúscula, minúscula, número i símbol (màxim 72 bytes).</p>
           <div class="pt-4">
             <button
               type="submit"
@@ -498,6 +501,7 @@ const vehiculosTipus = [
 </Layout>
 
 <script>
+  import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '../../lib/password-policy';
   // Formulari d'informació personal
   const profileForm = document.getElementById(
     "profile-form"
@@ -558,8 +562,8 @@ const vehiculosTipus = [
       return;
     }
 
-    if (newPassword.length < 8) {
-      alert("La contrasenya ha de tenir almenys 8 caràcters");
+    if (!isStrongPassword(newPassword)) {
+      alert(PASSWORD_POLICY_MESSAGE);
       return;
     }
 

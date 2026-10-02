@@ -2,6 +2,7 @@
 import type { APIRoute } from 'astro';
 import { verifyToken, hashPassword, verifyPassword } from '../../../lib/auth';
 import { queryOperacional } from '../../../lib/db';
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '../../../lib/password-policy';
 
 export const PUT: APIRoute = async ({ request, cookies }) => {
   try {
@@ -22,8 +23,8 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
       return new Response(JSON.stringify({ success: false, error: 'Falten camps obligatoris' }), { status: 400 });
     }
 
-    if (newPassword.length < 8) {
-      return new Response(JSON.stringify({ success: false, error: 'La contrasenya ha de tenir mínim 8 caràcters' }), { status: 400 });
+    if (typeof currentPassword !== 'string' || !isStrongPassword(newPassword)) {
+      return new Response(JSON.stringify({ success: false, error: PASSWORD_POLICY_MESSAGE }), { status: 400 });
     }
 
     // Obtenir contrasenya actual

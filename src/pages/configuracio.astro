@@ -252,6 +252,8 @@ const zonesBCN = [
                 <input
                   type="password"
                   name="new_password"
+                  minlength="8"
+                  maxlength="72"
                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent"
                 />
               </div>
@@ -266,6 +268,7 @@ const zonesBCN = [
                 />
               </div>
             </div>
+            <p class="text-sm text-gray-600">8 caràcters o més, amb majúscula, minúscula, número i símbol (màxim 72 bytes).</p>
             <div class="pt-4">
               <button
                 type="submit"
@@ -670,6 +673,8 @@ const zonesBCN = [
 </Layout>
 
 <script>
+  import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '../lib/password-policy';
+
   // Actualitzar perfil
   document
     .getElementById("profile-form")
@@ -706,6 +711,11 @@ const zonesBCN = [
 
       if (formData.get("new_password") !== formData.get("confirm_password")) {
         alert("Les contrasenyes no coincideixen");
+        return;
+      }
+
+      if (!isStrongPassword(formData.get("new_password"))) {
+        alert(PASSWORD_POLICY_MESSAGE);
         return;
       }
 

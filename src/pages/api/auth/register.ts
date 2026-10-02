@@ -1,6 +1,7 @@
 // src/pages/api/auth/register.ts - Endpoint de registre
 import type { APIRoute } from 'astro';
 import { registerUser } from '../../../lib/auth';
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '../../../lib/password-policy';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -37,12 +38,12 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       );
     }
 
-    // Validar contrasenya (mínim 8 caràcters)
-    if (password.length < 8) {
+    // Enforce the same policy on the server, even if browser checks are bypassed.
+    if (!isStrongPassword(password)) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'La contrasenya ha de tenir mínim 8 caràcters' 
+          error: PASSWORD_POLICY_MESSAGE
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );

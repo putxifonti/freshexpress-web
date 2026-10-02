@@ -462,19 +462,17 @@ try {
   // Funció de logout compartida
   async function handleLogout() {
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      const result = await response.json();
-
-      // Tracking de logout
-      if (result.trackLogout && window.FreshExpressTracking) {
-        window.FreshExpressTracking.trackLogout();
-        await window.FreshExpressTracking.flush();
-      }
-
-      window.location.href = "/";
-    } catch (e) {
-      console.error("Error tancant sessió:", e);
-      window.location.href = "/";
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+        credentials: "same-origin",
+      });
+      if (!response.ok) throw new Error(`Logout failed: ${response.status}`);
+      window.location.replace("/login");
+    } catch (error) {
+      console.error("Error tancant sessió:", error);
+      alert("No s'ha pogut tancar la sessió. Torna-ho a provar.");
     }
   }
 

@@ -199,6 +199,8 @@
                 autocomplete="new-password"
                 class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3BB143] focus:border-transparent transition-all outline-none"
                 placeholder="Mínim 8 caràcters"
+                minlength="8"
+                maxlength="72"
               />
               <button
                 type="button"
@@ -227,6 +229,7 @@
                 </svg>
               </button>
             </div>
+            <p class="mt-2 text-xs text-gray-600">8 caràcters o més, amb majúscula, minúscula, número i símbol (màxim 72 bytes).</p>
           </div>
 
           <div>
@@ -446,6 +449,8 @@
 </div>
 
 <script>
+  import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '../lib/password-policy';
+
   const togglePassword = document.getElementById("toggle-password");
   const passwordInput = document.getElementById(
     "contrasenya"
@@ -521,9 +526,8 @@
       return;
     }
 
-    if (password.length < 8) {
-      errorMessage!.textContent =
-        "La contrasenya ha de tenir mínim 8 caràcters.";
+    if (!isStrongPassword(password)) {
+      errorMessage!.textContent = PASSWORD_POLICY_MESSAGE;
       errorMessage!.classList.remove("hidden");
       return;
     }
